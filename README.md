@@ -2,19 +2,23 @@ This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-
 
 ## Getting Started
 
-First, run the development server:
+1. **Install dependencies** (do this once after cloning):
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+   ```bash
+   npm i
+   ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+   This is the same as `npm install`.
+
+2. **Run the development server:**
+
+   ```bash
+   npm run dev
+   ```
+
+   For other package managers you can use `yarn dev`, `pnpm dev`, or `bun dev` instead (after installing with that tool).
+
+Open [http://localhost:3000](http://localhost:3000) in your browser to see the app.
 
 You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
 
