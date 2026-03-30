@@ -5,6 +5,7 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
+    "build:native-filter": "c++ -std=c++17 -O2 -o native/filter_pending native/filter_pending.cpp",
     "start": "next start",
     "lint": "eslint"
   },

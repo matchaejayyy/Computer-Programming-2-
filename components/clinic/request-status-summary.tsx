@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { ChevronRight, ClipboardList } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
@@ -40,7 +39,7 @@ export function RequestStatusSummary() {
       </CardHeader>
       <CardContent className="space-y-1 pt-0">
         <p className="mb-2 text-xs text-muted-foreground">
-          Open a category to read full information for each appointment request.
+          Counts by status for your appointment requests.
         </p>
         {rows.map((row) => {
           const count =
@@ -50,10 +49,9 @@ export function RequestStatusSummary() {
                 ? counts.approved
                 : counts.rejected;
           return (
-            <Link
+            <div
               key={row.status}
-              href={`/requests?status=${row.status}`}
-              className="flex items-center justify-between gap-2 rounded-lg border border-transparent px-3 py-2.5 text-sm transition-colors hover:border-border hover:bg-muted/60"
+              className="flex items-center justify-between gap-2 rounded-lg border border-transparent px-3 py-2.5 text-sm"
             >
               <span className="font-medium text-foreground">{row.label}</span>
               <span className="flex items-center gap-1.5">
@@ -65,7 +63,7 @@ export function RequestStatusSummary() {
                   aria-hidden
                 />
               </span>
-            </Link>
+            </div>
           );
         })}
       </CardContent>

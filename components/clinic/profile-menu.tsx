@@ -26,11 +26,11 @@ export function ProfileMenu() {
         )}
       >
         <span className="max-w-24 truncate text-left text-[10px] font-semibold uppercase leading-tight text-foreground sm:max-w-56 sm:text-xs">
-          Student Name
+          Vhea Asesor
         </span>
         <Avatar className="size-9 ring-2 ring-emerald-600/80 ring-offset-2 ring-offset-card">
           <AvatarFallback className="bg-emerald-600 text-xs font-medium text-white">
-            SN
+            VA
           </AvatarFallback>
         </Avatar>
         <ChevronDown className="size-4 shrink-0 text-muted-foreground" aria-hidden />
