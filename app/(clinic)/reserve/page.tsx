@@ -59,7 +59,7 @@ export default function ReservePage() {
               ))}
             </RadioGroup>
           </div>
-          <Button type="button" className="w-full">
+          <Button type="button" size="lg" className="w-full">
             Submit appointment request
           </Button>
         </CardContent>
