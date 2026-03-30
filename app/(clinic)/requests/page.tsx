@@ -7,7 +7,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import {
   MOCK_APPOINTMENT_REQUESTS,
-  isRequestStatus,
   type RequestStatus,
 } from "@/lib/clinic/mock-requests";
 import { cn } from "@/lib/utils";
@@ -27,21 +26,8 @@ const statusBadge: Record<
   rejected: "border-red-200 bg-red-50 text-red-800",
 };
 
-type Props = {
-  searchParams: Promise<{ status?: string }>;
-};
-
-export default async function RequestsPage({ searchParams }: Props) {
-  const { status: raw } = await searchParams;
-  const filter = isRequestStatus(raw) ? raw : null;
-
-  const items = filter
-    ? MOCK_APPOINTMENT_REQUESTS.filter((r) => r.status === filter)
-    : MOCK_APPOINTMENT_REQUESTS;
-
-  const title = filter
-    ? `${statusLabels[filter]} requests`
-    : "All appointment requests";
+export default function RequestsPage() {
+  const items = MOCK_APPOINTMENT_REQUESTS;
 
   return (
     <div className="mx-auto flex max-w-2xl flex-col gap-6">
@@ -54,28 +40,16 @@ export default async function RequestsPage({ searchParams }: Props) {
           Home
         </Link>
         <div className="flex flex-wrap gap-2">
-          <FilterChip href="/requests" active={!filter} label="All" />
-          <FilterChip
-            href="/requests?status=pending"
-            active={filter === "pending"}
-            label="Pending"
-          />
-          <FilterChip
-            href="/requests?status=approved"
-            active={filter === "approved"}
-            label="Approved"
-          />
-          <FilterChip
-            href="/requests?status=rejected"
-            active={filter === "rejected"}
-            label="Rejected"
-          />
+          <StatusPill active label="All" />
+          <StatusPill label="Pending" />
+          <StatusPill label="Approved" />
+          <StatusPill label="Rejected" />
         </div>
       </div>
 
       <div>
         <h1 className="text-xl font-bold text-foreground sm:text-2xl">
-          {title}
+          All appointment requests
         </h1>
         <p className="mt-1 text-sm text-muted-foreground">
           Full details for each appointment request you have submitted to the
@@ -88,9 +62,8 @@ export default async function RequestsPage({ searchParams }: Props) {
           <CardContent className="space-y-2 py-10 text-center text-sm text-muted-foreground">
             <p className="font-medium text-foreground">No data yet</p>
             <p>
-              {filter
-                ? `You have no ${statusLabels[filter].toLowerCase()} requests. Counts will update after you submit or the clinic processes requests.`
-                : "You have not submitted any appointment requests. Use Reserve appointment to send one."}
+              You have not submitted any appointment requests. Use Reserve
+              appointment to send one.
             </p>
           </CardContent>
         </Card>
@@ -163,26 +136,18 @@ function DetailRow({ label, value }: { label: string; value: string }) {
   );
 }
 
-function FilterChip({
-  href,
-  label,
-  active,
-}: {
-  href: string;
-  label: string;
-  active: boolean;
-}) {
+/** Visual-only pills (no filtering or navigation). */
+function StatusPill({ label, active }: { label: string; active?: boolean }) {
   return (
-    <Link
-      href={href}
+    <span
       className={cn(
-        "rounded-full border px-3 py-1.5 text-xs font-medium transition-colors",
+        "inline-flex items-center rounded-full border px-3 py-1.5 text-xs font-medium select-none",
         active
           ? "border-primary bg-primary text-primary-foreground"
-          : "border-border bg-card text-foreground hover:bg-muted"
+          : "border-border bg-card text-foreground"
       )}
     >
       {label}
-    </Link>
+    </span>
   );
 }
