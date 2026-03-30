@@ -22,7 +22,7 @@ export function ProfileMenu() {
         aria-label="Open profile menu"
         className={cn(
           buttonVariants({ variant: "ghost" }),
-          "h-auto gap-2 rounded-lg px-2 py-1.5 hover:bg-muted"
+          "h-auto gap-2 rounded-xl px-2 py-2 font-medium shadow-none hover:bg-neutral-100"
         )}
       >
         <span className="max-w-24 truncate text-left text-[10px] font-semibold uppercase leading-tight text-foreground sm:max-w-56 sm:text-xs">

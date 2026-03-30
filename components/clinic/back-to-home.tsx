@@ -13,7 +13,7 @@ export function BackToHome() {
         href="/"
         className={cn(
           buttonVariants({ variant: "outline", size: "lg" }),
-          "w-full max-w-md justify-center gap-2 border-clinic-blue/25 bg-clinic-surface text-clinic-blue hover:bg-clinic-surface/80"
+          "w-full max-w-md justify-center gap-2.5 border-2 border-red-200 bg-white font-semibold text-red-700 shadow-sm hover:border-red-300 hover:bg-red-50"
         )}
       >
         <Home className="size-4 shrink-0" aria-hidden />
