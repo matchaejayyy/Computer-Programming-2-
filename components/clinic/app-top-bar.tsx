@@ -13,7 +13,7 @@ export function AppTopBar() {
           href="/"
           className="min-w-0 shrink text-base font-bold tracking-tight text-foreground sm:text-lg"
         >
-          University of San Agustin
+          USA Medical Services Portal
         </Link>
 
         <div className="flex shrink-0 items-center gap-2 sm:gap-3">

@@ -51,7 +51,7 @@ export function HomeDashboard() {
         <Card className="overflow-hidden border-0 bg-primary text-primary-foreground shadow-md">
           <CardContent className="space-y-4 p-6 sm:p-8">
             <p className="text-xs font-semibold uppercase tracking-wide opacity-90">
-              San Agustin Clinic 
+              University of San Agustin Clinic 
             </p>
             <h2 className="text-xl font-bold sm:text-2xl">
               Student health &amp; medical services
