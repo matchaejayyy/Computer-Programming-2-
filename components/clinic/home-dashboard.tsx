@@ -20,28 +20,24 @@ const clinicLinks = [
     title: "View clinic schedule",
     desc: "See which days the clinic is open and daily visiting hours.",
     icon: CalendarDays,
-    highlight: true,
   },
   {
     href: "/reserve",
     title: "Reserve appointment",
     desc: "Submit a request for certification, consultation, or follow-up.",
     icon: FileText,
-    highlight: false,
   },
   {
     href: "/requests",
     title: "Check appointment status",
     desc: "Track whether your request is pending, approved, or rejected.",
     icon: ClipboardCheck,
-    highlight: false,
   },
   {
     href: "/history",
     title: "History",
     desc: "Review dates, reasons, and outcomes of past clinic visits.",
     icon: FolderClock,
-    highlight: false,
   },
 ] as const;
 
@@ -96,21 +92,10 @@ export function HomeDashboard() {
               return (
                 <Link key={item.href} href={item.href} className="block">
                   <Card
-                    className={cn(
-                      "h-full shadow-sm ring-0 transition-colors",
-                      item.highlight
-                        ? "border-2 border-red-600 bg-white hover:bg-neutral-50/80"
-                        : "border border-neutral-200 bg-white hover:bg-neutral-50/80"
-                    )}
+                    className="h-full border border-neutral-200 bg-white shadow-sm ring-0 transition-colors hover:bg-neutral-50/80"
                   >
                     <CardHeader className="flex flex-row items-center gap-3 space-y-0 pb-2">
-                      <span
-                        className={
-                          item.highlight
-                            ? "flex size-10 shrink-0 items-center justify-center rounded-lg bg-red-600 text-white"
-                            : "flex size-10 shrink-0 items-center justify-center rounded-lg bg-neutral-200 text-neutral-700"
-                        }
-                      >
+                      <span className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-neutral-200 text-neutral-700">
                         <Icon className="size-5" aria-hidden />
                       </span>
                       <CardTitle className="text-base font-semibold text-foreground">

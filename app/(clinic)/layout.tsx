@@ -4,7 +4,7 @@ export default function ClinicLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <div className="flex min-h-dvh flex-col bg-[#f4f4f5]">
+    <div className="flex min-h-dvh flex-col bg-[#f4f4f5] text-foreground">
       <div className="sticky top-0 z-50 shrink-0">
         <AppTopBar />
       </div>
