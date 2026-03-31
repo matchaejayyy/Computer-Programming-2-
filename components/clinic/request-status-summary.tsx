@@ -43,34 +43,31 @@ export function RequestStatusSummary() {
         <p className="mb-4 text-[13px] text-muted-foreground px-1">
           Counts by status for your appointment requests.
         </p>
-        <div className="flex flex-col gap-1">
-          {rows.map((row) => {
-            const count =
-              row.status === "pending"
-                ? counts.pending
-                : row.status === "approved"
-                  ? counts.approved
-                  : counts.rejected;
-            return (
-              <Link
-                key={row.status}
-                href="/requests"
-                className="flex items-center justify-between gap-2 rounded-xl border border-transparent px-3 py-3 text-sm transition-colors hover:bg-neutral-50"
-              >
-                <span className="font-semibold text-foreground text-[14px]">{row.label}</span>
-                <span className="flex items-center gap-2">
-                  <span className={row.badgeClass}>
-                    {count}
-                  </span>
-                  <ChevronRight
-                    className="size-4 shrink-0 text-muted-foreground"
-                    aria-hidden
-                  />
-                </span>
-              </Link>
-            );
-          })}
-        </div>
+        {rows.map((row) => {
+          const count =
+            row.status === "pending"
+              ? counts.pending
+              : row.status === "approved"
+                ? counts.approved
+                : counts.rejected;
+          return (
+            <div
+              key={row.status}
+              className="flex items-center justify-between gap-2 rounded-lg border border-transparent px-3 py-2.5 text-sm"
+            >
+              <span className="font-medium text-foreground">{row.label}</span>
+              <span className="flex items-center gap-1.5">
+                <Badge variant="outline" className={row.badgeClass}>
+                  {count}
+                </Badge>
+                <ChevronRight
+                  className="size-4 shrink-0 text-muted-foreground"
+                  aria-hidden
+                />
+              </span>
+            </div>
+          );
+        })}
       </CardContent>
     </Card>
   );
