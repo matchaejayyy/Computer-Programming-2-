@@ -15,9 +15,9 @@ export function SidebarWidgets() {
 
   return (
     <aside className="flex flex-col gap-4 lg:sticky lg:top-4 lg:self-start">
-      <Card className="border-border shadow-sm">
+      <Card className="border border-neutral-200 bg-white shadow-sm ring-0">
         <CardHeader className="flex flex-row items-center gap-2 pb-2">
-          <span className="flex size-9 items-center justify-center rounded-lg bg-primary/10 text-primary">
+          <span className="flex size-9 items-center justify-center rounded-lg bg-red-50 text-red-600">
             <CalendarIcon className="size-5" aria-hidden />
           </span>
           <CardTitle className="text-base font-semibold">Calendar</CardTitle>

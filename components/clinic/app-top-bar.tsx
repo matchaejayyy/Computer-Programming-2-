@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 
 export function AppTopBar() {
   return (
-    <div className="border-b border-border bg-card shadow-sm">
+    <div className="border-b border-neutral-200 bg-white shadow-sm">
       <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-3 sm:px-6 lg:px-8">
         <Link
           href="/"
@@ -21,16 +21,16 @@ export function AppTopBar() {
             variant="ghost"
             size="icon"
             type="button"
-            className="relative text-foreground"
+            className="relative rounded-xl text-foreground"
             aria-label="Notifications"
           >
             <Bell className="size-5" />
-            <Badge className="absolute -right-0.5 -top-0.5 flex size-5 items-center justify-center rounded-full border-0 bg-primary p-0 text-[10px] text-primary-foreground">
+            <Badge className="absolute -right-0.5 -top-0.5 flex size-5 items-center justify-center rounded-full border-0 bg-red-600 p-0 text-[10px] font-semibold text-white">
               20
             </Badge>
           </Button>
 
-          <div className="border-l border-border pl-2 sm:pl-3">
+          <div className="border-l border-neutral-200 pl-2 sm:pl-3">
             <ProfileMenu />
           </div>
         </div>
