@@ -18,65 +18,61 @@ const clinicLinks = [
   {
     href: "/schedule",
     title: "View clinic schedule",
-    desc: "See which days the clinic is open and daily visiting hours.",
     icon: CalendarDays,
-    highlight: true,
+    isActive: true, // First one has red outline and red icon background
   },
   {
     href: "/reserve",
     title: "Reserve appointment",
-    desc: "Submit a request for certification, consultation, or follow-up.",
     icon: FileText,
-    highlight: false,
+    isActive: false,
   },
   {
     href: "/requests",
     title: "Check appointment status",
-    desc: "Track whether your request is pending, approved, or rejected.",
     icon: ClipboardCheck,
-    highlight: false,
+    isActive: false,
   },
   {
     href: "/history",
     title: "History",
-    desc: "Review dates, reasons, and outcomes of past clinic visits.",
     icon: FolderClock,
-    highlight: false,
+    isActive: false,
   },
 ] as const;
 
 export function HomeDashboard() {
   return (
-    <div className="grid grid-cols-1 gap-6 lg:grid-cols-12 lg:gap-8">
-      <div className="flex flex-col gap-6 lg:col-span-8">
+    <div className="grid grid-cols-1 gap-6 xl:grid-cols-12 xl:gap-6">
+      <div className="flex flex-col gap-6 xl:col-span-8">
         {/* Bright red hero — solid fill, no transparent Card default */}
-        <Card className="overflow-hidden border-0 bg-red-600 text-white shadow-md ring-0">
-          <CardContent className="space-y-4 p-6 sm:p-8">
-            <p className="text-xs font-semibold uppercase tracking-wide text-white/90">
+        <Card className="overflow-hidden border-0 bg-[#E50000] text-white shadow-sm ring-0 rounded-2xl">
+          <CardContent className="space-y-5 p-6 sm:p-8">
+            <p className="text-xs font-bold uppercase tracking-widest text-white/90">
               University of San Agustin Clinic
             </p>
-            <h2 className="text-xl font-bold text-white sm:text-2xl">
+            <h2 className="text-2xl font-bold text-white sm:text-3xl">
               Student health &amp; medical services
             </h2>
-            <p className="max-w-2xl text-sm leading-relaxed text-white/95 sm:text-base">
+            <p className="max-w-2xl text-[15px] leading-relaxed text-white/95 pb-2">
               Book appointments, check medical certification and consultation
               requests, and follow your visit status — all in one place. For
               emergencies, contact campus security or go to the nearest hospital.
             </p>
-            <div className="max-w-md space-y-3 rounded-xl border border-white/25 bg-black/15 p-4 backdrop-blur-sm sm:p-5">
-              <Skeleton className="h-3 w-28 rounded-md bg-white/30" />
-              <div className="space-y-2.5 pt-1">
-                <Skeleton className="h-4 w-full max-w-md rounded-md bg-white/25" />
-                <Skeleton className="h-4 w-full max-w-[90%] rounded-md bg-white/25" />
-                <Skeleton className="h-4 w-full max-w-[85%] rounded-md bg-white/25" />
+            <div className="max-w-md space-y-3 rounded-2xl border-2 border-white/10 bg-white/5 p-5">
+              <Skeleton className="h-3 w-32 rounded-full bg-white/20" />
+              <div className="space-y-3 pt-1">
+                <Skeleton className="h-3.5 w-full max-w-sm rounded-full bg-white/20" />
+                <Skeleton className="h-3.5 w-full max-w-[85%] rounded-full bg-white/20" />
+                <Skeleton className="h-3.5 w-full max-w-[75%] rounded-full bg-white/20" />
               </div>
             </div>
           </CardContent>
         </Card>
 
         <section className="space-y-4">
-          <div className="flex items-center justify-between">
-            <h3 className="text-lg font-bold text-foreground sm:text-xl">
+          <div className="flex items-center justify-between px-1">
+            <h3 className="text-xl font-bold text-foreground">
               Clinic services
             </h3>
             <Button
@@ -90,36 +86,34 @@ export function HomeDashboard() {
             </Button>
           </div>
 
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             {clinicLinks.map((item) => {
               const Icon = item.icon;
               return (
-                <Link key={item.href} href={item.href} className="block">
+                <Link key={item.href} href={item.href} className="block group">
                   <Card
                     className={cn(
-                      "h-full shadow-sm ring-0 transition-colors",
-                      item.highlight
-                        ? "border-2 border-red-600 bg-white hover:bg-neutral-50/80"
-                        : "border border-neutral-200 bg-white hover:bg-neutral-50/80"
+                      "flex h-20 items-center justify-start p-4 transition-all duration-200 ring-0 shadow-none rounded-2xl",
+                      item.isActive
+                        ? "border-[#E50000] border-2 bg-white"
+                        : "border-neutral-200 border bg-white hover:bg-neutral-50"
                     )}
                   >
-                    <CardHeader className="flex flex-row items-center gap-3 space-y-0 pb-2">
+                    <div className="flex items-center gap-4 w-full">
                       <span
-                        className={
-                          item.highlight
-                            ? "flex size-10 shrink-0 items-center justify-center rounded-lg bg-red-600 text-white"
-                            : "flex size-10 shrink-0 items-center justify-center rounded-lg bg-neutral-200 text-neutral-700"
-                        }
+                        className={cn(
+                          "flex size-10 shrink-0 items-center justify-center rounded-xl",
+                          item.isActive
+                            ? "bg-[#E50000] text-white"
+                            : "bg-neutral-100 text-neutral-600 group-hover:bg-neutral-200"
+                        )}
                       >
                         <Icon className="size-5" aria-hidden />
                       </span>
-                      <CardTitle className="text-base font-semibold text-foreground">
+                      <span className="text-sm font-semibold text-foreground">
                         {item.title}
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent className="pt-0">
-                      <p className="text-sm text-muted-foreground">{item.desc}</p>
-                    </CardContent>
+                      </span>
+                    </div>
                   </Card>
                 </Link>
               );
@@ -128,7 +122,7 @@ export function HomeDashboard() {
         </section>
       </div>
 
-      <div className="lg:col-span-4">
+      <div className="xl:col-span-4">
         <SidebarWidgets />
       </div>
     </div>
