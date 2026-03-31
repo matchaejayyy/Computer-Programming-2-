@@ -52,12 +52,7 @@ export function RequestStatusSummary() {
           return (
             <div
               key={row.status}
-<<<<<<< HEAD
               className="flex items-center justify-between gap-2 rounded-lg border border-transparent px-3 py-2.5 text-sm"
-=======
-              href="/requests"
-              className="flex items-center justify-between gap-2 rounded-lg border border-transparent px-3 py-2.5 text-sm transition-colors hover:border-neutral-200 hover:bg-neutral-50"
->>>>>>> d80662299564670e878f5d1c942363a8b6ca14e6
             >
               <span className="font-medium text-foreground">{row.label}</span>
               <span className="flex items-center gap-1.5">
