@@ -64,6 +64,8 @@
 html {
   background-color: var(--background);
   color: var(--foreground);
+  /* Keep layout stable even when content height changes. */
+  scrollbar-gutter: stable;
 }
 
 body {
@@ -71,4 +73,16 @@ body {
   background-color: var(--background);
   color: var(--foreground);
   font-family: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+}
+
+/* Hide scrollbars globally while preserving scroll behavior. */
+* {
+  -ms-overflow-style: none; /* IE and old Edge */
+  scrollbar-width: none; /* Firefox */
+}
+
+*::-webkit-scrollbar {
+  display: none; /* Chrome, Safari, Opera */
+  width: 0;
+  height: 0;
 }

@@ -5,16 +5,16 @@ import { join } from "path";
 import type { RequestStatus } from "@/lib/clinic/mock-requests";
 
 const binaryName =
-  process.platform === "win32" ? "filter_pending.exe" : "filter_pending";
+  process.platform === "win32" ? "filter_accepted.exe" : "filter_accepted";
 
 function binaryPath(): string {
   return join(process.cwd(), "native", binaryName);
 }
 
-export function filterPendingIndicesTypeScript(statuses: RequestStatus[]): number[] {
+export function filterAcceptedIndicesTypeScript(statuses: RequestStatus[]): number[] {
   const out: number[] = [];
   for (let i = 0; i < statuses.length; i++) {
-    if (statuses[i] === "pending") {
+    if (statuses[i] === "approved") {
       out.push(i);
     }
   }
@@ -49,13 +49,12 @@ function runCppFilter(executable: string, stdin: string): Promise<string> {
   });
 }
 
-
-export async function filterPendingIndicesCpp(
+export async function filterAcceptedIndicesCpp(
   statuses: RequestStatus[]
 ): Promise<number[]> {
   const path = binaryPath();
   if (!existsSync(path)) {
-    return filterPendingIndicesTypeScript(statuses);
+    return filterAcceptedIndicesTypeScript(statuses);
   }
 
   const input = statuses.join("\n") + "\n";
@@ -67,6 +66,6 @@ export async function filterPendingIndicesCpp(
     }
     return trimmed.split(/\s+/).map((s) => Number.parseInt(s, 10));
   } catch {
-    return filterPendingIndicesTypeScript(statuses);
+    return filterAcceptedIndicesTypeScript(statuses);
   }
 }
