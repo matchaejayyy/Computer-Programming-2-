@@ -1,4 +1,5 @@
 import { AppTopBar } from "@/components/clinic/app-top-bar";
+import { PageTransition } from "@/components/clinic/page-transition";
 
 export default function ClinicLayout({
   children,
@@ -10,7 +11,7 @@ export default function ClinicLayout({
       </div>
       <div className="flex flex-1 flex-col">
         <div className="mx-auto w-full px-4 py-6 sm:px-6 sm:py-8 lg:px-8 xl:px-12 2xl:px-16">
-          {children}
+          <PageTransition>{children}</PageTransition>
         </div>
       </div>
     </div>

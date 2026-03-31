@@ -78,10 +78,10 @@ export function RequestsContent({ initialRequests }: Props) {
   const title = "Appointment requests";
   const filterButtonClass = (name: "all" | "pending" | "approved" | "rejected") =>
     cn(
-      "min-w-24 rounded-md border px-3 py-1.5 text-sm font-medium transition-colors",
+      "min-w-24 rounded-md border px-3 py-1.5 text-sm font-medium transition-all duration-200 active:scale-[0.98]",
       activeFilter === name
-        ? "border-[#E50000] bg-[#E50000] text-white"
-        : "border-border bg-background text-foreground hover:bg-muted"
+        ? "border-[#E50000] bg-[#E50000] text-white shadow-sm"
+        : "border-border bg-background text-foreground hover:bg-muted hover:-translate-y-0.5"
     );
 
   return (
@@ -140,7 +140,12 @@ export function RequestsContent({ initialRequests }: Props) {
         <p className="text-sm text-destructive" role="alert">{filterError}</p>
       ) : null}
 
-      <section className="min-h-[60vh]">
+      <section
+        className={cn(
+          "min-h-[60vh] transition-all duration-300",
+          filterLoading ? "translate-y-1 opacity-70" : "translate-y-0 opacity-100"
+        )}
+      >
       {initialRequests.length === 0 ? (
         <Card>
           <CardContent className="space-y-2 py-10 text-center text-sm text-muted-foreground">
@@ -164,8 +169,8 @@ export function RequestsContent({ initialRequests }: Props) {
       ) : (
         <ul className="flex flex-col gap-4">
           {items.map((req) => (
-            <li key={req.id}>
-              <Card className="border-border shadow-sm">
+            <li key={req.id} className="animate-[clinic-page-enter_240ms_ease-out]">
+              <Card className="border-border shadow-sm transition-transform duration-200 hover:-translate-y-0.5">
                 <CardHeader className="flex flex-row flex-wrap items-start justify-between gap-2 border-b border-border pb-3">
                   <div className="space-y-1">
                     <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Request ID</p>
