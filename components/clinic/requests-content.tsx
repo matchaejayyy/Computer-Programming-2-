@@ -1,19 +1,14 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { ArrowLeft } from "lucide-react";
-
 import { BackToHome } from "@/components/clinic/back-to-home";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import type { AppointmentRequest, RequestStatus } from "@/lib/clinic/mock-requests";
 import { cn } from "@/lib/utils";
-
-import { filterPendingIndicesCpp } from "@/lib/clinic/cpp-pending-filter";
-import { filterAcceptedIndicesCpp } from "@/lib/clinic/cpp-accepted-filter";
-import { filterRejectedIndicesCpp } from "@/lib/clinic/cpp-rejected-filter";
 
 const statusLabels: Record<RequestStatus, string> = {
   pending: "Pending",
@@ -31,78 +26,66 @@ type Props = {
   initialRequests: AppointmentRequest[];
 };
 
+const filterEndpointByStatus: Record<RequestStatus, string> = {
+  pending: "/api/filter-pending",
+  approved: "/api/filter-accepted",
+  rejected: "/api/filter-rejected",
+};
+
 export function RequestsContent({ initialRequests }: Props) {
-  const [pendingOnly, setPendingOnly] = useState(false);
-  const [pendingItems, setPendingItems] = useState<AppointmentRequest[] | null>(null);
-  const [pendingError, setPendingError] = useState<string | null>(null);
-  const [pendingLoading, setPendingLoading] = useState(false);
   const [activeFilter, setActiveFilter] = useState<"all" | "pending" | "approved" | "rejected">("all");
   const [filteredItems, setFilteredItems] = useState(initialRequests);
-
-  const loadPendingViaCpp = useCallback(async () => {
-    setPendingLoading(true);
-    setPendingError(null);
-    try {
-      const statuses = initialRequests.map((r) => r.status);
-      const res = await fetch("/api/filter-pending", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ statuses }),
-      });
-      if (!res.ok) {
-        throw new Error("Filter request failed");
-      }
-      const data = (await res.json()) as { indices?: number[] };
-      const indices = Array.isArray(data.indices) ? data.indices : [];
-      setPendingItems(indices.map((i) => initialRequests[i]).filter(Boolean));
-    } catch {
-      setPendingError("Could not load pending filter. Try again.");
-      setPendingItems([]);
-    } finally {
-      setPendingLoading(false);
-    }
-  }, [initialRequests]);
-
-  useEffect(() => {
-    if (pendingOnly) {
-      void loadPendingViaCpp();
-    } else {
-      setPendingItems(null);
-      setPendingError(null);
-    }
-  }, [pendingOnly, loadPendingViaCpp]);
+  const [filterLoading, setFilterLoading] = useState(false);
+  const [filterError, setFilterError] = useState<string | null>(null);
 
   // Active filter effect
   useEffect(() => {
     const applyFilter = async () => {
       if (activeFilter === "all") {
         setFilteredItems(initialRequests);
-      } else if (activeFilter === "pending") {
-        const indices = await filterPendingIndicesCpp(initialRequests.map((r) => r.status));
-        setFilteredItems(indices.map((i) => initialRequests[i]));
-      } else if (activeFilter === "approved") {
-        const indices = await filterAcceptedIndicesCpp(initialRequests.map((r) => r.status));
-        setFilteredItems(indices.map((i) => initialRequests[i]));
-      } else if (activeFilter === "rejected") {
-        const indices = await filterRejectedIndicesCpp(initialRequests.map((r) => r.status));
-        setFilteredItems(indices.map((i) => initialRequests[i]));
+        setFilterError(null);
+        setFilterLoading(false);
+        return;
+      }
+
+      const statuses = initialRequests.map((r) => r.status);
+      setFilterLoading(true);
+      setFilterError(null);
+      try {
+        const res = await fetch(filterEndpointByStatus[activeFilter], {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ statuses }),
+        });
+        if (!res.ok) {
+          throw new Error("Filter request failed");
+        }
+        const data = (await res.json()) as { indices?: number[] };
+        const indices = Array.isArray(data.indices) ? data.indices : [];
+        setFilteredItems(indices.map((i) => initialRequests[i]).filter(Boolean));
+      } catch {
+        setFilterError("Could not apply C++ filter. Showing fallback results.");
+        setFilteredItems(initialRequests.filter((r) => r.status === activeFilter));
+      } finally {
+        setFilterLoading(false);
       }
     };
 
     void applyFilter();
   }, [activeFilter, initialRequests]);
 
-  const items = pendingOnly ? (pendingItems ?? []) : filteredItems;
-
-  const loadingPending = pendingOnly && pendingLoading && pendingItems === null;
-
-  const showEmpty =
-    pendingOnly && !pendingLoading && pendingItems !== null && pendingItems.length === 0;
-
-  const title = pendingOnly ? "Pending appointment requests" : "All appointment requests";
+  const items = filteredItems;
+  const title = "Appointment requests";
+  const filterButtonClass = (name: "all" | "pending" | "approved" | "rejected") =>
+    cn(
+      "min-w-24 rounded-md border px-3 py-1.5 text-sm font-medium transition-colors",
+      activeFilter === name
+        ? "border-[#E50000] bg-[#E50000] text-white"
+        : "border-border bg-background text-foreground hover:bg-muted"
+    );
 
   return (
-    <div className="mx-auto flex max-w-2xl flex-col gap-6">
+    <div className="mx-auto flex min-h-[calc(100vh-9rem)] w-full max-w-7xl flex-col gap-6 px-4 sm:px-6 lg:px-8">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <Link
           href="/"
@@ -115,7 +98,7 @@ export function RequestsContent({ initialRequests }: Props) {
   <button
     type="button"
     onClick={() => setActiveFilter("all")}
-    className={activeFilter === "all" ? "active" : ""}
+    className={filterButtonClass("all")}
   >
     All
   </button>
@@ -123,7 +106,7 @@ export function RequestsContent({ initialRequests }: Props) {
   <button
     type="button"
     onClick={() => setActiveFilter("pending")}
-    className={activeFilter === "pending" ? "active" : ""}
+    className={filterButtonClass("pending")}
   >
     Pending
   </button>
@@ -131,7 +114,7 @@ export function RequestsContent({ initialRequests }: Props) {
   <button
     type="button"
     onClick={() => setActiveFilter("approved")}
-    className={activeFilter === "approved" ? "active" : ""}
+    className={filterButtonClass("approved")}
   >
     Approved
   </button>
@@ -139,10 +122,11 @@ export function RequestsContent({ initialRequests }: Props) {
   <button
     type="button"
     onClick={() => setActiveFilter("rejected")}
-    className={activeFilter === "rejected" ? "active" : ""}
+    className={filterButtonClass("rejected")}
   >
     Rejected
   </button>
+</div>
 </div>
 
       <div>
@@ -152,10 +136,11 @@ export function RequestsContent({ initialRequests }: Props) {
         </p>
       </div>
 
-      {pendingError ? (
-        <p className="text-sm text-destructive" role="alert">{pendingError}</p>
+      {filterError ? (
+        <p className="text-sm text-destructive" role="alert">{filterError}</p>
       ) : null}
 
+      <section className="min-h-[60vh]">
       {initialRequests.length === 0 ? (
         <Card>
           <CardContent className="space-y-2 py-10 text-center text-sm text-muted-foreground">
@@ -163,17 +148,17 @@ export function RequestsContent({ initialRequests }: Props) {
             <p>You have not submitted any appointment requests. Use Reserve appointment to send one.</p>
           </CardContent>
         </Card>
-      ) : loadingPending ? (
+      ) : filterLoading ? (
         <Card>
           <CardContent className="py-10 text-center text-sm text-muted-foreground">
-            <p className="font-medium text-foreground">Loading pending…</p>
+            <p className="font-medium text-foreground">Loading filtered requests…</p>
           </CardContent>
         </Card>
-      ) : showEmpty ? (
+      ) : items.length === 0 ? (
         <Card>
           <CardContent className="space-y-2 py-10 text-center text-sm text-muted-foreground">
-            <p className="font-medium text-foreground">No pending requests</p>
-            <p>You do not have any appointment requests in pending status.</p>
+            <p className="font-medium text-foreground">No matching requests</p>
+            <p>There are no requests for the selected filter.</p>
           </CardContent>
         </Card>
       ) : (
@@ -213,6 +198,7 @@ export function RequestsContent({ initialRequests }: Props) {
           ))}
         </ul>
       )}
+      </section>
 
       <BackToHome />
     </div>

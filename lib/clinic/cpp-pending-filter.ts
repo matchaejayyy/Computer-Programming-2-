@@ -11,7 +11,6 @@ function binaryPath(): string {
   return join(process.cwd(), "native", binaryName);
 }
 
-/** Same logic as native/filter_pending.cpp (used if the binary is missing). */
 export function filterPendingIndicesTypeScript(statuses: RequestStatus[]): number[] {
   const out: number[] = [];
   for (let i = 0; i < statuses.length; i++) {
@@ -50,10 +49,7 @@ function runCppFilter(executable: string, stdin: string): Promise<string> {
   });
 }
 
-/**
- * Runs the C++ filter (stdin: one status per line) and returns pending indices.
- * Falls back to TypeScript if native/filter_pending is not built.
- */
+
 export async function filterPendingIndicesCpp(
   statuses: RequestStatus[]
 ): Promise<number[]> {
