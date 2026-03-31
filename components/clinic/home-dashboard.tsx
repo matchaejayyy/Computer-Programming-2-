@@ -19,7 +19,7 @@ const clinicLinks = [
     href: "/schedule",
     title: "View clinic schedule",
     icon: CalendarDays,
-    isActive: true, // First one has red outline and red icon background
+    isActive: true, 
   },
   {
     href: "/reserve",
@@ -45,7 +45,6 @@ export function HomeDashboard() {
   return (
     <div className="grid grid-cols-1 gap-6 xl:grid-cols-12 xl:gap-6">
       <div className="flex flex-col gap-6 xl:col-span-8">
-        {/* Bright red hero — solid fill, no transparent Card default */}
         <Card className="overflow-hidden border-0 bg-[#E50000] text-white shadow-sm ring-0 rounded-2xl">
           <CardContent className="space-y-5 p-6 sm:p-8">
             <p className="text-xs font-bold uppercase tracking-widest text-white/90">

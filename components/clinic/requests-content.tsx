@@ -1,17 +1,13 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { ArrowLeft } from "lucide-react";
-
 import { BackToHome } from "@/components/clinic/back-to-home";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import type {
-  AppointmentRequest,
-  RequestStatus,
-} from "@/lib/clinic/mock-requests";
+import type { AppointmentRequest, RequestStatus } from "@/lib/clinic/mock-requests";
 import { cn } from "@/lib/utils";
 
 const statusLabels: Record<RequestStatus, string> = {
@@ -30,65 +26,66 @@ type Props = {
   initialRequests: AppointmentRequest[];
 };
 
+const filterEndpointByStatus: Record<RequestStatus, string> = {
+  pending: "/api/filter-pending",
+  approved: "/api/filter-accepted",
+  rejected: "/api/filter-rejected",
+};
+
 export function RequestsContent({ initialRequests }: Props) {
-  const [pendingOnly, setPendingOnly] = useState(false);
-  const [pendingItems, setPendingItems] = useState<AppointmentRequest[] | null>(
-    null
-  );
-  const [pendingError, setPendingError] = useState<string | null>(null);
-  const [pendingLoading, setPendingLoading] = useState(false);
+  const [activeFilter, setActiveFilter] = useState<"all" | "pending" | "approved" | "rejected">("all");
+  const [filteredItems, setFilteredItems] = useState(initialRequests);
+  const [filterLoading, setFilterLoading] = useState(false);
+  const [filterError, setFilterError] = useState<string | null>(null);
 
-  const loadPendingViaCpp = useCallback(async () => {
-    setPendingLoading(true);
-    setPendingError(null);
-    try {
-      const statuses = initialRequests.map((r) => r.status);
-      const res = await fetch("/api/filter-pending", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ statuses }),
-      });
-      if (!res.ok) {
-        throw new Error("Filter request failed");
-      }
-      const data = (await res.json()) as { indices?: number[] };
-      const indices = Array.isArray(data.indices) ? data.indices : [];
-      setPendingItems(
-        indices.map((i) => initialRequests[i]).filter(Boolean)
-      );
-    } catch {
-      setPendingError("Could not load pending filter. Try again.");
-      setPendingItems([]);
-    } finally {
-      setPendingLoading(false);
-    }
-  }, [initialRequests]);
-
+  // Active filter effect
   useEffect(() => {
-    if (pendingOnly) {
-      void loadPendingViaCpp();
-    } else {
-      setPendingItems(null);
-      setPendingError(null);
-    }
-  }, [pendingOnly, loadPendingViaCpp]);
+    const applyFilter = async () => {
+      if (activeFilter === "all") {
+        setFilteredItems(initialRequests);
+        setFilterError(null);
+        setFilterLoading(false);
+        return;
+      }
 
-  const items = pendingOnly ? (pendingItems ?? []) : initialRequests;
+      const statuses = initialRequests.map((r) => r.status);
+      setFilterLoading(true);
+      setFilterError(null);
+      try {
+        const res = await fetch(filterEndpointByStatus[activeFilter], {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ statuses }),
+        });
+        if (!res.ok) {
+          throw new Error("Filter request failed");
+        }
+        const data = (await res.json()) as { indices?: number[] };
+        const indices = Array.isArray(data.indices) ? data.indices : [];
+        setFilteredItems(indices.map((i) => initialRequests[i]).filter(Boolean));
+      } catch {
+        setFilterError("Could not apply C++ filter. Showing fallback results.");
+        setFilteredItems(initialRequests.filter((r) => r.status === activeFilter));
+      } finally {
+        setFilterLoading(false);
+      }
+    };
 
-  const loadingPending = pendingOnly && pendingLoading && pendingItems === null;
+    void applyFilter();
+  }, [activeFilter, initialRequests]);
 
-  const showEmpty =
-    pendingOnly &&
-    !pendingLoading &&
-    pendingItems !== null &&
-    pendingItems.length === 0;
-
-  const title = pendingOnly
-    ? "Pending appointment requests"
-    : "All appointment requests";
+  const items = filteredItems;
+  const title = "Appointment requests";
+  const filterButtonClass = (name: "all" | "pending" | "approved" | "rejected") =>
+    cn(
+      "min-w-24 rounded-md border px-3 py-1.5 text-sm font-medium transition-colors",
+      activeFilter === name
+        ? "border-[#E50000] bg-[#E50000] text-white"
+        : "border-border bg-background text-foreground hover:bg-muted"
+    );
 
   return (
-    <div className="mx-auto flex max-w-2xl flex-col gap-6">
+    <div className="mx-auto flex min-h-[calc(100vh-9rem)] w-full max-w-7xl flex-col gap-6 px-4 sm:px-6 lg:px-8">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <Link
           href="/"
@@ -98,85 +95,70 @@ export function RequestsContent({ initialRequests }: Props) {
           Home
         </Link>
         <div className="flex flex-wrap gap-2">
-          <button
-            type="button"
-            onClick={() => setPendingOnly(false)}
-            className={cn(
-              "inline-flex items-center rounded-full border px-3 py-1.5 text-xs font-medium transition-colors",
-              !pendingOnly
-                ? "border-primary bg-primary text-primary-foreground"
-                : "border-border bg-card text-foreground hover:bg-muted"
-            )}
-          >
-            All
-          </button>
-          <button
-            type="button"
-            onClick={() => setPendingOnly(true)}
-            disabled={pendingLoading}
-            className={cn(
-              "inline-flex items-center rounded-full border px-3 py-1.5 text-xs font-medium transition-colors disabled:opacity-60",
-              pendingOnly
-                ? "border-primary bg-primary text-primary-foreground"
-                : "border-border bg-card text-foreground hover:bg-muted"
-            )}
-          >
-            {pendingLoading ? "Pending…" : "Pending"}
-          </button>
-          <span
-            className={cn(
-              "inline-flex items-center rounded-full border border-border bg-card px-3 py-1.5 text-xs font-medium select-none text-foreground"
-            )}
-          >
-            Approved
-          </span>
-          <span
-            className={cn(
-              "inline-flex items-center rounded-full border border-border bg-card px-3 py-1.5 text-xs font-medium select-none text-foreground"
-            )}
-          >
-            Rejected
-          </span>
-        </div>
-      </div>
+  <button
+    type="button"
+    onClick={() => setActiveFilter("all")}
+    className={filterButtonClass("all")}
+  >
+    All
+  </button>
+
+  <button
+    type="button"
+    onClick={() => setActiveFilter("pending")}
+    className={filterButtonClass("pending")}
+  >
+    Pending
+  </button>
+
+  <button
+    type="button"
+    onClick={() => setActiveFilter("approved")}
+    className={filterButtonClass("approved")}
+  >
+    Approved
+  </button>
+
+  <button
+    type="button"
+    onClick={() => setActiveFilter("rejected")}
+    className={filterButtonClass("rejected")}
+  >
+    Rejected
+  </button>
+</div>
+</div>
 
       <div>
-        <h1 className="text-xl font-bold text-foreground sm:text-2xl">
-          {title}
-        </h1>
+        <h1 className="text-xl font-bold text-foreground sm:text-2xl">{title}</h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          Full details for each appointment request you have submitted to the
-          clinic.
+          Full details for each appointment request you have submitted to the clinic.
         </p>
       </div>
 
-      {pendingError ? (
-        <p className="text-sm text-destructive" role="alert">
-          {pendingError}
-        </p>
+      {filterError ? (
+        <p className="text-sm text-destructive" role="alert">{filterError}</p>
       ) : null}
 
+      <section className="min-h-[60vh]">
       {initialRequests.length === 0 ? (
         <Card>
           <CardContent className="space-y-2 py-10 text-center text-sm text-muted-foreground">
             <p className="font-medium text-foreground">No data yet</p>
-            <p>
-              You have not submitted any appointment requests. Use Reserve
-              appointment to send one.
-            </p>
+            <p>You have not submitted any appointment requests. Use Reserve appointment to send one.</p>
           </CardContent>
         </Card>
-      ) : loadingPending ? (
+      ) : filterLoading ? (
         <Card>
           <CardContent className="py-10 text-center text-sm text-muted-foreground">
-            <p className="font-medium text-foreground">Loading pending…</p>
+            <p className="font-medium text-foreground">Loading filtered requests…</p>
           </CardContent>
         </Card>
-      ) : showEmpty ? (
+      ) : items.length === 0 ? (
         <Card>
           <CardContent className="space-y-2 py-10 text-center text-sm text-muted-foreground">
-            <p className="font-medium text-foreground">No pending requests</p>
-            <p>You do not have any appointment requests in pending status.</p>
+            <p className="font-medium text-foreground">No matching requests</p>
+            <p>There are no requests for the selected filter.</p>
           </CardContent>
         </Card>
       ) : (
@@ -186,17 +168,10 @@ export function RequestsContent({ initialRequests }: Props) {
               <Card className="border-border shadow-sm">
                 <CardHeader className="flex flex-row flex-wrap items-start justify-between gap-2 border-b border-border pb-3">
                   <div className="space-y-1">
-                    <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                      Request ID
-                    </p>
-                    <CardTitle className="text-base font-mono text-foreground">
-                      {req.id}
-                    </CardTitle>
+                    <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Request ID</p>
+                    <CardTitle className="text-base font-mono text-foreground">{req.id}</CardTitle>
                   </div>
-                  <Badge
-                    variant="outline"
-                    className={cn("shrink-0", statusBadge[req.status])}
-                  >
+                  <Badge variant="outline" className={cn("shrink-0", statusBadge[req.status])}>
                     {statusLabels[req.status]}
                   </Badge>
                 </CardHeader>
@@ -206,31 +181,24 @@ export function RequestsContent({ initialRequests }: Props) {
                   <DetailRow label="Address" value={req.address} />
                   <Separator />
                   <DetailRow label="Reason" value={req.reason} />
-                  <DetailRow
-                    label="Requested date"
-                    value={req.requestedDate}
-                  />
-                  <DetailRow
-                    label="Submitted"
-                    value={new Date(req.submittedAt).toLocaleString()}
-                  />
-                  {req.clinicNote ? (
+                  <DetailRow label="Requested date" value={req.requestedDate} />
+                  <DetailRow label="Submitted" value={new Date(req.submittedAt).toLocaleString()} />
+                  {req.clinicNote && (
                     <>
                       <Separator />
                       <div>
-                        <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                          Clinic note
-                        </p>
+                        <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Clinic note</p>
                         <p className="mt-1 text-foreground">{req.clinicNote}</p>
                       </div>
                     </>
-                  ) : null}
+                  )}
                 </CardContent>
               </Card>
             </li>
           ))}
         </ul>
       )}
+      </section>
 
       <BackToHome />
     </div>
@@ -240,9 +208,7 @@ export function RequestsContent({ initialRequests }: Props) {
 function DetailRow({ label, value }: { label: string; value: string }) {
   return (
     <div>
-      <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-        {label}
-      </p>
+      <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">{label}</p>
       <p className="mt-0.5 text-foreground">{value}</p>
     </div>
   );
