@@ -21,7 +21,7 @@ export function AppTopBar() {
             variant="ghost"
             size="icon"
             type="button"
-            className="relative rounded-xl text-foreground"
+            className="relative rounded-xl text-foreground cursor-pointer"
             aria-label="Notifications"
           >
             <Bell className="size-5" />
@@ -30,7 +30,7 @@ export function AppTopBar() {
             </Badge>
           </Button>
 
-          <div className="border-l border-neutral-200 pl-2 sm:pl-3">
+          <div className="border-l border-neutral-200 pl-2 sm:pl-3 cursor-pointer">
             <ProfileMenu />
           </div>
         </div>

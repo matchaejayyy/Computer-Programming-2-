@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { ArrowLeft } from "lucide-react";
 import { BackToHome } from "@/components/clinic/back-to-home";
@@ -33,10 +34,23 @@ const filterEndpointByStatus: Record<RequestStatus, string> = {
 };
 
 export function RequestsContent({ initialRequests }: Props) {
+  const searchParams = useSearchParams();
   const [activeFilter, setActiveFilter] = useState<"all" | "pending" | "approved" | "rejected">("all");
   const [filteredItems, setFilteredItems] = useState(initialRequests);
   const [filterLoading, setFilterLoading] = useState(false);
   const [filterError, setFilterError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const rawFilter = searchParams.get("filter");
+    if (
+      rawFilter === "pending" ||
+      rawFilter === "approved" ||
+      rawFilter === "rejected" ||
+      rawFilter === "all"
+    ) {
+      setActiveFilter(rawFilter);
+    }
+  }, [searchParams]);
 
   // Active filter effect
   useEffect(() => {
@@ -78,7 +92,7 @@ export function RequestsContent({ initialRequests }: Props) {
   const title = "Appointment requests";
   const filterButtonClass = (name: "all" | "pending" | "approved" | "rejected") =>
     cn(
-      "min-w-24 rounded-md border px-3 py-1.5 text-sm font-medium transition-all duration-200 active:scale-[0.98]",
+      "min-w-24 cursor-pointer rounded-md border px-3 py-1.5 text-sm font-medium transition-all duration-200 active:scale-[0.98]",
       activeFilter === name
         ? "border-[#E50000] bg-[#E50000] text-white shadow-sm"
         : "border-border bg-background text-foreground hover:bg-muted hover:-translate-y-0.5"
