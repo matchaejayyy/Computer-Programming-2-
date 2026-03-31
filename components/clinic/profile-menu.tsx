@@ -22,15 +22,15 @@ export function ProfileMenu() {
         aria-label="Open profile menu"
         className={cn(
           buttonVariants({ variant: "ghost" }),
-          "h-auto gap-2 rounded-xl px-2 py-2 font-medium shadow-none hover:bg-neutral-100"
+          "h-auto gap-3 rounded-xl px-2 py-2 font-medium shadow-none hover:bg-neutral-100"
         )}
       >
-        <span className="max-w-24 truncate text-left text-[10px] font-semibold uppercase leading-tight text-foreground sm:max-w-56 sm:text-xs">
-          Vhea Asesor
+        <span className="max-w-24 truncate text-left text-[11px] font-bold uppercase leading-tight text-foreground sm:max-w-56 sm:text-xs">
+          STUDENT NAME
         </span>
-        <Avatar className="size-9 ring-2 ring-emerald-600/80 ring-offset-2 ring-offset-card">
-          <AvatarFallback className="bg-emerald-600 text-xs font-medium text-white">
-            VA
+        <Avatar className="size-9 ring-0">
+          <AvatarFallback className="bg-[#00B050] text-sm font-semibold text-white">
+            SN
           </AvatarFallback>
         </Avatar>
         <ChevronDown className="size-4 shrink-0 text-muted-foreground" aria-hidden />
