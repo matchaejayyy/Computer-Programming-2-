@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 export function AppTopBar() {
   return (
     <div className="border-b border-neutral-200 bg-white shadow-sm">
-      <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-3 sm:px-6 lg:px-8">
+      <div className="mx-auto flex w-full items-center justify-between gap-4 px-4 py-3 sm:px-6 lg:px-8 xl:px-12 2xl:px-16">
         <Link
           href="/"
           className="min-w-0 shrink text-base font-bold tracking-tight text-foreground sm:text-lg"
@@ -25,7 +25,7 @@ export function AppTopBar() {
             aria-label="Notifications"
           >
             <Bell className="size-5" />
-            <Badge className="absolute -right-0.5 -top-0.5 flex size-5 items-center justify-center rounded-full border-0 bg-red-600 p-0 text-[10px] font-semibold text-white">
+            <Badge className="absolute -right-0.5 -top-0.5 flex size-5 items-center justify-center rounded-full border-0 bg-[#E50000] p-0 text-[10px] font-semibold text-white">
               20
             </Badge>
           </Button>

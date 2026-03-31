@@ -17,7 +17,7 @@ const buttonVariants = cva(
         secondary:
           "bg-neutral-100 text-foreground shadow-none hover:bg-neutral-200/90 aria-expanded:bg-neutral-200",
         ghost:
-          "shadow-none hover:bg-neutral-100 aria-expanded:bg-neutral-100",
+          "text-foreground shadow-none hover:bg-neutral-100 aria-expanded:bg-neutral-100",
         destructive:
           "bg-red-50 text-red-700 shadow-none ring-1 ring-red-200/80 hover:bg-red-100 hover:ring-red-300 focus-visible:border-red-400 focus-visible:ring-red-200",
         link: "h-auto rounded-none border-0 bg-transparent p-0 text-red-700 shadow-none underline-offset-4 hover:bg-transparent hover:text-red-800 hover:underline",
