@@ -1,18 +1,10 @@
-import Link from "next/link";
-import { ArrowLeft } from "lucide-react";
-
+import { HomeLink } from "@/components/clinic/home-link";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
 export default function HelpPage() {
   return (
     <div className="mx-auto max-w-lg space-y-6">
-      <Link
-        href="/"
-        className="inline-flex items-center gap-2 rounded-md px-2 py-1.5 text-sm font-medium text-foreground hover:bg-muted"
-      >
-        <ArrowLeft className="size-4" aria-hidden />
-        Back
-      </Link>
+      <HomeLink />
       <Card>
         <CardHeader>
           <CardTitle>Help</CardTitle>

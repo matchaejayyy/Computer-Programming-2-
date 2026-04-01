@@ -1,6 +1,6 @@
 import { BadgeCheck, ClipboardList } from "lucide-react";
 
-import { BackToHome } from "@/components/clinic/back-to-home";
+import { HomeLink } from "@/components/clinic/home-link";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
@@ -15,6 +15,7 @@ const samples = [
 export default function StatusPage() {
   return (
     <div className="mx-auto flex max-w-lg flex-col gap-6">
+      <HomeLink />
       <Card className="border border-clinic-blue/30 bg-clinic-surface shadow-sm">
         <CardHeader className="flex flex-row items-center gap-3 border-b border-border pb-4">
           <span className="relative flex size-11 shrink-0 items-center justify-center rounded-lg bg-card text-foreground ring-1 ring-border">
@@ -48,7 +49,6 @@ export default function StatusPage() {
           </ul>
         </CardContent>
       </Card>
-      <BackToHome />
     </div>
   );
 }

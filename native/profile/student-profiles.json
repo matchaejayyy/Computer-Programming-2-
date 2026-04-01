@@ -1,0 +1,14 @@
+[
+  {
+    "studentId": "student@usa.edu.ph",
+    "name": "Vhea Asesor",
+    "birthday": "2005-09-11",
+    "gender": "Female",
+    "symptomsOrCondition": "No current symptoms reported.",
+    "contactNumber": "09123456789",
+    "email": "student@usa.edu.ph",
+    "schoolIdNumber": "2024-0001",
+    "birthdayEdited": true,
+    "genderEdited": false
+  }
+]

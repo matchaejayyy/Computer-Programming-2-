@@ -2,7 +2,6 @@
 
 import { useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
-import { BackToHome } from "@/components/clinic/back-to-home";
 import { HomeLink } from "@/components/clinic/home-link";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -212,7 +211,6 @@ export function RequestsContent({ initialRequests }: Props) {
       )}
       </section>
 
-      <BackToHome />
     </div>
   );
 }
