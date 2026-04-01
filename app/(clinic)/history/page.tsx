@@ -6,62 +6,49 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
 
+{/* Mock requests */}
+import { MOCK_APPOINTMENT_REQUESTS } from "@/lib/clinic/mock-requests";
+
 type HistoryStatus = "completed" | "cancelled" | "no-show";
 
 type HistoryEntry = {
   id: string;
   status: HistoryStatus;
   appointmentDate: string;
+  studentName: string;
   completedAt?: string;
   reason: string;
   outcome: string;
   clinicNote?: string;
 };
 
-const MOCK_HISTORY: HistoryEntry[] = [
-  {
-    id: "HST-2026-0089",
-    status: "completed",
-    appointmentDate: "Monday, March 10, 2026 — 9:00 AM",
-    completedAt: "2026-03-10T09:45:00.000Z",
-    reason: "Consultation (general check-up)",
-    outcome: "No issues found. Advised to maintain healthy habits.",
-    clinicNote: "Patient in good health. Follow-up in 6 months if needed.",
-  },
-  {
-    id: "HST-2026-0076",
-    status: "completed",
-    appointmentDate: "Wednesday, February 26, 2026 — 2:00 PM",
-    completedAt: "2026-02-26T14:30:00.000Z",
-    reason: "Medical certification",
-    outcome: "Certificate issued for PE exemption.",
-    clinicNote: "Medical certificate provided. Valid for 1 semester.",
-  },
-  {
-    id: "HST-2026-0061",
-    status: "cancelled",
-    appointmentDate: "Friday, February 14, 2026 — 10:30 AM",
-    reason: "Follow-up",
-    outcome: "Appointment cancelled by student.",
-    clinicNote: "Student requested cancellation due to schedule conflict.",
-  },
-  {
-    id: "HST-2026-0045",
-    status: "no-show",
-    appointmentDate: "Tuesday, January 28, 2026 — 3:00 PM",
-    reason: "Consultation (general check-up)",
-    outcome: "Student did not arrive for appointment.",
-  },
-  {
-    id: "HST-2026-0032",
-    status: "completed",
-    appointmentDate: "Thursday, January 16, 2026 — 11:00 AM",
-    completedAt: "2026-01-16T11:25:00.000Z",
-    reason: "Others — vaccination records update",
-    outcome: "Records updated in system.",
-    clinicNote: "Immunization records synchronized with student portal.",
-  },
-];
+// Transform appointment requests to history entries
+function transformToHistory(request: typeof MOCK_APPOINTMENT_REQUESTS[0]): HistoryEntry {
+  const statusMap: Record<string, HistoryStatus> = {
+    approved: "completed",
+    rejected: "cancelled",
+    pending: "no-show",
+  };
+
+  const outcomeMap: Record<string, string> = {
+    approved: "Appointment completed successfully.",
+    rejected: request.clinicNote || "Appointment request was rejected.",
+    pending: "Appointment request is pending review.",
+  };
+
+  return {
+    id: request.id.replace("REQ", "HST"),
+    status: statusMap[request.status],
+    appointmentDate: request.requestedDate,
+    studentName: request.studentName,
+    completedAt: request.status !== "pending" ? request.submittedAt : undefined,
+    reason: request.reason,
+    outcome: outcomeMap[request.status],
+    clinicNote: request.clinicNote,
+  };
+}
+
+const MOCK_HISTORY: HistoryEntry[] = MOCK_APPOINTMENT_REQUESTS.map(transformToHistory);
 
 const statusConfig: Record<
   HistoryStatus,
@@ -227,6 +214,7 @@ export default function HistoryPage() {
                       <Separator />
 
                       <div className="space-y-3">
+                        <DetailRow label="Student Name" value={entry.studentName} />
                         <DetailRow label="Reason" value={entry.reason} />
                         <DetailRow label="Outcome" value={entry.outcome} />
 
