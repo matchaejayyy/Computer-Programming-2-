@@ -1,0 +1,207 @@
+import {
+  Activity,
+  CalendarDays,
+  CheckCircle2,
+  ClipboardCheck,
+  FileSpreadsheet,
+  FolderClock,
+  LayoutDashboard,
+  XCircle,
+  Settings2,
+} from "lucide-react";
+
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { cn } from "@/lib/utils";
+
+const adminMenuCards = [
+  {
+    title: "Dashboard",
+    subtitle: "View Overview",
+    details: ["Total Appointments", "Pending Requests", "Approved / Rejected"],
+    icon: LayoutDashboard,
+    color: "green",
+  },
+  {
+    title: "Manage Appointments",
+    subtitle: "View All Requests",
+    details: ["Approve / Reject", "Edit Schedule"],
+    icon: ClipboardCheck,
+    color: "blue",
+  },
+  {
+    title: "Manage Schedule",
+    subtitle: "Set Available Dates",
+    details: ["Set Time Slots", "Block Unavailable Dates"],
+    icon: CalendarDays,
+    color: "amber",
+  },
+  {
+    title: "Status Management",
+    subtitle: "Track Requests",
+    details: ["Pending -> Approved", "Pending -> Rejected"],
+    icon: Settings2,
+    color: "green",
+  },
+  {
+    title: "Appointment History",
+    subtitle: "View Past Appointments",
+    details: ["Filter by Date", "Filter by Student", "Filter by Status"],
+    icon: FolderClock,
+    color: "blue",
+  },
+  {
+    title: "Reports",
+    subtitle: "Clinic Reporting",
+    details: ["Patient Statistics", "Download Reports"],
+    icon: FileSpreadsheet,
+    color: "amber",
+  },
+] as const;
+
+const colorStyles = {
+  green: "bg-[#65a30d]",
+  blue: "bg-[#1d4ed8]",
+  amber: "bg-[#d97706]",
+} as const;
+
+const dashboardStats = [
+  {
+    title: "Total Appointments",
+    value: "324",
+    note: "This month",
+    icon: CalendarDays,
+    tone: "bg-[#1d4ed8]/10 text-[#1d4ed8]",
+  },
+  {
+    title: "Pending Requests",
+    value: "28",
+    note: "Needs review",
+    icon: Activity,
+    tone: "bg-[#d97706]/10 text-[#d97706]",
+  },
+  {
+    title: "Approved",
+    value: "261",
+    note: "Processed successfully",
+    icon: CheckCircle2,
+    tone: "bg-[#16a34a]/10 text-[#16a34a]",
+  },
+  {
+    title: "Rejected",
+    value: "35",
+    note: "Declined requests",
+    icon: XCircle,
+    tone: "bg-[#dc2626]/10 text-[#dc2626]",
+  },
+] as const;
+
+export function AdminDashboard() {
+  return (
+    <div className="grid grid-cols-1 gap-6">
+      <Card className="overflow-hidden border-0 bg-[#E50000] text-white shadow-sm ring-0 rounded-2xl">
+        <CardContent className="space-y-4 p-6 sm:p-8">
+          <p className="text-xs font-bold uppercase tracking-widest text-white/90">
+            San Agustin Clinic System
+          </p>
+          <h1 className="text-2xl font-bold sm:text-3xl">Admin / Staff Portal</h1>
+          <p className="max-w-3xl text-[15px] leading-relaxed text-white/95">
+            Monitor appointment activity, review request statuses, and coordinate
+            daily clinic operations from one centralized admin dashboard.
+          </p>
+        </CardContent>
+      </Card>
+
+      <section className="space-y-4">
+        <div className="flex items-center justify-between px-1">
+          <h2 className="text-xl font-bold text-foreground">Dashboard statistics</h2>
+          <p className="text-sm text-muted-foreground">UI preview data</p>
+        </div>
+
+        <div className="flex gap-4 overflow-x-auto pb-1">
+          {dashboardStats.map((item) => {
+            const Icon = item.icon;
+            return (
+              <Card
+                key={item.title}
+                className="min-w-[250px] flex-1 rounded-2xl border border-neutral-200 bg-white shadow-none"
+              >
+                <CardContent className="p-5">
+                  <div className="flex items-start justify-between gap-3">
+                    <div>
+                      <p className="text-sm font-medium text-muted-foreground">
+                        {item.title}
+                      </p>
+                      <p className="mt-1 text-3xl font-bold tracking-tight text-foreground">
+                        {item.value}
+                      </p>
+                      <p className="mt-1 text-xs text-muted-foreground">{item.note}</p>
+                    </div>
+                    <span
+                      className={cn(
+                        "flex size-10 items-center justify-center rounded-xl",
+                        item.tone
+                      )}
+                    >
+                      <Icon className="size-5" aria-hidden />
+                    </span>
+                  </div>
+                </CardContent>
+              </Card>
+            );
+          })}
+        </div>
+
+      </section>
+
+      <section className="space-y-4">
+        <div className="flex items-center justify-between px-1">
+          <h2 className="text-xl font-bold text-foreground">Admin portal menu</h2>
+          <Button type="button" className="rounded-xl bg-[#E50000] text-white hover:bg-[#c40000]">
+            Start
+          </Button>
+        </div>
+
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
+          {adminMenuCards.map((item) => {
+            const Icon = item.icon;
+            return (
+              <Card key={item.title} className="rounded-2xl border border-neutral-200 bg-white shadow-none">
+                <CardHeader className="pb-3">
+                  <div className="flex items-center gap-3">
+                    <span
+                      className={cn(
+                        "flex size-10 items-center justify-center rounded-xl text-white",
+                        colorStyles[item.color]
+                      )}
+                    >
+                      <Icon className="size-5" aria-hidden />
+                    </span>
+                    <div className="space-y-0.5">
+                      <CardTitle className="text-base font-bold text-foreground">
+                        {item.title}
+                      </CardTitle>
+                      <p className="text-sm text-muted-foreground">{item.subtitle}</p>
+                    </div>
+                  </div>
+                </CardHeader>
+                <CardContent className="pt-0">
+                  <div className="space-y-2">
+                    {item.details.map((detail) => (
+                      <div
+                        key={detail}
+                        className="rounded-lg border border-neutral-200 bg-neutral-50 px-3 py-2 text-sm text-foreground"
+                      >
+                        {detail}
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            );
+          })}
+        </div>
+      </section>
+    </div>
+  );
+}

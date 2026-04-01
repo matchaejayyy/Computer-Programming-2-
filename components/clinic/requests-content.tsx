@@ -1,10 +1,9 @@
 "use client";
 
-import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
-import { ArrowLeft } from "lucide-react";
 import { BackToHome } from "@/components/clinic/back-to-home";
+import { HomeLink } from "@/components/clinic/home-link";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
@@ -101,13 +100,7 @@ export function RequestsContent({ initialRequests }: Props) {
   return (
     <div className="mx-auto flex min-h-[calc(100vh-9rem)] w-full max-w-7xl flex-col gap-6 px-4 sm:px-6 lg:px-8">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <Link
-          href="/"
-          className="inline-flex w-fit items-center gap-2 rounded-md px-2 py-1.5 text-sm font-medium text-foreground hover:bg-muted"
-        >
-          <ArrowLeft className="size-4" aria-hidden />
-          Home
-        </Link>
+        <HomeLink />
         <div className="flex flex-wrap gap-2">
   <button
     type="button"
