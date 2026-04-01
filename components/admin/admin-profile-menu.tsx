@@ -13,24 +13,24 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
 
-export function ProfileMenu() {
+export function AdminProfileMenu() {
   const router = useRouter();
 
   return (
     <DropdownMenu>
       <DropdownMenuTrigger
-        aria-label="Open profile menu"
+        aria-label="Open admin profile menu"
         className={cn(
           buttonVariants({ variant: "ghost" }),
           "h-auto gap-3 rounded-xl px-2 py-2 font-medium shadow-none hover:bg-neutral-100"
         )}
       >
         <span className="max-w-24 truncate text-left text-[11px] font-bold uppercase leading-tight text-foreground sm:max-w-56 sm:text-xs">
-          STUDENT NAME
+          ADMIN NAME
         </span>
         <Avatar className="size-9 ring-0">
-          <AvatarFallback className="bg-[#00B050] text-sm font-semibold text-white">
-            SN
+          <AvatarFallback className="bg-[#1d4ed8] text-sm font-semibold text-white">
+            AD
           </AvatarFallback>
         </Avatar>
         <ChevronDown className="size-4 shrink-0 text-muted-foreground" aria-hidden />
@@ -42,23 +42,20 @@ export function ProfileMenu() {
       >
         <DropdownMenuItem
           className="cursor-pointer rounded-lg px-3 py-2.5 text-sm font-normal text-foreground focus:bg-muted"
-          onClick={() => router.push("/profile")}
+          onClick={() => router.push("/admin")}
         >
           Profile
         </DropdownMenuItem>
         <DropdownMenuItem
           className="cursor-pointer rounded-lg px-3 py-2.5 text-sm font-normal text-foreground focus:bg-muted"
-          onClick={() => router.push("/help")}
+          onClick={() => router.push("/admin")}
         >
           Help
         </DropdownMenuItem>
         <DropdownMenuItem
           variant="destructive"
           className="cursor-pointer rounded-lg px-3 py-2.5 text-sm font-normal focus:bg-destructive/10"
-          onClick={() => {
-            // TODO: signOut when auth exists
-            router.push("/login");
-          }}
+          onClick={() => router.push("/login")}
         >
           Logout
         </DropdownMenuItem>

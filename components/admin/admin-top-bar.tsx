@@ -1,19 +1,19 @@
 import Link from "next/link";
 import { Bell } from "lucide-react";
 
-import { ProfileMenu } from "@/components/clinic/profile-menu";
+import { AdminProfileMenu } from "@/components/admin/admin-profile-menu";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 
-export function AppTopBar() {
+export function AdminTopBar() {
   return (
     <div className="border-b border-neutral-200 bg-white shadow-sm">
       <div className="mx-auto flex w-full items-center justify-between gap-4 px-4 py-3 sm:px-6 lg:px-8 xl:px-12 2xl:px-16">
         <Link
-          href="/"
+          href="/admin"
           className="min-w-0 shrink text-base font-bold tracking-tight text-foreground sm:text-lg"
         >
-          USA Medical Services Portal
+          USA Medical Services Admin Portal
         </Link>
 
         <div className="flex shrink-0 items-center gap-2 sm:gap-3">
@@ -21,17 +21,17 @@ export function AppTopBar() {
             variant="ghost"
             size="icon"
             type="button"
-            className="relative rounded-xl text-foreground cursor-pointer"
+            className="relative rounded-xl text-foreground"
             aria-label="Notifications"
           >
             <Bell className="size-5" />
             <Badge className="absolute -right-0.5 -top-0.5 flex size-5 items-center justify-center rounded-full border-0 bg-[#E50000] p-0 text-[10px] font-semibold text-white">
-              20
+              6
             </Badge>
           </Button>
 
-          <div className="border-l border-neutral-200 pl-2 sm:pl-3 cursor-pointer">
-            <ProfileMenu />
+          <div className="border-l border-neutral-200 pl-2 sm:pl-3">
+            <AdminProfileMenu />
           </div>
         </div>
       </div>

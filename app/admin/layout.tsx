@@ -1,13 +1,13 @@
-import { AppTopBar } from "@/components/clinic/app-top-bar";
+import { AdminTopBar } from "@/components/admin/admin-top-bar";
 import { PageTransition } from "@/components/clinic/page-transition";
 
-export default function ClinicLayout({
+export default function AdminLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
     <div className="flex min-h-dvh flex-col bg-[#f4f4f5] text-foreground">
       <div className="sticky top-0 z-50 shrink-0">
-        <AppTopBar />
+        <AdminTopBar />
       </div>
       <div className="flex flex-1 flex-col">
         <div className="mx-auto w-full px-4 py-6 sm:px-6 sm:py-8 lg:px-8 xl:px-12 2xl:px-16">

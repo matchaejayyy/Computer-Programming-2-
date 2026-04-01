@@ -1,9 +1,9 @@
 "use client";
 
-import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
-import { ArrowLeft } from "lucide-react";
 import { BackToHome } from "@/components/clinic/back-to-home";
+import { HomeLink } from "@/components/clinic/home-link";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
@@ -33,10 +33,23 @@ const filterEndpointByStatus: Record<RequestStatus, string> = {
 };
 
 export function RequestsContent({ initialRequests }: Props) {
+  const searchParams = useSearchParams();
   const [activeFilter, setActiveFilter] = useState<"all" | "pending" | "approved" | "rejected">("all");
   const [filteredItems, setFilteredItems] = useState(initialRequests);
   const [filterLoading, setFilterLoading] = useState(false);
   const [filterError, setFilterError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const rawFilter = searchParams.get("filter");
+    if (
+      rawFilter === "pending" ||
+      rawFilter === "approved" ||
+      rawFilter === "rejected" ||
+      rawFilter === "all"
+    ) {
+      setActiveFilter(rawFilter);
+    }
+  }, [searchParams]);
 
   // Active filter effect
   useEffect(() => {
@@ -78,22 +91,16 @@ export function RequestsContent({ initialRequests }: Props) {
   const title = "Appointment requests";
   const filterButtonClass = (name: "all" | "pending" | "approved" | "rejected") =>
     cn(
-      "min-w-24 rounded-md border px-3 py-1.5 text-sm font-medium transition-colors",
+      "min-w-24 cursor-pointer rounded-md border px-3 py-1.5 text-sm font-medium transition-all duration-200 active:scale-[0.98]",
       activeFilter === name
-        ? "border-[#E50000] bg-[#E50000] text-white"
-        : "border-border bg-background text-foreground hover:bg-muted"
+        ? "border-[#E50000] bg-[#E50000] text-white shadow-sm"
+        : "border-border bg-background text-foreground hover:bg-muted hover:-translate-y-0.5"
     );
 
   return (
     <div className="mx-auto flex min-h-[calc(100vh-9rem)] w-full max-w-7xl flex-col gap-6 px-4 sm:px-6 lg:px-8">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <Link
-          href="/"
-          className="inline-flex w-fit items-center gap-2 rounded-md px-2 py-1.5 text-sm font-medium text-foreground hover:bg-muted"
-        >
-          <ArrowLeft className="size-4" aria-hidden />
-          Home
-        </Link>
+        <HomeLink />
         <div className="flex flex-wrap gap-2">
   <button
     type="button"
@@ -140,7 +147,12 @@ export function RequestsContent({ initialRequests }: Props) {
         <p className="text-sm text-destructive" role="alert">{filterError}</p>
       ) : null}
 
-      <section className="min-h-[60vh]">
+      <section
+        className={cn(
+          "min-h-[60vh] transition-all duration-300",
+          filterLoading ? "translate-y-1 opacity-70" : "translate-y-0 opacity-100"
+        )}
+      >
       {initialRequests.length === 0 ? (
         <Card>
           <CardContent className="space-y-2 py-10 text-center text-sm text-muted-foreground">
@@ -164,8 +176,8 @@ export function RequestsContent({ initialRequests }: Props) {
       ) : (
         <ul className="flex flex-col gap-4">
           {items.map((req) => (
-            <li key={req.id}>
-              <Card className="border-border shadow-sm">
+            <li key={req.id} className="animate-[clinic-page-enter_240ms_ease-out]">
+              <Card className="border-border shadow-sm transition-transform duration-200 hover:-translate-y-0.5">
                 <CardHeader className="flex flex-row flex-wrap items-start justify-between gap-2 border-b border-border pb-3">
                   <div className="space-y-1">
                     <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Request ID</p>

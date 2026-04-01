@@ -11,18 +11,21 @@ const rows = [
   {
     status: "pending" as const,
     label: "Pending",
+    href: "/requests?filter=pending",
     badgeClass:
       "min-w-8 justify-center rounded-full border border-amber-300 bg-amber-50 px-2.5 py-0.5 text-amber-600 tabular-nums",
   },
   {
     status: "approved" as const,
     label: "Approved",
+    href: "/requests?filter=approved",
     badgeClass:
       "min-w-8 justify-center rounded-full border border-green-600 bg-green-600 px-2.5 py-0.5 text-white tabular-nums",
   },
   {
     status: "rejected" as const,
     label: "Rejected",
+    href: "/requests?filter=rejected",
     badgeClass:
       "min-w-8 justify-center rounded-full border border-red-200 bg-red-50 px-2.5 py-0.5 text-red-600 tabular-nums",
   },
@@ -51,9 +54,10 @@ export function RequestStatusSummary() {
                 ? counts.approved
                 : counts.rejected;
           return (
-            <div
+            <Link
               key={row.status}
-              className="flex items-center justify-between gap-2 rounded-lg border border-transparent px-3 py-2.5 text-sm"
+              href={row.href}
+              className="flex items-center justify-between gap-2 rounded-lg border border-transparent px-3 py-2.5 text-sm transition-colors hover:border-border hover:bg-muted/50"
             >
               <span className="font-medium text-foreground">{row.label}</span>
               <span className="flex items-center gap-1.5">
@@ -65,7 +69,7 @@ export function RequestStatusSummary() {
                   aria-hidden
                 />
               </span>
-            </div>
+            </Link>
           );
         })}
       </CardContent>

@@ -1,6 +1,6 @@
-import { ArrowLeft, Calendar, CheckCircle, XCircle, AlertCircle } from "lucide-react";
+import { Calendar, CheckCircle, XCircle, AlertCircle } from "lucide-react";
 
-import Link from "next/link";
+import { HomeLink } from "@/components/clinic/home-link";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
@@ -86,13 +86,7 @@ export default function HistoryPage() {
     <div className="mx-auto w-full max-w-7xl px-4 py-6 sm:px-6 sm:py-0 lg:px-8">
       {/* Header */}
       <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <Link
-          href="/"
-          className="inline-flex w-fit items-center gap-2 rounded-md px-2 py-1.5 text-sm font-medium text-foreground hover:bg-muted"
-        >
-          <ArrowLeft className="size-4" aria-hidden />
-          Home
-        </Link>
+        <HomeLink />
       </div>
 
       <div className="mb-4">
