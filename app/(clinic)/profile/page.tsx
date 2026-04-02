@@ -1,21 +1,14 @@
-import Link from "next/link";
-import { ArrowLeft } from "lucide-react";
-
+import { HomeLink } from "@/components/clinic/home-link";
+import { ProfilePatientDetails } from "@/components/clinic/profile-patient-details";
 import { ProfileChangePassword } from "@/components/clinic/profile-change-password";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 
 export default function ProfilePage() {
   return (
-    <div className="mx-auto max-w-lg space-y-6">
-      <Link
-        href="/"
-        className="inline-flex items-center gap-2 rounded-md px-2 py-1.5 text-sm font-medium text-foreground hover:bg-muted"
-      >
-        <ArrowLeft className="size-4" aria-hidden />
-        Back
-      </Link>
-      <Card className="border border-clinic-blue/30 bg-clinic-surface shadow-sm">
+    <div className="mx-auto max-w-4xl space-y-6">
+      <HomeLink />
+      <Card className="border-border shadow-sm">
         <CardHeader className="border-b border-border pb-4">
           <CardTitle className="text-lg text-foreground">Profile</CardTitle>
           <CardDescription>
@@ -23,10 +16,7 @@ export default function ProfilePage() {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6 pt-6">
-          <div className="text-sm text-muted-foreground">
-            <p className="font-medium text-foreground">Vhea Asesor</p>
-            <p className="mt-1">student@usa.edu.ph</p>
-          </div>
+          <ProfilePatientDetails studentId="student@usa.edu.ph" />
           <Separator />
           <div>
             <h2 className="text-sm font-semibold text-foreground">Password</h2>

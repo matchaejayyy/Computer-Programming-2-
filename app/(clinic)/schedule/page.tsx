@@ -1,15 +1,16 @@
 import { CalendarDays } from "lucide-react";
 
-import { BackToHome } from "@/components/clinic/back-to-home";
+import { HomeLink } from "@/components/clinic/home-link";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { WEEKLY_CLINIC_HOURS } from "@/lib/clinic/clinic-schedule";
 
 export default function SchedulePage() {
   return (
-    <div className="grid grid-cols-1 gap-2">
-      <Card className="border-2 border-clinic-blue bg-clinic-surface shadow-sm">
-        <CardHeader className="flex flex-row items-center gap-3 border-b border-border pb-4">
-          <span className="flex size-11 shrink-0 items-center justify-center rounded-lg bg-clinic-blue text-white">
+    <div className="mx-auto flex min-h-[calc(100vh-9rem)] w-full max-w-7xl flex-col gap-6 px-4 sm:px-6 lg:px-8">
+      <HomeLink />
+      <Card className="border border-neutral-200 bg-white shadow-sm">
+        <CardHeader className="flex flex-row items-center gap-3 border-b border-neutral-200 pb-4">
+          <span className="flex size-11 shrink-0 items-center justify-center rounded-lg bg-neutral-50 text-neutral-700 ring-1 ring-neutral-200">
             <CalendarDays className="size-6" aria-hidden />
           </span>
           <CardTitle className="text-lg text-foreground">
@@ -35,7 +36,6 @@ export default function SchedulePage() {
           </div>
         </CardContent>
       </Card>
-      <BackToHome />
     </div>
   );
 }

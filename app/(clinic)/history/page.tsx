@@ -99,46 +99,46 @@ export default function HistoryPage() {
       </div>
 
       {/* Summary Stats */}
-      <div className="mb-4 grid grid-cols-3 gap-3">
+      <div className="mb-4 grid grid-cols-1 gap-3 md:grid-cols-2 2xl:grid-cols-3">
         {/* Completed */}
         <Card className="border border-border shadow-sm">
-          <CardContent className="flex items-center gap-5 py-5 px-8">
+          <CardContent className="flex items-center gap-4 px-4 py-4 sm:gap-5 sm:px-6 sm:py-5">
             <div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-green-50 text-green-600">
               <CheckCircle className="size-5" aria-hidden />
             </div>
-            <div>
-              <p className="text-2xl font-bold text-foreground">
+            <div className="min-w-0">
+              <p className="text-xl font-bold text-foreground sm:text-2xl">
                 {completedCount}
               </p>
-              <p className="text-xs text-muted-foreground">Completed</p>
+              <p className="text-xs leading-tight text-muted-foreground">Completed</p>
             </div>
           </CardContent>
         </Card>
 
         {/* Cancelled */}
         <Card className="border border-border shadow-sm">
-          <CardContent className="flex items-center gap-5 py-5 px-8">
+          <CardContent className="flex items-center gap-4 px-4 py-4 sm:gap-5 sm:px-6 sm:py-5">
             <div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-amber-50 text-amber-600">
               <XCircle className="size-5" aria-hidden />
             </div>
-            <div>
-              <p className="text-2xl font-bold text-foreground">
+            <div className="min-w-0">
+              <p className="text-xl font-bold text-foreground sm:text-2xl">
                 {cancelledCount}
               </p>
-              <p className="text-xs text-muted-foreground">Cancelled</p>
+              <p className="text-xs leading-tight text-muted-foreground">Cancelled</p>
             </div>
           </CardContent>
         </Card>
 
         {/* No Show */}
         <Card className="border border-border shadow-sm">
-          <CardContent className="flex items-center gap-5 py-5 px-8">
+          <CardContent className="flex items-center gap-4 px-4 py-4 sm:gap-5 sm:px-6 sm:py-5">
             <div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-red-50 text-red-600">
               <AlertCircle className="size-5" aria-hidden />
             </div>
-            <div>
-              <p className="text-2xl font-bold text-foreground">{noShowCount}</p>
-              <p className="text-xs text-muted-foreground">No Show</p>
+            <div className="min-w-0">
+              <p className="text-xl font-bold text-foreground sm:text-2xl">{noShowCount}</p>
+              <p className="text-xs leading-tight text-muted-foreground">No Show</p>
             </div>
           </CardContent>
         </Card>
