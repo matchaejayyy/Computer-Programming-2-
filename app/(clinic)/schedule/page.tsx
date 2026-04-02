@@ -6,7 +6,7 @@ import { WEEKLY_CLINIC_HOURS } from "@/lib/clinic/clinic-schedule";
 
 export default function SchedulePage() {
   return (
-    <div className="mx-auto flex max-w-2xl flex-col gap-6">
+    <div className="grid grid-cols-1 gap-2">
       <Card className="border-2 border-clinic-blue bg-clinic-surface shadow-sm">
         <CardHeader className="flex flex-row items-center gap-3 border-b border-border pb-4">
           <span className="flex size-11 shrink-0 items-center justify-center rounded-lg bg-clinic-blue text-white">

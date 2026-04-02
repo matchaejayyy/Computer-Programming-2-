@@ -143,7 +143,7 @@ export default function AdminHistoryPage() {
   };
 
   return (
-    <div className="grid grid-cols-1">
+    <div className="grid grid-cols-1 gap-2">
       {/* Back to dashboard button */}
       <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <HomeLink />
