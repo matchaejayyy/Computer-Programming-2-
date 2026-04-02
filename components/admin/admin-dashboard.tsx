@@ -19,7 +19,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 
-/* ================= MENU ================= */
+import Link from "next/link";
 
 const adminMenuCards = [
   {
@@ -28,7 +28,7 @@ const adminMenuCards = [
     details: ["Total Appointments", "Pending Requests", "Approved / Rejected"],
     icon: LayoutDashboard,
     color: "green",
-    link: "/admin",
+    href: "/admin",
   },
   {
     title: "Manage Appointments",
@@ -36,7 +36,7 @@ const adminMenuCards = [
     details: ["Approve / Reject", "Edit Schedule"],
     icon: ClipboardCheck,
     color: "blue",
-    link: "/admin/appointments",
+    href: "#",
   },
   {
     title: "Manage Schedule",
@@ -44,7 +44,7 @@ const adminMenuCards = [
     details: ["Set Time Slots", "Block Unavailable Dates"],
     icon: CalendarDays,
     color: "amber",
-    link: "/admin/schedule",
+    href: "#s",
   },
   {
     title: "Status Management",
@@ -52,7 +52,7 @@ const adminMenuCards = [
     details: ["Pending -> Approved", "Pending -> Rejected"],
     icon: Settings2,
     color: "green",
-    link: "/admin/status",
+    href: "#",
   },
   {
     title: "Appointment History",
@@ -60,7 +60,7 @@ const adminMenuCards = [
     details: ["Filter by Date", "Filter by Student", "Filter by Status"],
     icon: FolderClock,
     color: "blue",
-    link: "/admin/history",
+    href: "/admin/history",
   },
   {
     title: "Reports",
@@ -68,7 +68,7 @@ const adminMenuCards = [
     details: ["Patient Statistics", "Download Reports", "click"],
     icon: FileSpreadsheet,
     color: "amber",
-    link: "/admin/reports/page.tsx",
+    href: "#",
   },
 ] as const;
 
@@ -210,8 +210,8 @@ export function AdminDashboard() {
             const Icon = item.icon;
 
             return (
-              <Link key={item.title} href={item.link}>
-                <Card className="rounded-2xl border border-neutral-200 bg-white shadow-none hover:shadow-md transition cursor-pointer">
+              <Link key={item.title} href={item.href}>
+                <Card className="rounded-2xl border border-neutral-200 bg-white shadow-none transition-colors hover:bg-neutral-50">
                   <CardHeader className="pb-3">
                     <div className="flex items-center gap-3">
                       <span
@@ -220,26 +220,22 @@ export function AdminDashboard() {
                           colorStyles[item.color]
                         )}
                       >
-                        <Icon className="size-5" />
+                        <Icon className="size-5" aria-hidden />
                       </span>
-
                       <div className="space-y-0.5">
-                        <CardTitle className="text-base font-bold">
+                        <CardTitle className="text-base font-bold text-foreground">
                           {item.title}
                         </CardTitle>
-                        <p className="text-sm text-muted-foreground">
-                          {item.subtitle}
-                        </p>
+                        <p className="text-sm text-muted-foreground">{item.subtitle}</p>
                       </div>
                     </div>
                   </CardHeader>
-
-                  <CardContent>
+                  <CardContent className="pt-0">
                     <div className="space-y-2">
                       {item.details.map((detail) => (
                         <div
                           key={detail}
-                          className="rounded-lg border border-neutral-200 bg-neutral-50 px-3 py-2 text-sm"
+                          className="rounded-lg border border-neutral-200 bg-neutral-50 px-3 py-2 text-sm text-foreground"
                         >
                           {detail}
                         </div>

@@ -152,7 +152,7 @@ export function ReserveForm() {
   };
 
   return (
-    <Card className="w-full max-w-6xl mx-auto border border-clinic-blue/30 bg-white shadow-sm">
+    <Card className="w-full border border-clinic-blue/30 bg-white shadow-sm">
       <CardHeader className="border-b border-border pb-4">
         <CardTitle className="text-lg text-foreground">Reserve appointment</CardTitle>
       </CardHeader>
