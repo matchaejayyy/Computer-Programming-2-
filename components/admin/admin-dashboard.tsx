@@ -43,7 +43,7 @@ const adminMenuCards = [
     details: ["Set Time Slots", "Block Unavailable Dates"],
     icon: CalendarDays,
     color: "amber",
-    href: "#s",
+    href: "/admin/schedule",
   },
   {
     title: "Status Management",
