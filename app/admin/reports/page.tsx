@@ -160,34 +160,31 @@ export default function ReportsPage() {
 
 
   return (
-    <div className="grid grid-cols-1">
+    <div className="grid grid-cols-1 gap-2">
       
       {/* --- TOP NAVIGATION --- */}
-      <div className="flex items-center justify-between">
-        {/* Back to dashboard button */}
       <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <HomeLink />
-      </div>
-       <Button 
-            variant="outline" 
-            size="sm" 
-            className="gap-2 border-green-600 text-green-700 hover:bg-green-50"
-            onClick={() => downloadReport()} // Use arrow function to be safe
-            type="button" // Prevents any accidental form submission
-          >
-            <FileSpreadsheet className="size-4" /> 
-            Export CSV
-          </Button>
+        <Button 
+          variant="outline" 
+          size="sm" 
+          className="gap-2 border-green-600 text-green-700 hover:bg-green-50"
+          onClick={() => downloadReport()}
+          type="button"
+        >
+          <FileSpreadsheet className="size-4" /> 
+          Export CSV
+        </Button>
       </div>
 
       {/* --- PAGE HEADER --- */}
-      <div>
-        <h1 className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl">Clinic Visit Reports</h1>
-        <p className="text-muted-foreground mt-1">Track daily patient walk-ins and appointment outcomes.</p>
+      <div className="mb-4">
+        <h1 className="text-xl font-bold text-foreground sm:text-2xl">Clinic Visit Reports</h1>
+        <p className="mt-1 text-sm text-muted-foreground">Track daily patient walk-ins and appointment outcomes.</p>
       </div>
 
       {/* --- SECTION: QUICK ADD  --- */}
-      <Card className="border-primary/20 bg-primary/5 shadow-none">
+      <Card className="mb-4 border border-border shadow-sm">
         <CardHeader className="pb-3">
           <CardTitle className="text-sm font-medium flex items-center gap-2">
             <Plus className="size-4" /> Quick Add Walk-in
@@ -240,7 +237,7 @@ export default function ReportsPage() {
       </Card>
 
       {/* --- SECTION: FILTERS --- */}
-      <Card className="border-border shadow-sm">
+      <Card className="mb-4 border border-border shadow-sm">
         <CardContent className="p-4">
           <div className="flex flex-col sm:flex-row gap-4 items-end">
             <div className="flex-1 space-y-2">
@@ -277,18 +274,17 @@ export default function ReportsPage() {
       </Card>
 
       {/* --- SECTION: SUMMARY STATS --- */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <StatCard icon={Search} label="Filtered Results" value={stats.total} color="bg-gray-50 text-gray-600" />
+      <div className="mb-4 grid grid-cols-3 gap-3">
         <StatCard icon={CheckCircle} label="Completed" value={stats.completed} color="bg-green-50 text-green-600" />
         <StatCard icon={XCircle} label="Cancelled" value={stats.cancelled} color="bg-amber-50 text-amber-600" />
         <StatCard icon={AlertCircle} label="No Show" value={stats.noShow} color="bg-red-50 text-red-600" />
       </div>
 
       {/* --- SECTION: RECORD LIST  --- */}
-      <div className="space-y-4">
-        <div className="flex items-center justify-between border-b pb-2">
-          <h2 className="text-lg font-bold">Visit History</h2>
-          <Badge variant="secondary">{filteredLogs.length} Records found</Badge>
+      <>
+        <div className="flex items-center justify-between">
+          <h2 className="text-lg font-bold text-foreground">Visit History</h2>
+          <span className="text-sm text-muted-foreground">{filteredLogs.length} total</span>
         </div>
 
         {filteredLogs.length === 0 ? (
@@ -339,7 +335,7 @@ export default function ReportsPage() {
             })}
           </div>
         )}
-      </div>
+      </>
     </div>
   )
 }
