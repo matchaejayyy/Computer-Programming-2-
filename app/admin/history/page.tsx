@@ -11,7 +11,35 @@ import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
 
+import { HomeLink } from "@/components/admin/admin-homelink";
 import { MOCK_APPOINTMENT_REQUESTS } from "@/lib/clinic/mock-requests";
+
+function parseDateToISO(dateString: string): string {
+  // Parse "Wednesday, April 2, 2026 — 10:00 AM" to "2026-04-02"
+  const months: Record<string, string> = {
+    January: "01",
+    February: "02",
+    March: "03",
+    April: "04",
+    May: "05",
+    June: "06",
+    July: "07",
+    August: "08",
+    September: "09",
+    October: "10",
+    November: "11",
+    December: "12",
+  };
+
+  const match = dateString.match(/(\w+), (\w+) (\d+), (\d+)/);
+  if (!match) return "";
+
+  const [, , monthName, day, year] = match;
+  const month = months[monthName];
+  const dayPadded = day.padStart(2, "0");
+
+  return `${year}-${month}-${dayPadded}`;
+}
 
 type HistoryStatus = "completed" | "cancelled" | "no-show";
 
@@ -27,7 +55,9 @@ type HistoryEntry = {
 };
 
 // Transform appointment requests to history entries
-function transformToHistory(request: typeof MOCK_APPOINTMENT_REQUESTS[0]): HistoryEntry {
+function transformToHistory(
+  request: (typeof MOCK_APPOINTMENT_REQUESTS)[0],
+): HistoryEntry {
   const statusMap: Record<string, HistoryStatus> = {
     approved: "completed",
     rejected: "cancelled",
@@ -52,7 +82,8 @@ function transformToHistory(request: typeof MOCK_APPOINTMENT_REQUESTS[0]): Histo
   };
 }
 
-const MOCK_HISTORY: HistoryEntry[] = MOCK_APPOINTMENT_REQUESTS.map(transformToHistory);
+const MOCK_HISTORY: HistoryEntry[] =
+  MOCK_APPOINTMENT_REQUESTS.map(transformToHistory);
 
 const statusConfig: Record<
   HistoryStatus,
@@ -81,9 +112,12 @@ export default function AdminHistoryPage() {
 
   const filteredHistory = useMemo(() => {
     return MOCK_HISTORY.filter((entry) => {
-      // Date filter
-      if (dateFilter && !entry.appointmentDate.includes(dateFilter)) {
-        return false;
+      // Date filter - compare ISO formats for accuracy
+      if (dateFilter) {
+        const entryDateISO = parseDateToISO(entry.appointmentDate);
+        if (entryDateISO !== dateFilter) {
+          return false;
+        }
       }
 
       // Status filter
@@ -96,14 +130,12 @@ export default function AdminHistoryPage() {
   }, [dateFilter, statusFilter]);
 
   const completedCount = filteredHistory.filter(
-    (h) => h.status === "completed"
+    (h) => h.status === "completed",
   ).length;
   const cancelledCount = filteredHistory.filter(
-    (h) => h.status === "cancelled"
+    (h) => h.status === "cancelled",
   ).length;
-  const noShowCount = filteredHistory.filter(
-    (h) => h.status === "no-show"
-  ).length;
+  const noShowCount = filteredHistory.filter((h) => h.status === "no-show").length;
 
   const clearFilters = () => {
     setDateFilter("");
@@ -111,8 +143,12 @@ export default function AdminHistoryPage() {
   };
 
   return (
-    <div className="mx-auto w-full max-w-7xl px-4 py-6 sm:px-6 sm:py-0 lg:px-8">
-      {/* Header */}
+    <div className="grid grid-cols-1">
+      {/* Back to dashboard button */}
+      <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <HomeLink />
+      </div>
+
       <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-xl font-bold text-foreground sm:text-2xl">
@@ -207,7 +243,9 @@ export default function AdminHistoryPage() {
               <AlertCircle className="size-5" aria-hidden />
             </div>
             <div>
-              <p className="text-2xl font-bold text-foreground">{noShowCount}</p>
+              <p className="text-2xl font-bold text-foreground">
+                {noShowCount}
+              </p>
               <p className="text-xs text-muted-foreground">No Show</p>
             </div>
           </CardContent>
@@ -218,13 +256,13 @@ export default function AdminHistoryPage() {
       {filteredHistory.length === 0 ? (
         <>
           <div className="flex items-center pb-4 justify-between">
-              <h2 className="text-lg font-bold text-foreground">
-                Past appointments
-              </h2>
-              <span className="text-sm text-muted-foreground">
-                {filteredHistory.length} total
-              </span>
-            </div>
+            <h2 className="text-lg font-bold text-foreground">
+              Past appointments
+            </h2>
+            <span className="text-sm text-muted-foreground">
+              {filteredHistory.length} total
+            </span>
+          </div>
           <Card className="border border-border shadow-sm">
             <CardContent className="space-y-2 py-10 text-center text-sm text-muted-foreground">
               <p className="font-medium text-foreground">No history found</p>
@@ -285,8 +323,14 @@ export default function AdminHistoryPage() {
                       <Separator />
 
                       <div className="space-y-3">
-                        <DetailRow label="Patient Name" value={entry.studentName} />
-                        <DetailRow label="Reason for Visit" value={entry.reason} />
+                        <DetailRow
+                          label="Patient Name"
+                          value={entry.studentName}
+                        />
+                        <DetailRow
+                          label="Reason for Visit"
+                          value={entry.reason}
+                        />
                         <DetailRow label="Status" value={entry.outcome} />
 
                         {entry.completedAt ? (
