@@ -88,8 +88,10 @@ export function AdminDashboard() {
     approved: 0,
     rejected: 0,
   });
+  const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
+    setIsMounted(true);
     fetch("/api/admin-stats")
       .then((res) => res.json())
       .then(setStats)
@@ -104,31 +106,31 @@ export function AdminDashboard() {
       });
   }, []);
 
-  const dynamicStats = [
+  const statsData = [
     {
       title: "Total Appointments",
-      value: stats.total.toString(),
+      value: stats.total,
       note: "All records",
       icon: CalendarDays,
       tone: "bg-[#1d4ed8]/10 text-[#1d4ed8]",
     },
     {
       title: "Pending Requests",
-      value: stats.pending.toString(),
+      value: stats.pending,
       note: "Needs review",
       icon: Activity,
       tone: "bg-[#d97706]/10 text-[#d97706]",
     },
     {
       title: "Approved",
-      value: stats.approved.toString(),
+      value: stats.approved,
       note: "Processed successfully",
       icon: CheckCircle2,
       tone: "bg-[#16a34a]/10 text-[#16a34a]",
     },
     {
       title: "Rejected",
-      value: stats.rejected.toString(),
+      value: stats.rejected,
       note: "Declined requests",
       icon: XCircle,
       tone: "bg-[#dc2626]/10 text-[#dc2626]",
@@ -159,7 +161,7 @@ export function AdminDashboard() {
         </div>
 
         <div className="flex gap-4 overflow-x-auto pb-1">
-          {dynamicStats.map((item) => {
+          {statsData.map((item) => {
             const Icon = item.icon;
             return (
               <Card
@@ -173,7 +175,7 @@ export function AdminDashboard() {
                         {item.title}
                       </p>
                       <p className="mt-1 text-3xl font-bold">
-                        {item.value}
+                        {isMounted ? item.value : 0}
                       </p>
                       <p className="mt-1 text-xs text-muted-foreground">
                         {item.note}
@@ -209,13 +211,13 @@ export function AdminDashboard() {
             const Icon = item.icon;
 
             return (
-              <Link key={item.title} href={item.href}>
-                <Card className="rounded-2xl border border-neutral-200 bg-white shadow-none transition-colors hover:bg-neutral-50">
+              <Link key={item.title} href={item.href} className="block h-full">
+                <Card className="h-full rounded-2xl border border-neutral-200 bg-white shadow-none transition-colors hover:bg-neutral-50 flex flex-col">
                   <CardHeader className="pb-3">
                     <div className="flex items-center gap-3">
                       <span
                         className={cn(
-                          "flex size-10 items-center justify-center rounded-xl text-white",
+                          "flex size-10 shrink-0 items-center justify-center rounded-xl text-white",
                           colorStyles[item.color]
                         )}
                       >
@@ -229,7 +231,7 @@ export function AdminDashboard() {
                       </div>
                     </div>
                   </CardHeader>
-                  <CardContent className="pt-0">
+                  <CardContent className="pt-0 flex-1 min-h-[120px]">
                     <div className="space-y-2">
                       {item.details.map((detail) => (
                         <div
