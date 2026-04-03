@@ -5,7 +5,7 @@ import { ClipboardList } from "lucide-react";
 
 import { HomeLink } from "@/components/clinic/home-link";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
@@ -159,25 +159,19 @@ export function ReserveForm() {
 
   return (
     <div className="grid grid-cols-1 gap-2">
-      <div>
-        <h1 className="text-xl font-bold text-foreground sm:text-2xl">
-          Reserve Appointment
-        </h1>
-        <p className="mt-1 text-sm mb-4 text-muted-foreground">
-          Fill in your details and reason. The clinic will review your request
-          and update your appointment status.
-        </p>
-      </div>
-
-      <Card className="border border-border shadow-sm">
-        <CardHeader className="flex flex-row items-center gap-3 border-b border-border px-6 py-4">
-          <span className="flex size-11 shrink-0 items-center justify-center rounded-lg bg-neutral-50 text-neutral-700 ring-1 ring-neutral-200">
-            <ClipboardList className="size-6" aria-hidden />
-          </span>
-          <CardTitle className="text-lg font-bold text-foreground">
-            Appointment Details
-          </CardTitle>
+      <Card className="border border-border px-5 py-8 shadow-sm">
+        <CardHeader className="flex flex-row items-center gap-3 border-b border-border pb-4">
+          <div>
+            <CardTitle className="text-lg font-bold text-foreground">
+              Reserve Appointment
+            </CardTitle>
+            <CardDescription>
+              Fill in your details and reason. The clinic will review your request
+              and update your appointment status.
+            </CardDescription>
+          </div>
         </CardHeader>
+
         <CardContent className="flex flex-col gap-5 px-6 py-5">
           <form className="flex flex-col gap-5" onSubmit={handleSubmit}>
             <div className="grid gap-4 sm:grid-cols-2">

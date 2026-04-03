@@ -15,7 +15,9 @@ const samples = [
 export default function StatusPage() {
   return (
     <div className="mx-auto flex max-w-lg flex-col gap-6">
-      <HomeLink />
+      <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <HomeLink />
+      </div>
       <Card className="border border-clinic-blue/30 bg-clinic-surface shadow-sm">
         <CardHeader className="flex flex-row items-center gap-3 border-b border-border pb-4">
           <span className="relative flex size-11 shrink-0 items-center justify-center rounded-lg bg-card text-foreground ring-1 ring-border">
