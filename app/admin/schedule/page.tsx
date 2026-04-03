@@ -1,6 +1,7 @@
 "use client";
 import { useState } from "react";
 import { Calendar, Ban, Clock, ChevronDown, Plus, X } from "lucide-react";
+import { HomeLink } from "@/components/admin/admin-homelink";
 
 export default function SchedulePage() {
     const [date, setDate] = useState("");
@@ -43,6 +44,7 @@ export default function SchedulePage() {
     };
 
     const totalSlots = Object.values(schedules).flat().length;
+    
 
     return (
         <div className="p-8 bg-gray-50 min-h-screen text-gray-900 font-sans">
@@ -50,10 +52,10 @@ export default function SchedulePage() {
             
             <div className="mb-8">
                 
-                <button className="text-gray-500 hover:text-gray-800 flex items-center gap-2 text-sm font-medium mb-2 transition-colors">
-                    <ChevronDown className="w-4 h-4 rotate-90" />
-                    Dashboard
-                </button>
+                {/* Back to dashboard button */}
+                   <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                     <HomeLink />
+                   </div>
                 <h1 className="text-2xl font-bold tracking-tight text-gray-900">Manage Schedule</h1>
                 <p className="text-sm text-gray-500">Review dates, time slots, and clinic availability.</p>
             </div>
