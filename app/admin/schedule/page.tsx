@@ -47,7 +47,9 @@ export default function SchedulePage() {
     return (
         <div className="p-8 bg-gray-50 min-h-screen text-gray-900 font-sans">
             {/* HEADER AREA */}
+            
             <div className="mb-8">
+                
                 <button className="text-gray-500 hover:text-gray-800 flex items-center gap-2 text-sm font-medium mb-2 transition-colors">
                     <ChevronDown className="w-4 h-4 rotate-90" />
                     Dashboard
