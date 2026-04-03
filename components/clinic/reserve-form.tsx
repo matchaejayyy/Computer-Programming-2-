@@ -1,7 +1,9 @@
 "use client";
 
 import { useState } from "react";
+import { ClipboardList } from "lucide-react";
 
+import { HomeLink } from "@/components/clinic/home-link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -59,7 +61,7 @@ export function ReserveForm() {
 
   const updateField = <K extends keyof ReserveFormState>(
     field: K,
-    value: ReserveFormState[K]
+    value: ReserveFormState[K],
   ) => {
     setFormState((current) => ({
       ...current,
@@ -122,7 +124,9 @@ export function ReserveForm() {
 
     if (payload.reason === "others" && !payload.otherReasonDetail) {
       setSubmitState("error");
-      setStatusMessage("Please specify your appointment reason when you select Others.");
+      setStatusMessage(
+        "Please specify your appointment reason when you select Others.",
+      );
       return;
     }
 
@@ -139,159 +143,192 @@ export function ReserveForm() {
       }
 
       setSubmitState("success");
-      setStatusMessage(responseData?.message || "Appointment request submitted successfully.");
+      setStatusMessage(
+        responseData?.message || "Appointment request submitted successfully.",
+      );
       resetForm();
     } catch (error) {
       setSubmitState("error");
       setStatusMessage(
         error instanceof Error
           ? error.message
-          : "An unexpected error occurred while submitting your request."
+          : "An unexpected error occurred while submitting your request.",
       );
     }
   };
 
   return (
-    <Card className="w-full max-w-6xl mx-auto border border-clinic-blue/30 bg-white shadow-sm">
-      <CardHeader className="border-b border-border pb-4">
-        <CardTitle className="text-lg text-foreground">Reserve appointment</CardTitle>
-      </CardHeader>
-      <CardContent className="flex flex-col gap-5 pt-6">
-        <p className="text-sm text-muted-foreground">
-          Fill in your details and reason. The clinic will review your request and
-          update your appointment status.
+    <div className="grid grid-cols-1 gap-2">
+      <div>
+        <h1 className="text-xl font-bold text-foreground sm:text-2xl">
+          Reserve Appointment
+        </h1>
+        <p className="mt-1 text-sm mb-4 text-muted-foreground">
+          Fill in your details and reason. The clinic will review your request
+          and update your appointment status.
         </p>
+      </div>
 
-        <form className="grid gap-4 md:grid-cols-2" onSubmit={handleSubmit}>
-          <div className="space-y-4">
-            <FormField id="studentName" label="Student name">
-            <Input
-              id="studentName"
-              name="studentName"
-              value={formState.studentName}
-              onChange={(event) => updateField("studentName", event.target.value)}
-              placeholder="Enter full name"
-              required
-            />
-          </FormField>
+      <Card className="border border-border shadow-sm">
+        <CardHeader className="flex flex-row items-center gap-3 border-b border-border px-6 py-4">
+          <span className="flex size-11 shrink-0 items-center justify-center rounded-lg bg-neutral-50 text-neutral-700 ring-1 ring-neutral-200">
+            <ClipboardList className="size-6" aria-hidden />
+          </span>
+          <CardTitle className="text-lg font-bold text-foreground">
+            Appointment Details
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="flex flex-col gap-5 px-6 py-5">
+          <form className="flex flex-col gap-5" onSubmit={handleSubmit}>
+            <div className="grid gap-4 sm:grid-cols-2">
+              <FormField id="studentName" label="Student name">
+                <Input
+                  id="studentName"
+                  name="studentName"
+                  value={formState.studentName}
+                  onChange={(event) =>
+                    updateField("studentName", event.target.value)
+                  }
+                  placeholder="Enter full name"
+                  required
+                />
+              </FormField>
 
-          <FormField id="email" label="Email address">
-            <Input
-              id="email"
-              name="email"
-              type="email"
-              value={formState.email}
-              onChange={(event) => updateField("email", event.target.value)}
-              placeholder="name@usa.edu.ph"
-              required
-            />
-          </FormField>
+              <FormField id="email" label="Email address">
+                <Input
+                  id="email"
+                  name="email"
+                  type="email"
+                  value={formState.email}
+                  onChange={(event) => updateField("email", event.target.value)}
+                  placeholder="name@usa.edu.ph"
+                  required
+                />
+              </FormField>
+            </div>
 
-          <FormField id="address" label="Address">
-            <Input
-              id="address"
-              name="address"
-              value={formState.address}
-              onChange={(event) => updateField("address", event.target.value)}
-              placeholder="Street, Barangay, City"
-              required
-            />
-          </FormField>
-          </div>
+            <FormField id="address" label="Address">
+              <Input
+                id="address"
+                name="address"
+                value={formState.address}
+                onChange={(event) => updateField("address", event.target.value)}
+                placeholder="Street, Barangay, City"
+                required
+              />
+            </FormField>
 
-          <div className="space-y-4">
             <div className="space-y-3">
-            <p className="text-sm font-medium text-foreground">Reason for appointment</p>
-            <RadioGroup
-              value={formState.reason}
-              onValueChange={(value) => updateField("reason", value as Reason)}
-              className="gap-3"
-            >
-              {reasonOptions.map((reason) => (
-                <div key={reason.id} className="flex items-center gap-3">
-                  <RadioGroupItem value={reason.id} id={`reason-${reason.id}`} />
-                  <Label htmlFor={`reason-${reason.id}`} className="font-normal">
-                    {reason.label}
-                  </Label>
-                </div>
-              ))}
-            </RadioGroup>
-          </div>
-
-          {isOther ? (
-            <FormField id="otherReasonDetail" label="Enter reason">
-              <Input
-                id="otherReasonDetail"
-                name="otherReasonDetail"
-                type="text"
-                value={formState.otherReasonDetail}
-                onChange={(event) => updateField("otherReasonDetail", event.target.value)}
-                placeholder="Enter reason"
-                required
-              />
-            </FormField>
-          ) : null}
-
-          <div className="grid gap-4 md:grid-cols-2">
-            <FormField id="preferredDate" label="Preferred Date">
-              <Input
-                id="preferredDate"
-                name="preferredDate"
-                type="date"
-                value={formState.preferredDate}
-                onChange={(event) => updateField("preferredDate", event.target.value)}
-                required
-              />
-            </FormField>
-
-            <FormField id="preferredTime" label="Preferred Time">
-              <select
-                id="preferredTime"
-                name="preferredTime"
-                value={formState.preferredTime}
-                onChange={(event) => updateField("preferredTime", event.target.value as ReserveFormState["preferredTime"])}
-                required
-                className="h-10 w-full rounded-lg border border-input bg-white px-2.5 text-base text-foreground outline-none transition-colors focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
-              >
-                {availableTimes.map((option) => (
-                  <option key={option.value} value={option.value}>
-                    {option.label}
-                  </option>
-                ))}
-              </select>
-            </FormField>
-          </div>
-          </div>
-
-          <div className="md:col-span-2 flex justify-center space-y-2">
-            <Button
-              type="submit"
-              size="sm"
-              className="inline-flex"
-              disabled={submitState === "loading"}
-            >
-              {submitState === "loading"
-                ? "Submitting..."
-                : submitState === "success"
-                ? "Submitted"
-                : submitState === "error"
-                ? "Retry"
-                : "Submit request"}
-            </Button>
-            {statusMessage ? (
-              <p
-                className={
-                  submitState === "success"
-                    ? "text-sm text-green-700"
-                    : "text-sm text-destructive"
-                }
-              >
-                {statusMessage}
+              <p className="text-sm font-medium text-foreground">
+                Reason for appointment
               </p>
+              <RadioGroup
+                value={formState.reason}
+                onValueChange={(value) =>
+                  updateField("reason", value as Reason)
+                }
+                className="gap-3"
+              >
+                {reasonOptions.map((reason) => (
+                  <div key={reason.id} className="flex items-center gap-3">
+                    <RadioGroupItem
+                      value={reason.id}
+                      id={`reason-${reason.id}`}
+                    />
+                    <Label
+                      htmlFor={`reason-${reason.id}`}
+                      className="font-normal"
+                    >
+                      {reason.label}
+                    </Label>
+                  </div>
+                ))}
+              </RadioGroup>
+            </div>
+
+            {isOther ? (
+              <FormField id="otherReasonDetail" label="Enter reason">
+                <Input
+                  id="otherReasonDetail"
+                  name="otherReasonDetail"
+                  type="text"
+                  value={formState.otherReasonDetail}
+                  onChange={(event) =>
+                    updateField("otherReasonDetail", event.target.value)
+                  }
+                  placeholder="Enter reason"
+                  required
+                />
+              </FormField>
             ) : null}
-          </div>
-        </form>
-      </CardContent>
-    </Card>
+
+            <div className="grid gap-4 sm:grid-cols-2">
+              <FormField id="preferredDate" label="Preferred Date">
+                <Input
+                  id="preferredDate"
+                  name="preferredDate"
+                  type="date"
+                  value={formState.preferredDate}
+                  onChange={(event) =>
+                    updateField("preferredDate", event.target.value)
+                  }
+                  required
+                />
+              </FormField>
+
+              <FormField id="preferredTime" label="Preferred Time">
+                <select
+                  id="preferredTime"
+                  name="preferredTime"
+                  value={formState.preferredTime}
+                  onChange={(event) =>
+                    updateField(
+                      "preferredTime",
+                      event.target.value as ReserveFormState["preferredTime"],
+                    )
+                  }
+                  required
+                  className="h-10 w-full rounded-lg border border-input bg-white px-2.5 text-base text-foreground outline-none transition-colors focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
+                >
+                  {availableTimes.map((option) => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
+                </select>
+              </FormField>
+            </div>
+
+            <div className="flex flex-col items-center gap-2 pt-2">
+              <Button
+                type="submit"
+                size="sm"
+                className="inline-flex"
+                disabled={submitState === "loading"}
+              >
+                {submitState === "loading"
+                  ? "Submitting..."
+                  : submitState === "success"
+                    ? "Submitted"
+                    : submitState === "error"
+                      ? "Retry"
+                      : "Submit request"}
+              </Button>
+              {statusMessage ? (
+                <p
+                  className={
+                    submitState === "success"
+                      ? "text-sm text-green-700"
+                      : "text-sm text-destructive"
+                  }
+                >
+                  {statusMessage}
+                </p>
+              ) : null}
+            </div>
+          </form>
+        </CardContent>
+      </Card>
+    </div>
   );
 }
