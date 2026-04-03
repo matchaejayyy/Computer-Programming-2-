@@ -9,6 +9,7 @@ import {
   XCircle,
   Settings2,
 } from "lucide-react";
+import Link from "next/link";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -21,6 +22,7 @@ const adminMenuCards = [
     details: ["Total Appointments", "Pending Requests", "Approved / Rejected"],
     icon: LayoutDashboard,
     color: "green",
+    href: "/admin",
   },
   {
     title: "Manage Appointments",
@@ -28,6 +30,7 @@ const adminMenuCards = [
     details: ["Approve / Reject", "Edit Schedule"],
     icon: ClipboardCheck,
     color: "blue",
+    href: "#",
   },
   {
     title: "Manage Schedule",
@@ -35,6 +38,7 @@ const adminMenuCards = [
     details: ["Set Time Slots", "Block Unavailable Dates"],
     icon: CalendarDays,
     color: "amber",
+    href: "/admin/schedule",
   },
   {
     title: "Status Management",
@@ -42,6 +46,7 @@ const adminMenuCards = [
     details: ["Pending -> Approved", "Pending -> Rejected"],
     icon: Settings2,
     color: "green",
+    href: "#",
   },
   {
     title: "Appointment History",
@@ -49,13 +54,15 @@ const adminMenuCards = [
     details: ["Filter by Date", "Filter by Student", "Filter by Status"],
     icon: FolderClock,
     color: "blue",
+    href: "/admin/history",
   },
   {
     title: "Reports",
     subtitle: "Clinic Reporting",
-    details: ["Patient Statistics", "Download Reports"],
+    details: ["Patient Statistics", "Download Reports", "click"],
     icon: FileSpreadsheet,
     color: "amber",
+    href: "/admin/reports",
   },
 ] as const;
 
@@ -162,42 +169,44 @@ export function AdminDashboard() {
           </Button>
         </div>
 
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
+        <div className="grid grid-cols-1 items-stretch gap-4 md:grid-cols-2 xl:grid-cols-3">
           {adminMenuCards.map((item) => {
             const Icon = item.icon;
             return (
-              <Card key={item.title} className="rounded-2xl border border-neutral-200 bg-white shadow-none">
-                <CardHeader className="pb-3">
-                  <div className="flex items-center gap-3">
-                    <span
-                      className={cn(
-                        "flex size-10 items-center justify-center rounded-xl text-white",
-                        colorStyles[item.color]
-                      )}
-                    >
-                      <Icon className="size-5" aria-hidden />
-                    </span>
-                    <div className="space-y-0.5">
-                      <CardTitle className="text-base font-bold text-foreground">
-                        {item.title}
-                      </CardTitle>
-                      <p className="text-sm text-muted-foreground">{item.subtitle}</p>
-                    </div>
-                  </div>
-                </CardHeader>
-                <CardContent className="pt-0">
-                  <div className="space-y-2">
-                    {item.details.map((detail) => (
-                      <div
-                        key={detail}
-                        className="rounded-lg border border-neutral-200 bg-neutral-50 px-3 py-2 text-sm text-foreground"
+              <Link key={item.title} href={item.href}>
+                <Card className="h-full rounded-2xl border border-neutral-200 bg-white shadow-none transition-shadow hover:shadow-md">
+                  <CardHeader className="pb-3">
+                    <div className="flex items-center gap-3">
+                      <span
+                        className={cn(
+                          "flex size-10 items-center justify-center rounded-xl text-white",
+                          colorStyles[item.color]
+                        )}
                       >
-                        {detail}
+                        <Icon className="size-5" aria-hidden />
+                      </span>
+                      <div className="space-y-0.5">
+                        <CardTitle className="text-base font-bold text-foreground">
+                          {item.title}
+                        </CardTitle>
+                        <p className="text-sm text-muted-foreground">{item.subtitle}</p>
                       </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
+                    </div>
+                  </CardHeader>
+                  <CardContent className="pt-0">
+                    <div className="space-y-2">
+                      {item.details.map((detail) => (
+                        <div
+                          key={detail}
+                          className="rounded-lg border border-neutral-200 bg-neutral-50 px-3 py-2 text-sm text-foreground"
+                        >
+                          {detail}
+                        </div>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+              </Link>
             );
           })}
         </div>
