@@ -1,5 +1,6 @@
 import Link from "next/link";
 import {
+  Calculator,
   CalendarDays,
   ClipboardCheck,
   FileText,
@@ -19,7 +20,7 @@ const clinicLinks = [
     href: "/schedule",
     title: "View clinic schedule",
     icon: CalendarDays,
-    isActive: true, 
+    isActive: false,
   },
   {
     href: "/reserve",
@@ -37,6 +38,12 @@ const clinicLinks = [
     href: "/history",
     title: "History",
     icon: FolderClock,
+    isActive: false,
+  },
+  {
+    href: "/bmi",
+    title: "BMI checker",
+    icon: Calculator,
     isActive: false,
   },
 ] as const;
