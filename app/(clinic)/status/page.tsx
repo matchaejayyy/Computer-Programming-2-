@@ -14,7 +14,7 @@ const samples = [
 
 export default function StatusPage() {
   return (
-    <div className="mx-auto flex min-h-[calc(100vh-9rem)] w-full max-w-7xl flex-col gap-6 px-4 sm:px-6 lg:px-8">
+    <div className="mx-auto flex max-w-lg flex-col gap-6">
       <HomeLink />
       <Card className="border border-clinic-blue/30 bg-clinic-surface shadow-sm">
         <CardHeader className="flex flex-row items-center gap-3 border-b border-border pb-4">

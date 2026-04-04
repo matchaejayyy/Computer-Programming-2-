@@ -11,7 +11,7 @@ import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
 
-import { HomeLink } from "@/components/admin/admin-homelink";
+import { BackToHome } from "@/components/admin/admin-back-to-home";
 import { MOCK_APPOINTMENT_REQUESTS } from "@/lib/clinic/mock-requests";
 
 function parseDateToISO(dateString: string): string {
@@ -146,7 +146,7 @@ export default function AdminHistoryPage() {
     <div className="grid grid-cols-1 gap-2">
       {/* Back to dashboard button */}
       <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <HomeLink />
+        <BackToHome />
       </div>
 
       <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
