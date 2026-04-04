@@ -1,3 +1,5 @@
+"use client";
+
 import {
   Activity,
   CalendarDays,
@@ -11,9 +13,13 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 
+import { useEffect, useState } from "react";
+
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
+
+import Link from "next/link";
 
 const adminMenuCards = [
   {
@@ -66,46 +72,75 @@ const adminMenuCards = [
   },
 ] as const;
 
+/* ================= COLORS ================= */
+
 const colorStyles = {
   green: "bg-[#65a30d]",
   blue: "bg-[#1d4ed8]",
   amber: "bg-[#d97706]",
 } as const;
 
-const dashboardStats = [
-  {
-    title: "Total Appointments",
-    value: "324",
-    note: "This month",
-    icon: CalendarDays,
-    tone: "bg-[#1d4ed8]/10 text-[#1d4ed8]",
-  },
-  {
-    title: "Pending Requests",
-    value: "28",
-    note: "Needs review",
-    icon: Activity,
-    tone: "bg-[#d97706]/10 text-[#d97706]",
-  },
-  {
-    title: "Approved",
-    value: "261",
-    note: "Processed successfully",
-    icon: CheckCircle2,
-    tone: "bg-[#16a34a]/10 text-[#16a34a]",
-  },
-  {
-    title: "Rejected",
-    value: "35",
-    note: "Declined requests",
-    icon: XCircle,
-    tone: "bg-[#dc2626]/10 text-[#dc2626]",
-  },
-] as const;
+/* ================= COMPONENT ================= */
 
 export function AdminDashboard() {
+  const [stats, setStats] = useState({
+    total: 0,
+    pending: 0,
+    approved: 0,
+    rejected: 0,
+  });
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+    fetch("/api/admin-stats")
+      .then((res) => res.json())
+      .then(setStats)
+      .catch(() => {
+        // fallback if API not ready
+        setStats({
+          total: 0,
+          pending: 0,
+          approved: 0,
+          rejected: 0,
+        });
+      });
+  }, []);
+
+  const statsData = [
+    {
+      title: "Total Appointments",
+      value: stats.total,
+      note: "All records",
+      icon: CalendarDays,
+      tone: "bg-[#1d4ed8]/10 text-[#1d4ed8]",
+    },
+    {
+      title: "Pending Requests",
+      value: stats.pending,
+      note: "Needs review",
+      icon: Activity,
+      tone: "bg-[#d97706]/10 text-[#d97706]",
+    },
+    {
+      title: "Approved",
+      value: stats.approved,
+      note: "Processed successfully",
+      icon: CheckCircle2,
+      tone: "bg-[#16a34a]/10 text-[#16a34a]",
+    },
+    {
+      title: "Rejected",
+      value: stats.rejected,
+      note: "Declined requests",
+      icon: XCircle,
+      tone: "bg-[#dc2626]/10 text-[#dc2626]",
+    },
+  ];
+
   return (
     <div className="grid grid-cols-1 gap-6">
+      {/* HEADER */}
       <Card className="overflow-hidden border-0 bg-[#E50000] text-white shadow-sm ring-0 rounded-2xl">
         <CardContent className="space-y-4 p-6 sm:p-8">
           <p className="text-xs font-bold uppercase tracking-widest text-white/90">
@@ -119,14 +154,15 @@ export function AdminDashboard() {
         </CardContent>
       </Card>
 
+      {/* STATS */}
       <section className="space-y-4">
         <div className="flex items-center justify-between px-1">
           <h2 className="text-xl font-bold text-foreground">Dashboard statistics</h2>
-          <p className="text-sm text-muted-foreground">UI preview data</p>
+          <p className="text-sm text-muted-foreground">Real-time data</p>
         </div>
 
         <div className="flex gap-4 overflow-x-auto pb-1">
-          {dashboardStats.map((item) => {
+          {statsData.map((item) => {
             const Icon = item.icon;
             return (
               <Card
@@ -139,10 +175,12 @@ export function AdminDashboard() {
                       <p className="text-sm font-medium text-muted-foreground">
                         {item.title}
                       </p>
-                      <p className="mt-1 text-3xl font-bold tracking-tight text-foreground">
-                        {item.value}
+                      <p className="mt-1 text-3xl font-bold">
+                        {isMounted ? item.value : 0}
                       </p>
-                      <p className="mt-1 text-xs text-muted-foreground">{item.note}</p>
+                      <p className="mt-1 text-xs text-muted-foreground">
+                        {item.note}
+                      </p>
                     </div>
                     <span
                       className={cn(
@@ -150,7 +188,7 @@ export function AdminDashboard() {
                         item.tone
                       )}
                     >
-                      <Icon className="size-5" aria-hidden />
+                      <Icon className="size-5" />
                     </span>
                   </div>
                 </CardContent>
@@ -158,13 +196,13 @@ export function AdminDashboard() {
             );
           })}
         </div>
-
       </section>
 
+      {/* MENU */}
       <section className="space-y-4">
         <div className="flex items-center justify-between px-1">
           <h2 className="text-xl font-bold text-foreground">Admin portal menu</h2>
-          <Button type="button" className="rounded-xl bg-[#E50000] text-white hover:bg-[#c40000]">
+          <Button className="rounded-xl bg-[#E50000] text-white hover:bg-[#c40000]">
             Start
           </Button>
         </div>
@@ -172,14 +210,15 @@ export function AdminDashboard() {
         <div className="grid grid-cols-1 items-stretch gap-4 md:grid-cols-2 xl:grid-cols-3">
           {adminMenuCards.map((item) => {
             const Icon = item.icon;
+
             return (
-              <Link key={item.title} href={item.href}>
-                <Card className="h-full rounded-2xl border border-neutral-200 bg-white shadow-none transition-shadow hover:shadow-md">
+              <Link key={item.title} href={item.href} className="block h-full">
+                <Card className="h-full rounded-2xl border border-neutral-200 bg-white shadow-none transition-colors hover:bg-neutral-50 flex flex-col">
                   <CardHeader className="pb-3">
                     <div className="flex items-center gap-3">
                       <span
                         className={cn(
-                          "flex size-10 items-center justify-center rounded-xl text-white",
+                          "flex size-10 shrink-0 items-center justify-center rounded-xl text-white",
                           colorStyles[item.color]
                         )}
                       >
@@ -193,7 +232,7 @@ export function AdminDashboard() {
                       </div>
                     </div>
                   </CardHeader>
-                  <CardContent className="pt-0">
+                  <CardContent className="pt-0 flex-1 min-h-[120px]">
                     <div className="space-y-2">
                       {item.details.map((detail) => (
                         <div
