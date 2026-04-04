@@ -4,7 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 
 export default function BmiPage() {
   return (
-    <div className="mx-auto flex min-h-[calc(100vh-9rem)] w-full max-w-7xl flex-col gap-6 px-4 sm:px-6 lg:px-8">
+    <div className="grid grid-cols-1 gap-2">
       <HomeLink />
 
       <Card className="border-border shadow-sm">

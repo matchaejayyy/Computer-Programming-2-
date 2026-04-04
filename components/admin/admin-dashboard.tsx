@@ -11,6 +11,7 @@ import {
   XCircle,
   Settings2,
 } from "lucide-react";
+import Link from "next/link";
 
 import { useEffect, useState } from "react";
 
@@ -206,7 +207,7 @@ export function AdminDashboard() {
           </Button>
         </div>
 
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
+        <div className="grid grid-cols-1 items-stretch gap-4 md:grid-cols-2 xl:grid-cols-3">
           {adminMenuCards.map((item) => {
             const Icon = item.icon;
 

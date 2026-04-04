@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { ClipboardList } from "lucide-react";
 
+import { HomeLink } from "@/components/clinic/home-link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -60,7 +61,7 @@ export function ReserveForm() {
 
   const updateField = <K extends keyof ReserveFormState>(
     field: K,
-    value: ReserveFormState[K]
+    value: ReserveFormState[K],
   ) => {
     setFormState((current) => ({
       ...current,
@@ -123,7 +124,9 @@ export function ReserveForm() {
 
     if (payload.reason === "others" && !payload.otherReasonDetail) {
       setSubmitState("error");
-      setStatusMessage("Please specify your appointment reason when you select Others.");
+      setStatusMessage(
+        "Please specify your appointment reason when you select Others.",
+      );
       return;
     }
 
@@ -140,14 +143,16 @@ export function ReserveForm() {
       }
 
       setSubmitState("success");
-      setStatusMessage(responseData?.message || "Appointment request submitted successfully.");
+      setStatusMessage(
+        responseData?.message || "Appointment request submitted successfully.",
+      );
       resetForm();
     } catch (error) {
       setSubmitState("error");
       setStatusMessage(
         error instanceof Error
           ? error.message
-          : "An unexpected error occurred while submitting your request."
+          : "An unexpected error occurred while submitting your request.",
       );
     }
   };
@@ -238,11 +243,11 @@ export function ReserveForm() {
           <div className="grid gap-4 sm:grid-cols-2">
             <FormField id="preferredDate" label="Preferred Date">
               <Input
-                id="preferredDate"
-                name="preferredDate"
-                type="date"
-                value={formState.preferredDate}
-                onChange={(event) => updateField("preferredDate", event.target.value)}
+                id="address"
+                name="address"
+                value={formState.address}
+                onChange={(event) => updateField("address", event.target.value)}
+                placeholder="Street, Barangay, City"
                 required
               />
             </FormField>
@@ -287,13 +292,108 @@ export function ReserveForm() {
                     ? "text-sm text-green-700"
                     : "text-sm text-destructive"
                 }
+                className="gap-3"
               >
-                {statusMessage}
-              </p>
+                {reasonOptions.map((reason) => (
+                  <div key={reason.id} className="flex items-center gap-3">
+                    <RadioGroupItem
+                      value={reason.id}
+                      id={`reason-${reason.id}`}
+                    />
+                    <Label
+                      htmlFor={`reason-${reason.id}`}
+                      className="font-normal"
+                    >
+                      {reason.label}
+                    </Label>
+                  </div>
+                ))}
+              </RadioGroup>
+            </div>
+
+            {isOther ? (
+              <FormField id="otherReasonDetail" label="Enter reason">
+                <Input
+                  id="otherReasonDetail"
+                  name="otherReasonDetail"
+                  type="text"
+                  value={formState.otherReasonDetail}
+                  onChange={(event) =>
+                    updateField("otherReasonDetail", event.target.value)
+                  }
+                  placeholder="Enter reason"
+                  required
+                />
+              </FormField>
             ) : null}
-          </div>
-        </form>
-      </CardContent>
-    </Card>
+
+            <div className="grid gap-4 sm:grid-cols-2">
+              <FormField id="preferredDate" label="Preferred Date">
+                <Input
+                  id="preferredDate"
+                  name="preferredDate"
+                  type="date"
+                  value={formState.preferredDate}
+                  onChange={(event) =>
+                    updateField("preferredDate", event.target.value)
+                  }
+                  required
+                />
+              </FormField>
+
+              <FormField id="preferredTime" label="Preferred Time">
+                <select
+                  id="preferredTime"
+                  name="preferredTime"
+                  value={formState.preferredTime}
+                  onChange={(event) =>
+                    updateField(
+                      "preferredTime",
+                      event.target.value as ReserveFormState["preferredTime"],
+                    )
+                  }
+                  required
+                  className="h-10 w-full rounded-lg border border-input bg-white px-2.5 text-base text-foreground outline-none transition-colors focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
+                >
+                  {availableTimes.map((option) => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
+                </select>
+              </FormField>
+            </div>
+
+            <div className="flex flex-col items-center gap-2 pt-2">
+              <Button
+                type="submit"
+                size="sm"
+                className="inline-flex"
+                disabled={submitState === "loading"}
+              >
+                {submitState === "loading"
+                  ? "Submitting..."
+                  : submitState === "success"
+                    ? "Submitted"
+                    : submitState === "error"
+                      ? "Retry"
+                      : "Submit request"}
+              </Button>
+              {statusMessage ? (
+                <p
+                  className={
+                    submitState === "success"
+                      ? "text-sm text-green-700"
+                      : "text-sm text-destructive"
+                  }
+                >
+                  {statusMessage}
+                </p>
+              ) : null}
+            </div>
+          </form>
+        </CardContent>
+      </Card>
+    </div>
   );
 }
