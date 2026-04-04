@@ -1,9 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { FormEvent, useState } from "react";
 import { ClipboardList } from "lucide-react";
 
-import { HomeLink } from "@/components/clinic/home-link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -77,7 +76,7 @@ export function ReserveForm() {
     setFormState(initialState);
   };
 
-  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setSubmitState("loading");
     setStatusMessage("");
@@ -243,11 +242,11 @@ export function ReserveForm() {
           <div className="grid gap-4 sm:grid-cols-2">
             <FormField id="preferredDate" label="Preferred Date">
               <Input
-                id="address"
-                name="address"
-                value={formState.address}
-                onChange={(event) => updateField("address", event.target.value)}
-                placeholder="Street, Barangay, City"
+                id="preferredDate"
+                name="preferredDate"
+                type="date"
+                value={formState.preferredDate}
+                onChange={(event) => updateField("preferredDate", event.target.value)}
                 required
               />
             </FormField>
@@ -292,108 +291,13 @@ export function ReserveForm() {
                     ? "text-sm text-green-700"
                     : "text-sm text-destructive"
                 }
-                className="gap-3"
               >
-                {reasonOptions.map((reason) => (
-                  <div key={reason.id} className="flex items-center gap-3">
-                    <RadioGroupItem
-                      value={reason.id}
-                      id={`reason-${reason.id}`}
-                    />
-                    <Label
-                      htmlFor={`reason-${reason.id}`}
-                      className="font-normal"
-                    >
-                      {reason.label}
-                    </Label>
-                  </div>
-                ))}
-              </RadioGroup>
-            </div>
-
-            {isOther ? (
-              <FormField id="otherReasonDetail" label="Enter reason">
-                <Input
-                  id="otherReasonDetail"
-                  name="otherReasonDetail"
-                  type="text"
-                  value={formState.otherReasonDetail}
-                  onChange={(event) =>
-                    updateField("otherReasonDetail", event.target.value)
-                  }
-                  placeholder="Enter reason"
-                  required
-                />
-              </FormField>
+                {statusMessage}
+              </p>
             ) : null}
-
-            <div className="grid gap-4 sm:grid-cols-2">
-              <FormField id="preferredDate" label="Preferred Date">
-                <Input
-                  id="preferredDate"
-                  name="preferredDate"
-                  type="date"
-                  value={formState.preferredDate}
-                  onChange={(event) =>
-                    updateField("preferredDate", event.target.value)
-                  }
-                  required
-                />
-              </FormField>
-
-              <FormField id="preferredTime" label="Preferred Time">
-                <select
-                  id="preferredTime"
-                  name="preferredTime"
-                  value={formState.preferredTime}
-                  onChange={(event) =>
-                    updateField(
-                      "preferredTime",
-                      event.target.value as ReserveFormState["preferredTime"],
-                    )
-                  }
-                  required
-                  className="h-10 w-full rounded-lg border border-input bg-white px-2.5 text-base text-foreground outline-none transition-colors focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
-                >
-                  {availableTimes.map((option) => (
-                    <option key={option.value} value={option.value}>
-                      {option.label}
-                    </option>
-                  ))}
-                </select>
-              </FormField>
-            </div>
-
-            <div className="flex flex-col items-center gap-2 pt-2">
-              <Button
-                type="submit"
-                size="sm"
-                className="inline-flex"
-                disabled={submitState === "loading"}
-              >
-                {submitState === "loading"
-                  ? "Submitting..."
-                  : submitState === "success"
-                    ? "Submitted"
-                    : submitState === "error"
-                      ? "Retry"
-                      : "Submit request"}
-              </Button>
-              {statusMessage ? (
-                <p
-                  className={
-                    submitState === "success"
-                      ? "text-sm text-green-700"
-                      : "text-sm text-destructive"
-                  }
-                >
-                  {statusMessage}
-                </p>
-              ) : null}
-            </div>
-          </form>
-        </CardContent>
-      </Card>
-    </div>
+          </div>
+        </form>
+      </CardContent>
+    </Card>
   );
 }
