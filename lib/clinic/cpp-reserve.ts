@@ -1,6 +1,8 @@
-import { appendFileSync, existsSync } from "fs";
+import { appendFileSync, existsSync, readFileSync } from "fs";
 import { spawn } from "child_process";
 import { join } from "path";
+
+import { APPOINTMENTS_DB_PATH } from "@/lib/clinic/appointment-records";
 
 export type ReserveAppointmentPayload = {
   studentName: string;
@@ -10,6 +12,7 @@ export type ReserveAppointmentPayload = {
   otherReasonDetail?: string;
   preferredDate: string;
   preferredTime: string;
+  schoolIdNumber?: string;
 };
 
 const binaryName =
@@ -64,6 +67,7 @@ export async function reserveAppointmentCpp(
     `otherReasonDetail=${payload.otherReasonDetail ?? ""}`,
     `preferredDate=${payload.preferredDate}`,
     `preferredTime=${payload.preferredTime}`,
+    `schoolIdNumber=${payload.schoolIdNumber ?? ""}`,
   ].join("\n") + "\n";
 
   if (!existsSync(executable)) {
@@ -77,11 +81,39 @@ export async function reserveAppointmentCpp(
   }
 }
 
+function nextAppointmentIdTypeScript(): number {
+  if (!existsSync(APPOINTMENTS_DB_PATH)) {
+    return 1;
+  }
+  const lines = readFileSync(APPOINTMENTS_DB_PATH, "utf8")
+    .split(/\n/)
+    .map((l) => l.trim())
+    .filter(Boolean);
+  let maxId = 0;
+  for (const line of lines) {
+    const m = line.match(/"id"\s*:\s*(\d+)/);
+    if (m) {
+      const n = Number(m[1]);
+      if (n > maxId) {
+        maxId = n;
+      }
+    }
+  }
+  return maxId + 1;
+}
+
 export function reserveAppointmentTypeScript(
   payload: ReserveAppointmentPayload
 ): string {
-  const dbPath = join(process.cwd(), "native", "appointments", "appointments.db");
+  const id = nextAppointmentIdTypeScript();
+  const submittedAt = new Date().toISOString();
+  const sid = payload.schoolIdNumber?.trim();
   const record = {
+    id,
+    status: "pending" as const,
+    adminNote: "",
+    submittedAt,
+    reviewedAt: "",
     studentName: payload.studentName,
     email: payload.email,
     address: payload.address,
@@ -89,9 +121,9 @@ export function reserveAppointmentTypeScript(
     otherReasonDetail: payload.otherReasonDetail ?? "",
     preferredDate: payload.preferredDate,
     preferredTime: payload.preferredTime,
-    submittedAt: new Date().toISOString(),
+    ...(sid ? { schoolIdNumber: sid } : {}),
   };
 
-  appendFileSync(dbPath, JSON.stringify(record) + "\n", "utf8");
-  return "Appointment stored in fallback database.";
+  appendFileSync(APPOINTMENTS_DB_PATH, JSON.stringify(record) + "\n", "utf8");
+  return `Appointment saved. id=${id}`;
 }

@@ -2,6 +2,7 @@
 
 import { useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
+
 import { HomeLink } from "@/components/clinic/home-link";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -22,7 +23,7 @@ const statusBadge: Record<RequestStatus, string> = {
 };
 
 type Props = {
-  initialRequests: AppointmentRequest[];
+  studentId: string;
 };
 
 const filterEndpointByStatus: Record<RequestStatus, string> = {
@@ -31,12 +32,50 @@ const filterEndpointByStatus: Record<RequestStatus, string> = {
   rejected: "/api/filter-rejected",
 };
 
-export function RequestsContent({ initialRequests }: Props) {
+export function RequestsContent({ studentId }: Props) {
   const searchParams = useSearchParams();
   const [activeFilter, setActiveFilter] = useState<"all" | "pending" | "approved" | "rejected">("all");
-  const [filteredItems, setFilteredItems] = useState(initialRequests);
+  const [initialRequests, setInitialRequests] = useState<AppointmentRequest[]>([]);
+  const [dataLoading, setDataLoading] = useState(true);
+  const [dataError, setDataError] = useState<string | null>(null);
+  const [filteredItems, setFilteredItems] = useState<AppointmentRequest[]>([]);
   const [filterLoading, setFilterLoading] = useState(false);
   const [filterError, setFilterError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      setDataLoading(true);
+      setDataError(null);
+      try {
+        const res = await fetch(
+          `/api/clinic-requests?studentId=${encodeURIComponent(studentId)}`
+        );
+        const body = (await res.json()) as {
+          appointments?: AppointmentRequest[];
+          error?: string;
+        };
+        if (!res.ok) {
+          throw new Error(body.error || "Failed to load requests.");
+        }
+        if (!cancelled) {
+          setInitialRequests(Array.isArray(body.appointments) ? body.appointments : []);
+        }
+      } catch (e) {
+        if (!cancelled) {
+          setDataError(e instanceof Error ? e.message : "Could not load requests.");
+          setInitialRequests([]);
+        }
+      } finally {
+        if (!cancelled) {
+          setDataLoading(false);
+        }
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [studentId]);
 
   useEffect(() => {
     const rawFilter = searchParams.get("filter");
@@ -50,7 +89,6 @@ export function RequestsContent({ initialRequests }: Props) {
     }
   }, [searchParams]);
 
-  // Active filter effect
   useEffect(() => {
     const applyFilter = async () => {
       if (activeFilter === "all") {
@@ -101,39 +139,39 @@ export function RequestsContent({ initialRequests }: Props) {
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <HomeLink />
         <div className="flex flex-wrap gap-2">
-  <button
-    type="button"
-    onClick={() => setActiveFilter("all")}
-    className={filterButtonClass("all")}
-  >
-    All
-  </button>
+          <button
+            type="button"
+            onClick={() => setActiveFilter("all")}
+            className={filterButtonClass("all")}
+          >
+            All
+          </button>
 
-  <button
-    type="button"
-    onClick={() => setActiveFilter("pending")}
-    className={filterButtonClass("pending")}
-  >
-    Pending
-  </button>
+          <button
+            type="button"
+            onClick={() => setActiveFilter("pending")}
+            className={filterButtonClass("pending")}
+          >
+            Pending
+          </button>
 
-  <button
-    type="button"
-    onClick={() => setActiveFilter("approved")}
-    className={filterButtonClass("approved")}
-  >
-    Approved
-  </button>
+          <button
+            type="button"
+            onClick={() => setActiveFilter("approved")}
+            className={filterButtonClass("approved")}
+          >
+            Approved
+          </button>
 
-  <button
-    type="button"
-    onClick={() => setActiveFilter("rejected")}
-    className={filterButtonClass("rejected")}
-  >
-    Rejected
-  </button>
-</div>
-</div>
+          <button
+            type="button"
+            onClick={() => setActiveFilter("rejected")}
+            className={filterButtonClass("rejected")}
+          >
+            Rejected
+          </button>
+        </div>
+      </div>
 
       <div>
         <h1 className="text-xl font-bold text-foreground sm:text-2xl">{title}</h1>
@@ -142,8 +180,15 @@ export function RequestsContent({ initialRequests }: Props) {
         </p>
       </div>
 
+      {dataError ? (
+        <p className="text-sm text-destructive" role="alert">
+          {dataError}
+        </p>
+      ) : null}
       {filterError ? (
-        <p className="text-sm text-destructive" role="alert">{filterError}</p>
+        <p className="text-sm text-destructive" role="alert">
+          {filterError}
+        </p>
       ) : null}
 
       <section
@@ -152,65 +197,77 @@ export function RequestsContent({ initialRequests }: Props) {
           filterLoading ? "translate-y-1 opacity-70" : "translate-y-0 opacity-100"
         )}
       >
-      {initialRequests.length === 0 ? (
-        <Card>
-          <CardContent className="space-y-2 py-10 text-center text-sm text-muted-foreground">
-            <p className="font-medium text-foreground">No data yet</p>
-            <p>You have not submitted any appointment requests. Use Reserve appointment to send one.</p>
-          </CardContent>
-        </Card>
-      ) : filterLoading ? (
-        <Card>
-          <CardContent className="py-10 text-center text-sm text-muted-foreground">
-            <p className="font-medium text-foreground">Loading filtered requests…</p>
-          </CardContent>
-        </Card>
-      ) : items.length === 0 ? (
-        <Card>
-          <CardContent className="space-y-2 py-10 text-center text-sm text-muted-foreground">
-            <p className="font-medium text-foreground">No matching requests</p>
-            <p>There are no requests for the selected filter.</p>
-          </CardContent>
-        </Card>
-      ) : (
-        <ul className="flex flex-col gap-4">
-          {items.map((req) => (
-            <li key={req.id} className="animate-[clinic-page-enter_240ms_ease-out]">
-              <Card className="border-border shadow-sm transition-transform duration-200 hover:-translate-y-0.5">
-                <CardHeader className="flex flex-row flex-wrap items-start justify-between gap-2 border-b border-border pb-3">
-                  <div className="space-y-1">
-                    <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Request ID</p>
-                    <CardTitle className="text-base font-mono text-foreground">{req.id}</CardTitle>
-                  </div>
-                  <Badge variant="outline" className={cn("shrink-0", statusBadge[req.status])}>
-                    {statusLabels[req.status]}
-                  </Badge>
-                </CardHeader>
-                <CardContent className="space-y-3 pt-4 text-sm">
-                  <DetailRow label="Student" value={req.studentName} />
-                  <DetailRow label="Email" value={req.email} />
-                  <DetailRow label="Address" value={req.address} />
-                  <Separator />
-                  <DetailRow label="Reason" value={req.reason} />
-                  <DetailRow label="Requested date" value={req.requestedDate} />
-                  <DetailRow label="Submitted" value={new Date(req.submittedAt).toLocaleString()} />
-                  {req.clinicNote && (
-                    <>
-                      <Separator />
-                      <div>
-                        <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Clinic note</p>
-                        <p className="mt-1 text-foreground">{req.clinicNote}</p>
-                      </div>
-                    </>
-                  )}
-                </CardContent>
-              </Card>
-            </li>
-          ))}
-        </ul>
-      )}
+        {dataLoading ? (
+          <Card>
+            <CardContent className="py-10 text-center text-sm text-muted-foreground">
+              <p className="font-medium text-foreground">Loading your requests…</p>
+            </CardContent>
+          </Card>
+        ) : initialRequests.length === 0 ? (
+          <Card>
+            <CardContent className="space-y-2 py-10 text-center text-sm text-muted-foreground">
+              <p className="font-medium text-foreground">No data yet</p>
+              <p>
+                You have not submitted any appointment requests. Use Reserve appointment to send
+                one.
+              </p>
+            </CardContent>
+          </Card>
+        ) : filterLoading ? (
+          <Card>
+            <CardContent className="py-10 text-center text-sm text-muted-foreground">
+              <p className="font-medium text-foreground">Loading filtered requests…</p>
+            </CardContent>
+          </Card>
+        ) : items.length === 0 ? (
+          <Card>
+            <CardContent className="space-y-2 py-10 text-center text-sm text-muted-foreground">
+              <p className="font-medium text-foreground">No matching requests</p>
+              <p>There are no requests for the selected filter.</p>
+            </CardContent>
+          </Card>
+        ) : (
+          <ul className="flex flex-col gap-4">
+            {items.map((req) => (
+              <li key={req.id} className="animate-[clinic-page-enter_240ms_ease-out]">
+                <Card className="border-border shadow-sm transition-transform duration-200 hover:-translate-y-0.5">
+                  <CardHeader className="flex flex-row flex-wrap items-start justify-between gap-2 border-b border-border pb-3">
+                    <div className="space-y-1">
+                      <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                        Request ID
+                      </p>
+                      <CardTitle className="text-base font-mono text-foreground">{req.id}</CardTitle>
+                    </div>
+                    <Badge variant="outline" className={cn("shrink-0", statusBadge[req.status])}>
+                      {statusLabels[req.status]}
+                    </Badge>
+                  </CardHeader>
+                  <CardContent className="space-y-3 pt-4 text-sm">
+                    <DetailRow label="Student" value={req.studentName} />
+                    <DetailRow label="Email" value={req.email} />
+                    <DetailRow label="Address" value={req.address} />
+                    <Separator />
+                    <DetailRow label="Reason" value={req.reason} />
+                    <DetailRow label="Requested date" value={req.requestedDate} />
+                    <DetailRow label="Submitted" value={new Date(req.submittedAt).toLocaleString()} />
+                    {req.clinicNote ? (
+                      <>
+                        <Separator />
+                        <div>
+                          <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                            Clinic note
+                          </p>
+                          <p className="mt-1 text-foreground">{req.clinicNote}</p>
+                        </div>
+                      </>
+                    ) : null}
+                  </CardContent>
+                </Card>
+              </li>
+            ))}
+          </ul>
+        )}
       </section>
-
     </div>
   );
 }

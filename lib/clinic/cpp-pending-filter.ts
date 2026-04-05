@@ -8,7 +8,7 @@ const binaryName =
   process.platform === "win32" ? "filter_pending.exe" : "filter_pending";
 
 function binaryPath(): string {
-  return join(process.cwd(), "native", binaryName);
+  return join(process.cwd(), "native", "filters", binaryName);
 }
 
 export function filterPendingIndicesTypeScript(statuses: RequestStatus[]): number[] {

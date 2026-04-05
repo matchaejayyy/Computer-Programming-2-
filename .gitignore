@@ -39,5 +39,9 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
-/native/filter_pending
-/native/filter_pending.exe
+/native/filters/filter_pending
+/native/filters/filter_pending.exe
+/native/filters/filter_accepted
+/native/filters/filter_accepted.exe
+/native/filters/filter_rejected
+/native/filters/filter_rejected.exe

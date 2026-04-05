@@ -57,25 +57,27 @@ export function ProfilePatientDetails({ studentId }: { studentId: string }) {
     loadProfile();
   }, [studentId]);
 
-  const canSaveGender = useMemo(
-    () =>
-      Boolean(data) &&
-      !data?.genderEdited &&
+  const canSaveGender = useMemo(() => {
+    if (!data || saving) {
+      return false;
+    }
+    return (
+      !data.genderEdited &&
       genderInput.trim().length > 0 &&
-      genderInput.trim() !== data.gender &&
-      !saving,
-    [data, genderInput, saving]
-  );
+      genderInput.trim() !== data.gender
+    );
+  }, [data, genderInput, saving]);
 
-  const canSaveBirthday = useMemo(
-    () =>
-      Boolean(data) &&
-      !data?.birthdayEdited &&
+  const canSaveBirthday = useMemo(() => {
+    if (!data || saving) {
+      return false;
+    }
+    return (
+      !data.birthdayEdited &&
       birthdayInput.trim().length > 0 &&
-      birthdayInput.trim() !== data.birthday &&
-      !saving,
-    [data, birthdayInput, saving]
-  );
+      birthdayInput.trim() !== data.birthday
+    );
+  }, [data, birthdayInput, saving]);
 
   async function saveChanges(payload: { gender?: string; birthday?: string }) {
     setSaving(true);

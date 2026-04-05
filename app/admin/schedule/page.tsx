@@ -55,14 +55,13 @@ export default function SchedulePage() {
   const totalSlots = Object.values(schedules).flat().length;
 
   return (
-    <div className="p-8 min-h-screen text-gray-900 font-sans">
+    <div className="grid w-full min-w-0 max-w-full grid-cols-1 gap-2 text-gray-900 font-sans">
       {/* HEADER AREA */}
-      <div className="mb-8">
-        {/* Back to dashboard button */}
+      <div className="mb-4">
         <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <HomeLink />
         </div>
-        <h1 className="text-2xl font-bold tracking-tight text-gray-900">
+        <h1 className="text-xl font-bold tracking-tight text-gray-900 sm:text-2xl">
           Manage Schedule
         </h1>
         <p className="text-sm text-gray-500">
@@ -71,9 +70,9 @@ export default function SchedulePage() {
       </div>
 
       {/* MAIN CONTENT CONTAINER */}
-      <div className="bg-white border border-gray-100 rounded-2xl shadow-sm p-6 mb-8">
+      <div className="mb-6 rounded-2xl border border-gray-100 bg-white p-4 shadow-sm sm:p-6">
         {/* SET SCHEDULE ROW (ALL IN ONE LINE) */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end mb-8">
+        <div className="mb-8 grid grid-cols-1 items-stretch gap-3 sm:grid-cols-2 md:grid-cols-4 md:items-end md:gap-4">
           <div>
             <label className="block text-[11px] font-bold text-gray-900 mb-1.5 uppercase tracking-wide">
               Select Date
@@ -108,7 +107,7 @@ export default function SchedulePage() {
 
           <button
             onClick={addSlot}
-            className="bg-red-600 text-white text-xs font-bold py-3 px-4 rounded-lg hover:bg-red-700 transition-all uppercase tracking-widest flex items-center justify-center gap-2 shadow-sm shadow-red-100"
+            className="flex min-h-11 w-full items-center justify-center gap-2 rounded-lg bg-red-600 px-4 py-3 text-xs font-bold uppercase tracking-widest text-white shadow-sm shadow-red-100 transition-all hover:bg-red-700 md:w-auto"
           >
             <Plus className="w-4 h-4" />
             Add Slot
@@ -116,10 +115,10 @@ export default function SchedulePage() {
 
           <button
             onClick={blockDate}
-            className={`border text-xs font-bold py-3 px-4 rounded-lg transition-all uppercase tracking-widest flex items-center justify-center gap-2 ${
+            className={`flex min-h-11 w-full items-center justify-center gap-2 rounded-lg border px-4 py-3 text-xs font-bold uppercase tracking-widest transition-all md:w-auto ${
               blockedDates.includes(date)
-                ? "bg-orange-50 text-orange-600 border-orange-200"
-                : "bg-white text-gray-600 border-gray-200 hover:bg-gray-50"
+                ? "border-orange-200 bg-orange-50 text-orange-600"
+                : "border-gray-200 bg-white text-gray-600 hover:bg-gray-50"
             }`}
           >
             <Ban className="w-4 h-4" />
@@ -128,13 +127,13 @@ export default function SchedulePage() {
         </div>
 
         {/* STAT CARDS (INLINE WITH THE CONTAINER) */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="bg-white border border-gray-100 rounded-xl p-5 flex items-center gap-4 shadow-sm">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-3 sm:gap-6">
+          <div className="flex min-w-0 items-center gap-3 rounded-xl border border-gray-100 bg-white p-4 shadow-sm sm:gap-4 sm:p-5">
             <div className="p-2.5 bg-green-50 rounded-lg">
               <Calendar className="w-5 h-5 text-green-600" />
             </div>
-            <div>
-              <p className="text-2xl font-bold text-gray-900 leading-none">
+            <div className="min-w-0">
+              <p className="text-2xl font-bold tabular-nums leading-none text-gray-900">
                 {Object.keys(schedules).length}
               </p>
               <p className="text-[11px] text-gray-500 font-medium mt-1">
@@ -143,12 +142,12 @@ export default function SchedulePage() {
             </div>
           </div>
 
-          <div className="bg-white border border-gray-100 rounded-xl p-5 flex items-center gap-4 shadow-sm">
+          <div className="flex min-w-0 items-center gap-3 rounded-xl border border-gray-100 bg-white p-4 shadow-sm sm:gap-4 sm:p-5">
             <div className="p-2.5 bg-orange-50 rounded-lg">
               <Ban className="w-5 h-5 text-orange-600" />
             </div>
-            <div>
-              <p className="text-2xl font-bold text-gray-900 leading-none">
+            <div className="min-w-0">
+              <p className="text-2xl font-bold tabular-nums leading-none text-gray-900">
                 {blockedDates.length}
               </p>
               <p className="text-[11px] text-gray-500 font-medium mt-1">
@@ -157,12 +156,12 @@ export default function SchedulePage() {
             </div>
           </div>
 
-          <div className="bg-white border border-gray-100 rounded-xl p-5 flex items-center gap-4 shadow-sm">
+          <div className="flex min-w-0 items-center gap-3 rounded-xl border border-gray-100 bg-white p-4 shadow-sm sm:gap-4 sm:p-5">
             <div className="p-2.5 bg-red-50 rounded-lg">
               <Clock className="w-5 h-5 text-red-600" />
             </div>
-            <div>
-              <p className="text-2xl font-bold text-gray-900 leading-none">
+            <div className="min-w-0">
+              <p className="text-2xl font-bold tabular-nums leading-none text-gray-900">
                 {totalSlots}
               </p>
               <p className="text-[11px] text-gray-500 font-medium mt-1">
@@ -175,18 +174,18 @@ export default function SchedulePage() {
 
       {/* LOWER LIST SECTION */}
       <div>
-        <div className="flex justify-between items-center mb-5 px-1">
-          <h2 className="text-xs font-bold text-gray-900 uppercase tracking-widest">
+        <div className="mb-5 flex flex-col gap-2 px-1 sm:flex-row sm:items-center sm:justify-between">
+          <h2 className="text-xs font-bold uppercase tracking-widest text-gray-900">
             Active Schedules
           </h2>
-          <span className="text-[11px] text-gray-400 font-medium">
+          <span className="text-[11px] font-medium text-gray-400">
             {Object.keys(schedules).length + blockedDates.length} total records
           </span>
         </div>
 
         <div className="space-y-4">
           {Object.keys(schedules).length === 0 && (
-            <div className="bg-white border border-gray-200 border-dashed rounded-2xl p-16 text-center shadow-sm">
+            <div className="rounded-2xl border border-dashed border-gray-200 bg-white p-8 text-center shadow-sm sm:p-16">
               <p className="text-sm text-gray-400">
                 No active clinic hours found for the selected periods.
               </p>
@@ -196,18 +195,18 @@ export default function SchedulePage() {
           {Object.entries(schedules).map(([d, times]: any) => (
             <div
               key={d}
-              className="bg-white border border-gray-100 rounded-2xl p-6 shadow-sm flex items-center justify-between transition-hover hover:shadow-md"
+              className="flex flex-col gap-4 rounded-2xl border border-gray-100 bg-white p-4 shadow-sm transition-hover hover:shadow-md sm:flex-row sm:items-center sm:justify-between sm:p-6"
             >
-              <div className="flex items-center gap-8">
-                <div className="min-w-[100px]">
-                  <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">
+              <div className="flex min-w-0 flex-col gap-4 sm:flex-row sm:items-center sm:gap-8">
+                <div className="min-w-0 shrink-0 sm:min-w-[100px]">
+                  <p className="mb-1 text-[10px] font-bold uppercase tracking-wider text-gray-400">
                     Clinic Date
                   </p>
-                  <p className="text-sm font-bold text-gray-900">{d}</p>
+                  <p className="break-words text-sm font-bold text-gray-900">{d}</p>
                 </div>
-                <div className="h-10 w-[1px] bg-gray-100" />
-                <div>
-                  <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2">
+                <div className="hidden h-10 w-px shrink-0 bg-gray-100 sm:block" aria-hidden />
+                <div className="min-w-0 flex-1">
+                  <p className="mb-2 text-[10px] font-bold uppercase tracking-wider text-gray-400">
                     Available Windows
                   </p>
                   <div className="flex flex-wrap gap-2">

@@ -10,6 +10,8 @@ export type AppointmentRequest = {
   email: string;
   address: string;
   clinicNote?: string;
+  /** School ID number when provided on the booking form */
+  schoolIdNumber?: string;
 };
 
 /**

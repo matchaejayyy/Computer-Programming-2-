@@ -34,6 +34,7 @@ type Reason = (typeof reasonOptions)[number]["id"];
 type ReserveFormState = {
   studentName: string;
   email: string;
+  schoolIdNumber: string;
   address: string;
   reason: Reason;
   otherReasonDetail: string;
@@ -46,6 +47,7 @@ type SubmitState = "idle" | "loading" | "success" | "error";
 const initialState: ReserveFormState = {
   studentName: "",
   email: "",
+  schoolIdNumber: "",
   address: "",
   reason: "consultation",
   otherReasonDetail: "",
@@ -81,10 +83,12 @@ export function ReserveForm() {
     setSubmitState("loading");
     setStatusMessage("");
 
+    const schoolIdTrimmed = formState.schoolIdNumber.trim();
     const payload = {
       ...formState,
       studentName: formState.studentName.trim(),
       email: formState.email.trim(),
+      schoolIdNumber: schoolIdTrimmed || undefined,
       address: formState.address.trim(),
       otherReasonDetail: formState.otherReasonDetail.trim(),
       preferredDate: formState.preferredDate.trim(),
@@ -195,6 +199,21 @@ export function ReserveForm() {
               />
             </FormField>
           </div>
+
+          <FormField
+            id="schoolIdNumber"
+            label="School ID number (optional)"
+            helpText="Shown on your ID; helps staff find your request."
+          >
+            <Input
+              id="schoolIdNumber"
+              name="schoolIdNumber"
+              value={formState.schoolIdNumber}
+              onChange={(event) => updateField("schoolIdNumber", event.target.value)}
+              placeholder="e.g. 2024-12345"
+              autoComplete="off"
+            />
+          </FormField>
 
           <FormField id="address" label="Address">
             <Input

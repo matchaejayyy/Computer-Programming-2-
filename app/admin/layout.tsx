@@ -9,8 +9,8 @@ export default function AdminLayout({
       <div className="sticky top-0 z-50 shrink-0">
         <AdminTopBar />
       </div>
-      <div className="flex flex-1 flex-col">
-        <div className="mx-auto w-full px-4 py-6 sm:px-6 sm:py-8 lg:px-8 xl:px-12 2xl:px-16">
+      <div className="flex min-h-0 min-w-0 flex-1 flex-col">
+        <div className="mx-auto w-full min-w-0 max-w-full px-3 py-5 sm:px-6 sm:py-8 lg:px-8 xl:px-12 2xl:px-16">
           <PageTransition>{children}</PageTransition>
         </div>
       </div>

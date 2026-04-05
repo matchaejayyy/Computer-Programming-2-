@@ -2,9 +2,11 @@ import { CalendarDays } from "lucide-react";
 
 import { HomeLink } from "@/components/clinic/home-link";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { WEEKLY_CLINIC_HOURS } from "@/lib/clinic/clinic-schedule";
+import { getWeeklyClinicHoursFromDisk } from "@/lib/clinic/clinic-weekly-hours-store";
 
 export default function SchedulePage() {
+  const weeklyRows = getWeeklyClinicHoursFromDisk();
+
   return (
     <div className="grid grid-cols-1 gap-2">
       <HomeLink />
@@ -24,7 +26,7 @@ export default function SchedulePage() {
             or hospital services).
           </p>
           <div className="grid gap-3 sm:grid-cols-2">
-            {WEEKLY_CLINIC_HOURS.map((row) => (
+            {weeklyRows.map((row) => (
               <div
                 key={row.label}
                 className="rounded-xl border border-border bg-card p-4 shadow-sm"

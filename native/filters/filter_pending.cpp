@@ -5,7 +5,7 @@
  * space-separated, then a newline.
  *
  * Build (from repo root):
- *   c++ -std=c++17 -O2 -o native/filter_pending native/filter_pending.cpp
+ *   c++ -std=c++17 -O2 -o native/filters/filter_pending native/filters/filter_pending.cpp
  */
 
 #include <iostream>

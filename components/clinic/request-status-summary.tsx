@@ -1,11 +1,11 @@
 "use client";
 
 import Link from "next/link";
+import { useEffect, useState } from "react";
 import { ChevronRight, ClipboardList } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { countRequestsByStatus } from "@/lib/clinic/mock-requests";
 
 const rows = [
   {
@@ -31,8 +31,47 @@ const rows = [
   },
 ];
 
-export function RequestStatusSummary() {
-  const counts = countRequestsByStatus();
+type Props = {
+  studentId?: string;
+};
+
+export function RequestStatusSummary({ studentId = "student@usa.edu.ph" }: Props) {
+  const [counts, setCounts] = useState({ pending: 0, approved: 0, rejected: 0 });
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await fetch(
+          `/api/clinic-requests/stats?studentId=${encodeURIComponent(studentId)}`
+        );
+        const data = (await res.json()) as {
+          pending?: number;
+          approved?: number;
+          rejected?: number;
+        };
+        if (!cancelled && res.ok) {
+          setCounts({
+            pending: data.pending ?? 0,
+            approved: data.approved ?? 0,
+            rejected: data.rejected ?? 0,
+          });
+        }
+      } catch {
+        if (!cancelled) {
+          setCounts({ pending: 0, approved: 0, rejected: 0 });
+        }
+      } finally {
+        if (!cancelled) {
+          setMounted(true);
+        }
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [studentId]);
 
   return (
     <Card className="border border-neutral-200 bg-white shadow-sm ring-0 rounded-2xl">
@@ -62,7 +101,7 @@ export function RequestStatusSummary() {
               <span className="font-medium text-foreground">{row.label}</span>
               <span className="flex items-center gap-1.5">
                 <Badge variant="outline" className={row.badgeClass}>
-                  {count}
+                  {mounted ? count : "—"}
                 </Badge>
                 <ChevronRight
                   className="size-4 shrink-0 text-muted-foreground"

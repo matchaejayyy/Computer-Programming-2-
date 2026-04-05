@@ -1,3 +1,11 @@
+/**
+ * Reads status labels from stdin (pending | approved | rejected), one per line.
+ * Writes 0-based indices of "approved" rows to stdout, space-separated.
+ *
+ * Build:
+ *   c++ -std=c++17 -O2 -o native/filters/filter_accepted native/filters/filter_accepted.cpp
+ */
+
 #include <iostream>
 #include <string>
 

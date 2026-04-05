@@ -143,14 +143,14 @@ export default function AdminHistoryPage() {
   };
 
   return (
-    <div className="grid grid-cols-1 gap-2">
+    <div className="grid w-full min-w-0 max-w-full grid-cols-1 gap-2">
       {/* Back to dashboard button */}
       <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <HomeLink />
       </div>
 
       <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div>
+        <div className="min-w-0">
           <h1 className="text-xl font-bold text-foreground sm:text-2xl">
             Appointment History
           </h1>
@@ -162,7 +162,7 @@ export default function AdminHistoryPage() {
 
       {/* Filters */}
       <Card className="mb-4 border border-border shadow-sm">
-        <CardContent className="p-4">
+        <CardContent className="p-3 sm:p-4">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-end">
             <div className="flex-1 space-y-2">
               <Label htmlFor="date-filter" className="text-sm font-medium">
@@ -195,7 +195,7 @@ export default function AdminHistoryPage() {
             <Button
               variant="outline"
               onClick={clearFilters}
-              className="shrink-0"
+              className="min-h-10 w-full shrink-0 sm:w-auto"
             >
               <Filter className="mr-2 size-4" />
               Clear Filters
@@ -205,15 +205,15 @@ export default function AdminHistoryPage() {
       </Card>
 
       {/* Summary Stats */}
-      <div className="mb-4 grid grid-cols-3 gap-3">
+      <div className="mb-4 grid grid-cols-1 gap-3 sm:grid-cols-3">
         {/* Completed */}
-        <Card className="border border-border shadow-sm">
-          <CardContent className="flex items-center gap-5 py-5 px-8">
+        <Card className="min-w-0 border border-border shadow-sm">
+          <CardContent className="flex items-center gap-3 px-4 py-4 sm:gap-5 sm:px-8 sm:py-5">
             <div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-green-50 text-green-600">
               <CheckCircle className="size-5" aria-hidden />
             </div>
-            <div>
-              <p className="text-2xl font-bold text-foreground">
+            <div className="min-w-0">
+              <p className="text-2xl font-bold tabular-nums text-foreground">
                 {completedCount}
               </p>
               <p className="text-xs text-muted-foreground">Completed</p>
@@ -222,13 +222,13 @@ export default function AdminHistoryPage() {
         </Card>
 
         {/* Cancelled */}
-        <Card className="border border-border shadow-sm">
-          <CardContent className="flex items-center gap-5 py-5 px-8">
+        <Card className="min-w-0 border border-border shadow-sm">
+          <CardContent className="flex items-center gap-3 px-4 py-4 sm:gap-5 sm:px-8 sm:py-5">
             <div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-amber-50 text-amber-600">
               <XCircle className="size-5" aria-hidden />
             </div>
-            <div>
-              <p className="text-2xl font-bold text-foreground">
+            <div className="min-w-0">
+              <p className="text-2xl font-bold tabular-nums text-foreground">
                 {cancelledCount}
               </p>
               <p className="text-xs text-muted-foreground">Cancelled</p>
@@ -237,13 +237,13 @@ export default function AdminHistoryPage() {
         </Card>
 
         {/* No Show */}
-        <Card className="border border-border shadow-sm">
-          <CardContent className="flex items-center gap-5 py-5 px-8">
+        <Card className="min-w-0 border border-border shadow-sm">
+          <CardContent className="flex items-center gap-3 px-4 py-4 sm:gap-5 sm:px-8 sm:py-5">
             <div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-red-50 text-red-600">
               <AlertCircle className="size-5" aria-hidden />
             </div>
-            <div>
-              <p className="text-2xl font-bold text-foreground">
+            <div className="min-w-0">
+              <p className="text-2xl font-bold tabular-nums text-foreground">
                 {noShowCount}
               </p>
               <p className="text-xs text-muted-foreground">No Show</p>
@@ -255,7 +255,7 @@ export default function AdminHistoryPage() {
       {/* Past Appointments */}
       {filteredHistory.length === 0 ? (
         <>
-          <div className="flex items-center pb-4 justify-between">
+          <div className="flex flex-col gap-1 pb-4 sm:flex-row sm:items-center sm:justify-between">
             <h2 className="text-lg font-bold text-foreground">
               Past appointments
             </h2>
@@ -275,12 +275,12 @@ export default function AdminHistoryPage() {
           </Card>
         </>
       ) : (
-        <div className="flex flex-col gap-4">
-          <div className="flex items-center justify-between">
+        <div className="flex min-w-0 flex-col gap-4">
+          <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
             <h2 className="text-lg font-bold text-foreground">
               Past appointments
             </h2>
-            <span className="text-sm text-muted-foreground">
+            <span className="shrink-0 text-sm text-muted-foreground">
               {filteredHistory.length} total
             </span>
           </div>
@@ -290,13 +290,13 @@ export default function AdminHistoryPage() {
               const StatusIcon = config.icon;
               return (
                 <li key={entry.id}>
-                  <Card className="border-border shadow-sm transition-colors hover:bg-neutral-50/50">
-                    <CardHeader className="flex flex-row flex-wrap items-start justify-between gap-2 border-b border-border px-5 py-4">
-                      <div className="space-y-1">
+                  <Card className="min-w-0 border-border shadow-sm transition-colors hover:bg-neutral-50/50">
+                    <CardHeader className="flex flex-row flex-wrap items-start justify-between gap-2 border-b border-border px-4 py-4 sm:px-5">
+                      <div className="min-w-0 flex-1 space-y-1">
                         <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
                           Record ID
                         </p>
-                        <CardTitle className="font-mono text-base text-foreground">
+                        <CardTitle className="break-words font-mono text-base text-foreground">
                           {entry.id}
                         </CardTitle>
                       </div>
@@ -308,13 +308,13 @@ export default function AdminHistoryPage() {
                         {config.label}
                       </Badge>
                     </CardHeader>
-                    <CardContent className="space-y-4 px-5 py-4 text-sm">
-                      <div className="flex items-start gap-3">
-                        <div>
+                    <CardContent className="space-y-4 px-4 py-4 text-sm sm:px-5">
+                      <div className="flex min-w-0 items-start gap-3">
+                        <div className="min-w-0">
                           <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
                             Appointment date
                           </p>
-                          <p className="mt-0.5 text-foreground">
+                          <p className="mt-0.5 break-words text-foreground">
                             {entry.appointmentDate}
                           </p>
                         </div>
@@ -348,7 +348,7 @@ export default function AdminHistoryPage() {
                             <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
                               Admin notes
                             </p>
-                            <p className="mt-1 text-foreground">
+                            <p className="mt-1 break-words text-foreground">
                               {entry.clinicNote}
                             </p>
                           </div>
@@ -368,11 +368,11 @@ export default function AdminHistoryPage() {
 
 function DetailRow({ label, value }: { label: string; value: string }) {
   return (
-    <div>
+    <div className="min-w-0">
       <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
         {label}
       </p>
-      <p className="mt-0.5 text-foreground">{value}</p>
+      <p className="mt-0.5 break-words text-foreground">{value}</p>
     </div>
   );
 }

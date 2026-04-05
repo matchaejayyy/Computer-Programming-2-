@@ -1,6 +1,15 @@
+import { Suspense } from "react";
+
 import { RequestsContent } from "@/components/clinic/requests-content";
-import { MOCK_APPOINTMENT_REQUESTS } from "@/lib/clinic/mock-requests";
 
 export default function RequestsPage() {
-  return <RequestsContent initialRequests={MOCK_APPOINTMENT_REQUESTS} />;
+  return (
+    <Suspense
+      fallback={
+        <div className="py-12 text-center text-sm text-muted-foreground">Loading requests…</div>
+      }
+    >
+      <RequestsContent studentId="student@usa.edu.ph" />
+    </Suspense>
+  );
 }

@@ -43,6 +43,14 @@ export async function POST(req: Request) {
     );
   }
 
+  const rawSchoolId = (payload as Record<string, unknown>).schoolIdNumber;
+  if (rawSchoolId !== undefined && rawSchoolId !== null) {
+    if (typeof rawSchoolId !== "string") {
+      return NextResponse.json({ error: "Invalid field: schoolIdNumber" }, { status: 400 });
+    }
+    payload.schoolIdNumber = rawSchoolId.trim() || undefined;
+  }
+
   try {
     const message = await reserveAppointmentCpp(payload);
     return NextResponse.json({ success: true, message });
