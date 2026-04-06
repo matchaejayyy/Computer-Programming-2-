@@ -7,9 +7,8 @@ import {
   ClipboardCheck,
   FileSpreadsheet,
   FolderClock,
-  LayoutDashboard,
+  UserSearch,
   XCircle,
-  Settings2,
 } from "lucide-react";
 import Link from "next/link";
 
@@ -26,12 +25,12 @@ const colorStyles = {
 
 const adminMenuCards = [
   {
-    title: "Dashboard",
-    subtitle: "View Overview",
-    details: ["Total Appointments", "Pending Requests", "Approved / Rejected"],
-    icon: LayoutDashboard,
+    title: "Student registry finder",
+    subtitle: "Accounts, personal info & BMI",
+    details: ["Browse registered accounts", "Personal data & measurements"],
+    icon: UserSearch,
     color: "green",
-    href: "/admin",
+    href: "/admin/patient-finder",
   },
   {
     title: "Manage Appointments",
@@ -48,14 +47,6 @@ const adminMenuCards = [
     icon: CalendarDays,
     color: "amber",
     href: "/admin/schedule",
-  },
-  {
-    title: "Status Management",
-    subtitle: "Track Requests",
-    details: ["Pending → Approved", "Pending → Rejected", "Overview counts"],
-    icon: Settings2,
-    color: "green",
-    href: "/admin/status-management",
   },
   {
     title: "Appointment History",
@@ -77,7 +68,12 @@ const adminMenuCards = [
   title: string;
   subtitle: string;
   details: readonly string[];
-  icon: (typeof LayoutDashboard) | typeof ClipboardCheck | typeof CalendarDays | typeof Settings2 | typeof FolderClock | typeof FileSpreadsheet;
+  icon:
+    | typeof UserSearch
+    | typeof ClipboardCheck
+    | typeof CalendarDays
+    | typeof FolderClock
+    | typeof FileSpreadsheet;
   color: keyof typeof colorStyles;
   href?: string;
   detailHrefs?: readonly string[];

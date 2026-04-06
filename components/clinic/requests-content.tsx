@@ -137,7 +137,9 @@ export function RequestsContent({ studentId }: Props) {
   return (
     <div className="grid grid-cols-1 gap-2">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <HomeLink />
+      </div>
         <div className="flex flex-wrap gap-2">
           <button
             type="button"
@@ -173,18 +175,17 @@ export function RequestsContent({ studentId }: Props) {
         </div>
       </div>
 
-      <div>
-        <h1 className="text-xl font-bold text-foreground sm:text-2xl">{title}</h1>
+      <div className="mb-4">
+        <h1 className="text-xl font-bold text-foreground sm:text-2xl">
+          {title}
+        </h1>
         <p className="mt-1 text-sm text-muted-foreground">
           Full details for each appointment request you have submitted to the clinic.
         </p>
       </div>
 
-      {dataError ? (
-        <p className="text-sm text-destructive" role="alert">
-          {dataError}
-        </p>
-      ) : null}
+      
+
       {filterError ? (
         <p className="text-sm text-destructive" role="alert">
           {filterError}

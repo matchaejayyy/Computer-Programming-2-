@@ -90,10 +90,6 @@ export function ProfileBmi({ studentId }: { studentId: string }) {
 
   return (
     <div className="space-y-4 pt-2">
-      <p className="text-sm text-muted-foreground">
-        Enter your weight and height to get your BMI category. You can update your BMI anytime.
-      </p>
-
       {loading ? <p className="text-sm text-muted-foreground">Loading BMI data...</p> : null}
 
       {bmiData?.bmi ? (
