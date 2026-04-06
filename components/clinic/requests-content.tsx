@@ -57,6 +57,7 @@ export function RequestsContent({ studentId: studentIdProp }: Props) {
   const [cancelOtherNote, setCancelOtherNote] = useState("");
   const [cancelLoadingId, setCancelLoadingId] = useState<string | null>(null);
   const [cancelError, setCancelError] = useState<string | null>(null);
+  const [focusedRequestId, setFocusedRequestId] = useState<string | null>(null);
 
   const cancelReasonOptions = [
     { value: "schedule_conflict", label: "Schedule conflict" },
@@ -121,6 +122,11 @@ export function RequestsContent({ studentId: studentIdProp }: Props) {
   }, [searchParams]);
 
   useEffect(() => {
+    const requestId = searchParams.get("requestId");
+    setFocusedRequestId(requestId);
+  }, [searchParams]);
+
+  useEffect(() => {
     const applyFilter = async () => {
       if (activeFilter === "all") {
         setFilteredItems(initialRequests);
@@ -166,6 +172,13 @@ export function RequestsContent({ studentId: studentIdProp }: Props) {
         ? "border-[#E50000] bg-[#E50000] text-white shadow-sm"
         : "border-border bg-background text-foreground hover:bg-muted hover:-translate-y-0.5"
     );
+
+  useEffect(() => {
+    if (!focusedRequestId || items.length === 0) return;
+    const row = document.querySelector<HTMLElement>(`[data-request-id="${CSS.escape(focusedRequestId)}"]`);
+    if (!row) return;
+    row.scrollIntoView({ behavior: "smooth", block: "center" });
+  }, [focusedRequestId, items]);
 
   async function reloadRequests() {
     if (!studentId) return;
@@ -334,7 +347,15 @@ export function RequestsContent({ studentId: studentIdProp }: Props) {
         ) : (
           <ul className="flex flex-col gap-4">
             {items.map((req) => (
-              <li key={req.id} className="animate-[clinic-page-enter_240ms_ease-out]">
+              <li
+                key={req.id}
+                data-request-id={req.id}
+                className={cn(
+                  "animate-[clinic-page-enter_240ms_ease-out]",
+                  focusedRequestId === req.id &&
+                    "rounded-xl ring-2 ring-[#E50000]/30 transition-shadow"
+                )}
+              >
                 <Card className="border-border shadow-sm transition-transform duration-200 hover:-translate-y-0.5">
                   <CardHeader className="flex flex-row flex-wrap items-start justify-between gap-2 border-b border-border pb-3">
                     <div className="space-y-1">

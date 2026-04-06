@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { Bell } from "lucide-react";
 
@@ -9,6 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import {
   DropdownMenu,
   DropdownMenuContent,
+  DropdownMenuGroup,
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
@@ -18,6 +20,7 @@ import type { AppointmentRequest, RequestStatus } from "@/lib/clinic/mock-reques
 
 type NotificationItem = {
   key: string;
+  requestId: string;
   title: string;
   message: string;
   submittedAt: string;
@@ -49,6 +52,7 @@ function statusMessage(req: AppointmentRequest): string {
 }
 
 export function AppTopBar({ studentId }: { studentId?: string }) {
+  const router = useRouter();
   const [appointments, setAppointments] = useState<AppointmentRequest[]>([]);
   const [menuOpen, setMenuOpen] = useState(false);
   const [seenKeys, setSeenKeys] = useState<Record<string, true>>({});
@@ -88,6 +92,7 @@ export function AppTopBar({ studentId }: { studentId?: string }) {
       .filter((req) => req.status !== "pending")
       .map((req) => ({
         key: `${req.id}:${req.status}`,
+        requestId: req.id,
         title: statusTitle(req.status),
         message: statusMessage(req),
         submittedAt: req.submittedAt,
@@ -146,9 +151,11 @@ export function AppTopBar({ studentId }: { studentId?: string }) {
               sideOffset={8}
               className="w-[min(92vw,24rem)] rounded-xl border border-border/60 bg-card p-1.5 shadow-lg"
             >
-              <DropdownMenuLabel className="px-2 py-1 text-sm font-semibold text-foreground">
-                Notifications
-              </DropdownMenuLabel>
+              <DropdownMenuGroup>
+                <DropdownMenuLabel className="px-2 py-1 text-sm font-semibold text-foreground">
+                  Notifications
+                </DropdownMenuLabel>
+              </DropdownMenuGroup>
               <DropdownMenuSeparator />
               {notifications.length === 0 ? (
                 <div className="px-2 py-5 text-center text-sm text-muted-foreground">
@@ -159,6 +166,12 @@ export function AppTopBar({ studentId }: { studentId?: string }) {
                   <DropdownMenuItem
                     key={note.key}
                     className="items-start gap-2 rounded-lg px-2 py-2.5"
+                    onClick={() => {
+                      setMenuOpen(false);
+                      router.push(
+                        `/requests?filter=${encodeURIComponent(note.status)}&requestId=${encodeURIComponent(note.requestId)}`
+                      );
+                    }}
                   >
                     <div className="mt-1 size-2 rounded-full bg-[#E50000]" />
                     <div className="min-w-0">
@@ -169,10 +182,17 @@ export function AppTopBar({ studentId }: { studentId?: string }) {
                 ))
               )}
               <DropdownMenuSeparator />
-              <div className="px-2 py-2 text-center text-xs text-muted-foreground">
+              <button
+                type="button"
+                onClick={() => {
+                  setMenuOpen(false);
+                  router.push("/requests");
+                }}
+                className="w-full px-2 py-2 text-center text-xs text-muted-foreground transition-colors hover:text-foreground"
+              >
                 Open <span className="font-semibold text-foreground">Appointment Requests</span> page
                 to view complete details.
-              </div>
+              </button>
             </DropdownMenuContent>
           </DropdownMenu>
 

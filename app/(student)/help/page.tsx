@@ -20,6 +20,29 @@ export default function HelpPage() {
             clinic services. Contact the clinic office for questions not listed
             here.
           </p>
+          <div className="rounded-lg border border-neutral-200 bg-neutral-50 p-4">
+            <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+              USA Clinic Contact
+            </p>
+            <p className="mt-2 text-sm text-foreground">
+              Phone:{" "}
+              <a
+                href="tel:+639171234567"
+                className="font-medium text-[#E50000] underline underline-offset-4 hover:opacity-80"
+              >
+                +63 917 123 4567
+              </a>
+            </p>
+            <p className="mt-1 text-sm text-foreground">
+              Email:{" "}
+              <a
+                href="mailto:clinic@usa.edu.ph"
+                className="font-medium text-[#E50000] underline underline-offset-4 hover:opacity-80"
+              >
+                clinic@usa.edu.ph
+              </a>
+            </p>
+          </div>
         </CardContent>
       </Card>
     </div>

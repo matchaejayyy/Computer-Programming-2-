@@ -1,6 +1,7 @@
 "use client";
 
 import { FormEvent, useEffect, useMemo, useState } from "react";
+import { createPortal } from "react-dom";
 import { useRouter } from "next/navigation";
 
 import { Button } from "@/components/ui/button";
@@ -62,6 +63,30 @@ function todayIsoDate(): string {
   return `${y}-${m}-${day}`;
 }
 
+function toIsoDate(d: Date): string {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
+}
+
+function fromIsoDate(value: string): Date | undefined {
+  if (!value) return undefined;
+  const [year, month, day] = value.split("-").map(Number);
+  if (!year || !month || !day) return undefined;
+  return new Date(year, month - 1, day);
+}
+
+function formatIsoDate(value: string): string {
+  const date = fromIsoDate(value);
+  if (!date) return "Select date";
+  return date.toLocaleDateString(undefined, {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  });
+}
+
 const initialState = (firstSlot: string): ReserveFormState => ({
   studentName: "",
   email: "",
@@ -74,11 +99,14 @@ const initialState = (firstSlot: string): ReserveFormState => ({
 });
 
 export function ReserveForm() {
+  const modalRoot = typeof document !== "undefined" ? document.body : null;
   const router = useRouter();
+  const minDateIso = useMemo(() => todayIsoDate(), []);
   const [timeSlots, setTimeSlots] = useState<string[]>(FALLBACK_TIME_SLOTS);
   const [blockedDates, setBlockedDates] = useState<string[]>([]);
   const [slotCapacity, setSlotCapacity] = useState(10);
   const [availability, setAvailability] = useState<SlotAvailability | null>(null);
+  const [activeModal, setActiveModal] = useState<"date" | "time" | null>(null);
   const [formState, setFormState] = useState<ReserveFormState>(() =>
     initialState(FALLBACK_TIME_SLOTS[0]!)
   );
@@ -217,6 +245,21 @@ export function ReserveForm() {
     if (blockedDates.length === 0) return null;
     return blockedDates.sort().join(", ");
   }, [blockedDates]);
+  const selectedDate = useMemo(
+    () => fromIsoDate(formState.preferredDate),
+    [formState.preferredDate]
+  );
+
+  useEffect(() => {
+    if (!activeModal) return;
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setActiveModal(null);
+      }
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [activeModal]);
 
   const resetForm = () => {
     setFormState(initialState(timeSlots[0] ?? FALLBACK_TIME_SLOTS[0]!));
@@ -456,25 +499,23 @@ export function ReserveForm() {
                     : "All dates are open unless blocked by the clinic."
                 }
               >
-                <Input
-                  id="preferredDate"
+                <input
+                  type="hidden"
                   name="preferredDate"
-                  type="date"
-                  min={todayIsoDate()}
                   value={formState.preferredDate}
-                  onChange={(event) => {
-                    const v = event.target.value;
-                    if (blockedDates.includes(v)) {
-                      setStatusMessage(
-                        "This date is blocked. Please choose another date."
-                      );
-                      setSubmitState("error");
-                      return;
-                    }
-                    updateField("preferredDate", v);
-                  }}
-                  required
+                  readOnly
                 />
+                <Button
+                  type="button"
+                  variant="outline"
+                  className={cn(
+                    "w-full justify-between font-normal",
+                    !formState.preferredDate && "text-muted-foreground"
+                  )}
+                  onClick={() => setActiveModal("date")}
+                >
+                  {formatIsoDate(formState.preferredDate)}
+                </Button>
               </FormField>
 
               <FormField
@@ -482,31 +523,130 @@ export function ReserveForm() {
                 label="Preferred time"
                 helpText="Slots are set by the clinic (View schedule / admin)."
               >
-                <select
-                  id="preferredTime"
+                <input
+                  type="hidden"
                   name="preferredTime"
                   value={formState.preferredTime}
-                  onChange={(event) =>
-                    updateField("preferredTime", event.target.value)
-                  }
-                  required
-                  className="h-10 w-full rounded-lg border border-input bg-white px-2.5 text-base text-foreground outline-none transition-colors focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
+                  readOnly
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  className={cn(
+                    "w-full justify-between font-normal",
+                    !formState.preferredTime && "text-muted-foreground"
+                  )}
+                  onClick={() => setActiveModal("time")}
                 >
-                  <option value="">Select time</option>
-                  {timeSlots.map((option) => {
-                    const slot = availability?.slots.find((s) => s.time === option);
-                    const full = Boolean(slot?.full);
-                    const booked = slot?.booked ?? 0;
-                    const cap = slot?.capacity ?? slotCapacity;
-                    return (
-                      <option key={option} value={option} disabled={full}>
-                        {full ? `${option} — Full (${booked}/${cap})` : `${option} (${booked}/${cap})`}
-                      </option>
-                    );
-                  })}
-                </select>
+                  {formState.preferredTime || "Select time"}
+                </Button>
               </FormField>
             </div>
+
+            {activeModal === "date" && modalRoot
+              ? createPortal(
+                  <div
+                    className="fixed inset-0 z-50 flex items-end justify-center bg-black/50 p-4 sm:items-center sm:p-6"
+                    onClick={() => setActiveModal(null)}
+                  >
+                    <div
+                      className="w-full max-w-md rounded-2xl bg-background p-4 shadow-xl sm:p-5"
+                      onClick={(event) => event.stopPropagation()}
+                    >
+                      <div className="mb-3 flex items-center justify-between">
+                        <h3 className="text-base font-semibold text-foreground">
+                          Select preferred date
+                        </h3>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => setActiveModal(null)}
+                        >
+                          Close
+                        </Button>
+                      </div>
+                      <div className="overflow-x-auto">
+                        <Calendar
+                          mode="single"
+                          selected={selectedDate}
+                          onSelect={(date) => {
+                            if (!date) return;
+                            const value = toIsoDate(date);
+                            if (blockedDates.includes(value)) {
+                              setStatusMessage("This date is blocked. Please choose another date.");
+                              setSubmitState("error");
+                              return;
+                            }
+                            updateField("preferredDate", value);
+                            setActiveModal("time");
+                          }}
+                          disabled={(date) => {
+                            const value = toIsoDate(date);
+                            return value < minDateIso || blockedDates.includes(value);
+                          }}
+                        />
+                      </div>
+                    </div>
+                  </div>,
+                  modalRoot
+                )
+              : null}
+
+            {activeModal === "time" && modalRoot
+              ? createPortal(
+                  <div
+                    className="fixed inset-0 z-50 flex items-end justify-center bg-black/50 p-4 sm:items-center sm:p-6"
+                    onClick={() => setActiveModal(null)}
+                  >
+                    <div
+                      className="w-full max-w-md rounded-2xl bg-background p-4 shadow-xl sm:p-5"
+                      onClick={(event) => event.stopPropagation()}
+                    >
+                      <div className="mb-3 flex items-center justify-between">
+                        <h3 className="text-base font-semibold text-foreground">
+                          Select preferred time
+                        </h3>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => setActiveModal(null)}
+                        >
+                          Close
+                        </Button>
+                      </div>
+                      <div className="max-h-[60vh] space-y-2 overflow-y-auto pr-1">
+                        {timeSlots.map((option) => {
+                          const slot = availability?.slots.find((s) => s.time === option);
+                          const full = Boolean(slot?.full);
+                          const booked = slot?.booked ?? 0;
+                          const cap = slot?.capacity ?? slotCapacity;
+                          return (
+                            <Button
+                              key={option}
+                              type="button"
+                              variant={formState.preferredTime === option ? "default" : "outline"}
+                              className="w-full justify-between"
+                              disabled={full}
+                              onClick={() => {
+                                updateField("preferredTime", option);
+                                setActiveModal(null);
+                              }}
+                            >
+                              <span>{option}</span>
+                              <span className="text-xs opacity-80">
+                                {full ? `Full (${booked}/${cap})` : `${booked}/${cap}`}
+                              </span>
+                            </Button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  </div>,
+                  modalRoot
+                )
+              : null}
 
             {availability ? (
               <div className="rounded-lg border border-border bg-muted/30 p-3 text-sm">
