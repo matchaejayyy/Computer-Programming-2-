@@ -14,6 +14,11 @@ type PatientRow = {
   name: string;
   email: string;
   schoolIdNumber: string;
+  contactNumber: string;
+  address: string;
+  birthday: string;
+  gender: string;
+  symptomsOrCondition: string;
 };
 
 type Props = {
@@ -124,6 +129,31 @@ export function AdminPatientFinder({ className }: Props) {
                     {row.schoolIdNumber ? (
                       <span className="mt-1 block text-xs text-muted-foreground sm:text-sm">
                         School ID: {row.schoolIdNumber}
+                      </span>
+                    ) : null}
+                    {row.contactNumber ? (
+                      <span className="mt-1 block text-xs text-muted-foreground sm:text-sm">
+                        Contact: {row.contactNumber}
+                      </span>
+                    ) : null}
+                    {row.birthday ? (
+                      <span className="mt-1 block text-xs text-muted-foreground sm:text-sm">
+                        Birthday: {row.birthday}
+                      </span>
+                    ) : null}
+                    {row.gender ? (
+                      <span className="mt-1 block text-xs text-muted-foreground sm:text-sm">
+                        Gender: {row.gender}
+                      </span>
+                    ) : null}
+                    {row.address ? (
+                      <span className="mt-1 block text-xs text-muted-foreground sm:text-sm">
+                        Address: {row.address}
+                      </span>
+                    ) : null}
+                    {row.symptomsOrCondition ? (
+                      <span className="mt-1 block text-xs text-muted-foreground sm:text-sm">
+                        Symptoms/Condition: {row.symptomsOrCondition}
                       </span>
                     ) : null}
                     <span className="mt-4 inline-block text-sm font-semibold text-red-700 underline underline-offset-4 sm:text-base">
