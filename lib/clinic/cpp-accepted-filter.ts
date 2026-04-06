@@ -8,7 +8,7 @@ const binaryName =
   process.platform === "win32" ? "filter_accepted.exe" : "filter_accepted";
 
 function binaryPath(): string {
-  return join(process.cwd(), "native", binaryName);
+  return join(process.cwd(), "native", "filters", binaryName);
 }
 
 export function filterAcceptedIndicesTypeScript(statuses: RequestStatus[]): number[] {

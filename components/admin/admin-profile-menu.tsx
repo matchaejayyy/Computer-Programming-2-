@@ -1,6 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import { signOut, useSession } from "next-auth/react";
 import { ChevronDown } from "lucide-react";
 
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -15,6 +16,15 @@ import { cn } from "@/lib/utils";
 
 export function AdminProfileMenu() {
   const router = useRouter();
+  const { data: session } = useSession();
+  const displayName = session?.user?.name?.trim() || "Admin";
+  const initials =
+    displayName
+      .split(/\s+/)
+      .map((w) => w[0])
+      .join("")
+      .slice(0, 2)
+      .toUpperCase() || "AD";
 
   return (
     <DropdownMenu>
@@ -26,11 +36,11 @@ export function AdminProfileMenu() {
         )}
       >
         <span className="max-w-24 truncate text-left text-[11px] font-bold uppercase leading-tight text-foreground sm:max-w-56 sm:text-xs">
-          ADMIN NAME
+          {displayName}
         </span>
         <Avatar className="size-9 ring-0">
           <AvatarFallback className="bg-[#1d4ed8] text-sm font-semibold text-white">
-            AD
+            {initials}
           </AvatarFallback>
         </Avatar>
         <ChevronDown className="size-4 shrink-0 text-muted-foreground" aria-hidden />
@@ -55,7 +65,9 @@ export function AdminProfileMenu() {
         <DropdownMenuItem
           variant="destructive"
           className="cursor-pointer rounded-lg px-3 py-2.5 text-sm font-normal focus:bg-destructive/10"
-          onClick={() => router.push("/login")}
+          onClick={async () => {
+            await signOut({ callbackUrl: "/login" });
+          }}
         >
           Logout
         </DropdownMenuItem>

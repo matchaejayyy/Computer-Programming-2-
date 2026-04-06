@@ -150,3 +150,22 @@ std::string AppointmentRequest::serialize() const {
     "\",\"preferredDate\":\"" + escapeJson(preferredDate_) +
     "\",\"preferredTime\":\"" + escapeJson(preferredTime_) + "\"}";
 }
+
+std::string AppointmentRequest::serializeForDatabase(
+  int id,
+  const std::string& status,
+  const std::string& adminNote,
+  const std::string& submittedAt,
+  const std::string& reviewedAt
+) const {
+  const std::string core = serialize();
+  if (core.size() < 2) {
+    return core;
+  }
+  return "{\"id\":" + std::to_string(id) +
+    ",\"status\":\"" + escapeJson(status) +
+    "\",\"adminNote\":\"" + escapeJson(adminNote) +
+    "\",\"submittedAt\":\"" + escapeJson(submittedAt) +
+    "\",\"reviewedAt\":\"" + escapeJson(reviewedAt) + "\"," +
+    core.substr(1);
+}
