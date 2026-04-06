@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useMemo } from "react";
-import { Calendar, CheckCircle, XCircle, AlertCircle, Filter } from "lucide-react";
+import { useState, useMemo, useEffect } from "react";
+import { CheckCircle, XCircle, AlertCircle, Filter } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -9,10 +9,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
+import type { HistoryEntry, HistoryStatus } from "@/lib/clinic/appointment-history-mapper";
 import { cn } from "@/lib/utils";
 
 import { HomeLink } from "@/components/admin/admin-homelink";
-import { MOCK_APPOINTMENT_REQUESTS } from "@/lib/clinic/mock-requests";
 
 function parseDateToISO(dateString: string): string {
   // Parse "Wednesday, April 2, 2026 — 10:00 AM" to "2026-04-02"
@@ -41,50 +41,6 @@ function parseDateToISO(dateString: string): string {
   return `${year}-${month}-${dayPadded}`;
 }
 
-type HistoryStatus = "completed" | "cancelled" | "no-show";
-
-type HistoryEntry = {
-  id: string;
-  status: HistoryStatus;
-  appointmentDate: string;
-  studentName: string;
-  completedAt?: string;
-  reason: string;
-  outcome: string;
-  clinicNote?: string;
-};
-
-// Transform appointment requests to history entries
-function transformToHistory(
-  request: (typeof MOCK_APPOINTMENT_REQUESTS)[0],
-): HistoryEntry {
-  const statusMap: Record<string, HistoryStatus> = {
-    approved: "completed",
-    rejected: "cancelled",
-    pending: "no-show",
-  };
-
-  const outcomeMap: Record<string, string> = {
-    approved: "Appointment completed successfully.",
-    rejected: request.clinicNote || "Appointment request was rejected.",
-    pending: "Appointment request is pending review.",
-  };
-
-  return {
-    id: request.id.replace("REQ", "HST"),
-    status: statusMap[request.status],
-    appointmentDate: request.requestedDate,
-    studentName: request.studentName,
-    completedAt: request.status !== "pending" ? request.submittedAt : undefined,
-    reason: request.reason,
-    outcome: outcomeMap[request.status],
-    clinicNote: request.clinicNote,
-  };
-}
-
-const MOCK_HISTORY: HistoryEntry[] =
-  MOCK_APPOINTMENT_REQUESTS.map(transformToHistory);
-
 const statusConfig: Record<
   HistoryStatus,
   { label: string; icon: typeof CheckCircle; badgeClass: string }
@@ -94,10 +50,15 @@ const statusConfig: Record<
     icon: CheckCircle,
     badgeClass: "border-green-600 bg-green-600 text-white",
   },
-  cancelled: {
-    label: "Cancelled",
+  "cancelled-by-you": {
+    label: "Cancelled by student",
     icon: XCircle,
     badgeClass: "border-amber-200 bg-amber-50 text-amber-900",
+  },
+  rejected: {
+    label: "Rejected",
+    icon: XCircle,
+    badgeClass: "border-red-200 bg-red-50 text-red-800",
   },
   "no-show": {
     label: "No Show",
@@ -109,9 +70,36 @@ const statusConfig: Record<
 export default function AdminHistoryPage() {
   const [dateFilter, setDateFilter] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [history, setHistory] = useState<HistoryEntry[]>([]);
+  const [loadError, setLoadError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await fetch("/api/admin/history");
+        const body = (await res.json()) as { history?: HistoryEntry[]; error?: string };
+        if (!res.ok) {
+          throw new Error(body.error || "Failed to load history.");
+        }
+        if (!cancelled) {
+          setHistory(Array.isArray(body.history) ? body.history : []);
+          setLoadError(null);
+        }
+      } catch (e) {
+        if (!cancelled) {
+          setHistory([]);
+          setLoadError(e instanceof Error ? e.message : "Could not load history.");
+        }
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const filteredHistory = useMemo(() => {
-    return MOCK_HISTORY.filter((entry) => {
+    return history.filter((entry) => {
       // Date filter - compare ISO formats for accuracy
       if (dateFilter) {
         const entryDateISO = parseDateToISO(entry.appointmentDate);
@@ -127,14 +115,13 @@ export default function AdminHistoryPage() {
 
       return true;
     });
-  }, [dateFilter, statusFilter]);
+  }, [dateFilter, statusFilter, history]);
 
   const completedCount = filteredHistory.filter(
     (h) => h.status === "completed",
   ).length;
-  const cancelledCount = filteredHistory.filter(
-    (h) => h.status === "cancelled",
-  ).length;
+  const cancelledCount = filteredHistory.filter((h) => h.status === "cancelled-by-you").length;
+  const rejectedCount = filteredHistory.filter((h) => h.status === "rejected").length;
   const noShowCount = filteredHistory.filter((h) => h.status === "no-show").length;
 
   const clearFilters = () => {
@@ -144,10 +131,15 @@ export default function AdminHistoryPage() {
 
   return (
     <div className="grid w-full min-w-0 max-w-full grid-cols-1 gap-2">
-      {/* Back to dashboard button */}
       <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <HomeLink />
       </div>
+
+      {loadError ? (
+        <p className="text-sm text-red-600" role="alert">
+          {loadError}
+        </p>
+      ) : null}
 
       <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="min-w-0">
@@ -188,7 +180,8 @@ export default function AdminHistoryPage() {
               >
                 <option value="all">All Statuses</option>
                 <option value="completed">Completed</option>
-                <option value="cancelled">Cancelled</option>
+                <option value="cancelled-by-you">Cancelled by student</option>
+                <option value="rejected">Rejected</option>
                 <option value="no-show">No Show</option>
               </select>
             </div>
@@ -205,7 +198,7 @@ export default function AdminHistoryPage() {
       </Card>
 
       {/* Summary Stats */}
-      <div className="mb-4 grid grid-cols-1 gap-3 sm:grid-cols-3">
+      <div className="mb-4 grid grid-cols-1 gap-3 md:grid-cols-4">
         {/* Completed */}
         <Card className="min-w-0 border border-border shadow-sm">
           <CardContent className="flex items-center gap-3 px-4 py-4 sm:gap-5 sm:px-8 sm:py-5">
@@ -232,6 +225,20 @@ export default function AdminHistoryPage() {
                 {cancelledCount}
               </p>
               <p className="text-xs text-muted-foreground">Cancelled</p>
+            </div>
+          </CardContent>
+        </Card>
+        {/* Rejected */}
+        <Card className="min-w-0 border border-border shadow-sm">
+          <CardContent className="flex items-center gap-3 px-4 py-4 sm:gap-5 sm:px-8 sm:py-5">
+            <div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-red-50 text-red-600">
+              <XCircle className="size-5" aria-hidden />
+            </div>
+            <div className="min-w-0">
+              <p className="text-2xl font-bold tabular-nums text-foreground">
+                {rejectedCount}
+              </p>
+              <p className="text-xs text-muted-foreground">Rejected</p>
             </div>
           </CardContent>
         </Card>

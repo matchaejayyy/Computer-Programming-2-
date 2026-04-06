@@ -2,15 +2,12 @@ import { existsSync } from "fs";
 import { spawnSync } from "child_process";
 import { join } from "path";
 
+import { STUDENT_PROFILES_JSON_PATH } from "@/lib/clinic/clinic-paths";
+import { syncStudentProfilesJsonFromDb } from "@/lib/clinic/native-profile-sync";
 import type { StudentProfile } from "@/lib/clinic/profile-store";
 import { listStoredStudentProfiles } from "@/lib/clinic/profile-store";
 
-export const STUDENT_PROFILES_JSON_PATH = join(
-  process.cwd(),
-  "native",
-  "profile",
-  "student-profiles.json"
-);
+export { STUDENT_PROFILES_JSON_PATH };
 
 const binaryName =
   process.platform === "win32" ? "student_registry_tool.exe" : "student_registry_tool";
@@ -46,7 +43,8 @@ function runTool(args: string[]): { ok: boolean; stdout: string } {
  * Lists / searches students in student-profiles.json via C++ tool.
  * Returns null if the binary is missing or output is invalid (caller uses TS fallback).
  */
-export function listStudentsViaCpp(query: string): RegistryListPatient[] | null {
+export async function listStudentsViaCpp(query: string): Promise<RegistryListPatient[] | null> {
+  await syncStudentProfilesJsonFromDb();
   const q = query.trim();
   const { ok, stdout } = runTool([
     STUDENT_PROFILES_JSON_PATH,
@@ -81,9 +79,9 @@ export function listStudentsViaCpp(query: string): RegistryListPatient[] | null 
   }
 }
 
-export function listStudentsTypeScriptFallback(query: string): RegistryListPatient[] {
+export async function listStudentsTypeScriptFallback(query: string): Promise<RegistryListPatient[]> {
   const q = query.trim().toLowerCase();
-  const profiles = listStoredStudentProfiles();
+  const profiles = await listStoredStudentProfiles();
   const rows: RegistryListPatient[] = profiles.map((p) => ({
     studentId: p.studentId,
     name: p.name,
@@ -114,11 +112,15 @@ export type RegistryProfilePayload = Pick<
   | "contactNumber"
   | "email"
   | "schoolIdNumber"
+  | "address"
   | "birthdayEdited"
   | "genderEdited"
 >;
 
-export function getStudentFromRegistryViaCpp(studentId: string): RegistryProfilePayload | null {
+export async function getStudentFromRegistryViaCpp(
+  studentId: string
+): Promise<RegistryProfilePayload | null> {
+  await syncStudentProfilesJsonFromDb();
   const { ok, stdout } = runTool([STUDENT_PROFILES_JSON_PATH, "get", studentId]);
   if (!ok) {
     return null;
@@ -142,6 +144,7 @@ export function getStudentFromRegistryViaCpp(studentId: string): RegistryProfile
       contactNumber: String(p.contactNumber ?? ""),
       email: String(p.email ?? ""),
       schoolIdNumber: String(p.schoolIdNumber ?? ""),
+      address: String(p.address ?? ""),
       birthdayEdited: Boolean(p.birthdayEdited),
       genderEdited: Boolean(p.genderEdited),
     };
@@ -150,8 +153,10 @@ export function getStudentFromRegistryViaCpp(studentId: string): RegistryProfile
   }
 }
 
-export function getStudentFromRegistryFallback(studentId: string): RegistryProfilePayload | null {
-  const profiles = listStoredStudentProfiles();
+export async function getStudentFromRegistryFallback(
+  studentId: string
+): Promise<RegistryProfilePayload | null> {
+  const profiles = await listStoredStudentProfiles();
   const hit = profiles.find((p) => p.studentId === studentId);
   return hit ?? null;
 }

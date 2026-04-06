@@ -18,6 +18,7 @@ export type StudentAccountProfileDetail = {
   contactNumber: string;
   email: string;
   schoolIdNumber: string;
+  address?: string;
   birthdayEdited?: boolean;
   genderEdited?: boolean;
   age: number | null;
@@ -76,6 +77,7 @@ export function AdminStudentAccountDetails({ studentId }: Props) {
   const [birthday, setBirthday] = useState("");
   const [gender, setGender] = useState("");
   const [symptomsOrCondition, setSymptomsOrCondition] = useState("");
+  const [address, setAddress] = useState("");
   const [birthdayEdited, setBirthdayEdited] = useState(false);
   const [genderEdited, setGenderEdited] = useState(false);
 
@@ -88,6 +90,7 @@ export function AdminStudentAccountDetails({ studentId }: Props) {
     setName(p.name);
     setEmail(p.email);
     setSchoolIdNumber(p.schoolIdNumber);
+    setAddress(p.address ?? "");
     setContactNumber(p.contactNumber);
     setBirthday(p.birthday);
     setGender(p.gender);
@@ -147,6 +150,7 @@ export function AdminStudentAccountDetails({ studentId }: Props) {
         name,
         email,
         schoolIdNumber,
+        address,
         contactNumber,
         birthday,
         gender,
@@ -299,6 +303,16 @@ export function AdminStudentAccountDetails({ studentId }: Props) {
                   className="h-10 sm:h-11"
                 />
               </div>
+              <div className="space-y-2 sm:col-span-2">
+                <Label htmlFor="acct-address">Address</Label>
+                <Input
+                  id="acct-address"
+                  value={address}
+                  onChange={(ev) => setAddress(ev.target.value)}
+                  className="h-10 sm:h-11"
+                  placeholder="Street, city, region"
+                />
+              </div>
               <div className="space-y-2">
                 <Label htmlFor="acct-birthday">Birthday</Label>
                 <Input
@@ -403,6 +417,10 @@ export function AdminStudentAccountDetails({ studentId }: Props) {
               <div>
                 <dt className={dtClass}>School ID number</dt>
                 <dd className={ddClass}>{profile.schoolIdNumber || "—"}</dd>
+              </div>
+              <div className="sm:col-span-2">
+                <dt className={dtClass}>Address</dt>
+                <dd className={`${ddClass} leading-relaxed`}>{profile.address || "—"}</dd>
               </div>
             </dl>
           </div>

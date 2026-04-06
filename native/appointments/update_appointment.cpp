@@ -155,8 +155,14 @@ int main(int argc, char** argv) {
 
   const int targetId = std::stoi(trim(idLine));
   const std::string status = trim(statusLine);
-  if (status != "pending" && status != "approved" && status != "rejected") {
-    std::cerr << "status must be pending, approved, or rejected." << std::endl;
+  if (
+    status != "pending" &&
+    status != "approved" &&
+    status != "rejected" &&
+    status != "cancelled"
+    && status != "no_show"
+  ) {
+    std::cerr << "status must be pending, approved, rejected, cancelled, or no_show." << std::endl;
     return 3;
   }
   const std::string note = trim(noteLine);

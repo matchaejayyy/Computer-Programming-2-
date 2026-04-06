@@ -7,11 +7,15 @@ import {
 } from "@/lib/clinic/appointment-records";
 import { isRequestStatus } from "@/lib/clinic/mock-requests";
 
-function parseFilter(raw: string | null): "all" | "pending" | "approved" | "rejected" {
+function parseFilter(
+  raw: string | null
+): "all" | "pending" | "approved" | "rejected" | "cancelled" | "no_show" {
   if (
     raw === "pending" ||
     raw === "approved" ||
     raw === "rejected" ||
+    raw === "cancelled" ||
+    raw === "no_show" ||
     raw === "all"
   ) {
     return raw;
@@ -24,7 +28,9 @@ export async function GET(req: Request) {
   const filter = parseFilter(searchParams.get("filter"));
   const q = searchParams.get("q")?.trim() ?? "";
   try {
-    const items = listStoredAppointmentsWithSearch(filter, q).map(toAppointmentRequestView);
+    const items = (await listStoredAppointmentsWithSearch(filter, q)).map(
+      toAppointmentRequestView
+    );
     return NextResponse.json({ appointments: items });
   } catch (error) {
     return NextResponse.json(

@@ -6,6 +6,14 @@ import {
 } from "@/lib/clinic/appointment-records";
 import { getStudentProfile } from "@/lib/clinic/profile-store";
 
+const requestStatusPriority = {
+  pending: 0,
+  approved: 1,
+  rejected: 2,
+  cancelled: 3,
+  no_show: 4,
+} as const;
+
 export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
   const studentId = searchParams.get("studentId")?.trim();
@@ -14,9 +22,12 @@ export async function GET(req: Request) {
   }
 
   try {
-    const profile = getStudentProfile(studentId);
+    const profile = await getStudentProfile(studentId);
+    if (!profile) {
+      return NextResponse.json({ error: "Profile not found." }, { status: 404 });
+    }
     const email = profile.email.trim().toLowerCase();
-    const appointments = readAllStoredAppointments()
+    const appointments = (await readAllStoredAppointments())
       .filter(
         ({ record }) => record.email.trim().toLowerCase() === email
       )
@@ -24,6 +35,7 @@ export async function GET(req: Request) {
         const v = toAppointmentRequestView(item);
         return {
           id: v.id,
+          updateId: v.updateId,
           status: v.status,
           submittedAt: v.submittedAt,
           requestedDate: v.requestedDate,
@@ -34,6 +46,14 @@ export async function GET(req: Request) {
           clinicNote: v.clinicNote,
           schoolIdNumber: v.schoolIdNumber,
         };
+      })
+      .sort((a, b) => {
+        const byStatus =
+          requestStatusPriority[a.status] - requestStatusPriority[b.status];
+        if (byStatus !== 0) return byStatus;
+        return (
+          new Date(b.submittedAt).getTime() - new Date(a.submittedAt).getTime()
+        );
       });
 
     return NextResponse.json({ appointments });

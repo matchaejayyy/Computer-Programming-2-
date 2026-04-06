@@ -1,0 +1,24 @@
+import { join } from "path";
+
+export const APPOINTMENTS_DB_PATH = join(
+  process.cwd(),
+  "native",
+  "appointments",
+  "appointments.db"
+);
+
+export const STUDENT_PROFILES_JSON_PATH = join(
+  process.cwd(),
+  "native",
+  "profile",
+  "student-profiles.json"
+);
+
+export const BMI_DB_PATH = join(process.cwd(), "native", "bmi", "bmi.db");
+
+export const CLINIC_WEEKLY_HOURS_PATH = join(
+  process.cwd(),
+  "native",
+  "appointments",
+  "clinic_weekly_hours.json"
+);

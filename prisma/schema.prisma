@@ -1,0 +1,87 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  STUDENT
+  ADMIN
+}
+
+enum AppointmentStatus {
+  pending
+  approved
+  rejected
+  cancelled
+  no_show
+}
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  name         String
+  role         Role
+  studentId    String?  @unique
+  /// Null for Google-only accounts until they set a password (optional feature).
+  passwordHash String?
+  /// True after Google sign-up until the student sets their own password in profile (no current password required).
+  needsInitialPasswordSetup Boolean @default(false)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  profile    StudentProfile?
+  bmiRecords BmiRecord[]
+}
+
+model StudentProfile {
+  id                  String   @id @default(cuid())
+  userId              String   @unique
+  user                User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  birthday            String
+  gender              String
+  symptomsOrCondition String
+  contactNumber       String
+  schoolIdNumber      String
+  address             String   @default("")
+  birthdayEdited      Boolean  @default(false)
+  genderEdited        Boolean  @default(false)
+}
+
+model BmiRecord {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  weightKg  Float
+  heightM   Float
+  bmi       Float
+  category  String
+  createdAt DateTime @default(now())
+
+  @@index([userId, createdAt])
+}
+
+model Appointment {
+  id                Int               @id @default(autoincrement())
+  status            AppointmentStatus @default(pending)
+  adminNote         String            @default("")
+  submittedAt       DateTime          @default(now())
+  reviewedAt        DateTime?
+  studentName       String
+  email             String
+  address           String
+  reason            String
+  otherReasonDetail String            @default("")
+  preferredDate     String
+  preferredTime     String
+  schoolIdNumber    String?
+}
+
+model ClinicWeeklyHours {
+  id        Int      @id @default(1)
+  rowsJson String
+  updatedAt DateTime @updatedAt
+}

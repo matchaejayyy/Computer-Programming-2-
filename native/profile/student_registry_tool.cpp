@@ -227,6 +227,8 @@ void emitGet(const std::string& path, const std::string& wantId) {
     const std::string email = emailR.first ? emailR.second : "";
     const auto schoolR = jsonStringValue(obj, "schoolIdNumber");
     const std::string school = schoolR.first ? schoolR.second : "";
+    const auto addressR = jsonStringValue(obj, "address");
+    const std::string address = addressR.first ? addressR.second : "";
     const auto beR = jsonBoolValue(obj, "birthdayEdited");
     const bool be = beR.first ? beR.second : false;
     const auto geR = jsonBoolValue(obj, "genderEdited");
@@ -241,6 +243,7 @@ void emitGet(const std::string& path, const std::string& wantId) {
               << "\"contactNumber\":\"" << jsonEscape(contact) << "\","
               << "\"email\":\"" << jsonEscape(email) << "\","
               << "\"schoolIdNumber\":\"" << jsonEscape(school) << "\","
+              << "\"address\":\"" << jsonEscape(address) << "\","
               << "\"birthdayEdited\":" << (be ? "true" : "false") << ","
               << "\"genderEdited\":" << (ge ? "true" : "false")
               << "}}\n";

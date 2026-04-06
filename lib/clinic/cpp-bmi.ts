@@ -1,6 +1,10 @@
-import { appendFileSync, existsSync, mkdirSync, readFileSync } from "fs";
+import { existsSync, readFileSync } from "fs";
 import { spawn } from "child_process";
 import { join } from "path";
+
+import { prisma } from "@/lib/prisma";
+import { BMI_DB_PATH } from "@/lib/clinic/clinic-paths";
+import { syncBmiNativeFileFromDb } from "@/lib/clinic/native-bmi-sync";
 
 export type BmiPayload = {
   studentId: string;
@@ -35,7 +39,7 @@ function binaryPath(): string {
 }
 
 function dbPath(): string {
-  return join(process.cwd(), "native", "bmi", "bmi.db");
+  return BMI_DB_PATH;
 }
 
 function runCppTool(executable: string, stdin: string): Promise<string> {
@@ -93,10 +97,6 @@ function normalizeHeightToMeters(height: number): number {
   return height > 3 ? height / 100 : height;
 }
 
-function currentTimestampSeconds(): number {
-  return Math.floor(Date.now() / 1000);
-}
-
 function readEntriesFromFile(): BmiEntry[] {
   const databasePath = dbPath();
   if (!existsSync(databasePath)) return [];
@@ -142,11 +142,15 @@ function latestEntry(entries: BmiEntry[], studentId: string): BmiEntry | undefin
 }
 
 export async function getBmi(studentId: string): Promise<BmiResult> {
+  await syncBmiNativeFileFromDb();
   const executable = binaryPath();
   if (existsSync(executable)) {
     try {
       const output = await runCppTool(executable, `action=read\nstudentId=${studentId}\n`);
       const parsed = parseOutput(output);
+      if (!parsed.bmi) {
+        return getBmiTypeScript(studentId);
+      }
       return {
         bmi: parsed.bmi ? Number(parsed.bmi) : undefined,
         category: toCategory(parsed.category),
@@ -165,30 +169,64 @@ export async function getBmi(studentId: string): Promise<BmiResult> {
 }
 
 export async function updateBmi(payload: BmiPayload): Promise<BmiResult> {
+  const user = await prisma.user.findFirst({
+    where: {
+      role: "STUDENT",
+      OR: [{ studentId: payload.studentId }, { email: payload.studentId }],
+    },
+  });
+  if (!user) {
+    throw new Error("Student not found.");
+  }
+
+  const normalizedHeight = normalizeHeightToMeters(payload.height);
+  const bmiVal = payload.weightKg / (normalizedHeight * normalizedHeight);
+  const category: BmiEntry["category"] =
+    bmiVal < 18.5 ? "Underweight" : bmiVal < 25 ? "Normal" : "Overweight";
+
+  await prisma.bmiRecord.create({
+    data: {
+      userId: user.id,
+      weightKg: payload.weightKg,
+      heightM: normalizedHeight,
+      bmi: Number(bmiVal.toFixed(2)),
+      category,
+    },
+  });
+
+  await syncBmiNativeFileFromDb();
+
   const executable = binaryPath();
   if (existsSync(executable)) {
     try {
-      const output = await runCppTool(
-        executable,
-        `action=update\nstudentId=${payload.studentId}\nweightKg=${payload.weightKg}\nheight=${payload.height}\n`
-      );
+      const sid = user.studentId ?? payload.studentId;
+      const output = await runCppTool(executable, `action=read\nstudentId=${sid}\n`);
       const parsed = parseOutput(output);
       return {
-        bmi: parsed.bmi ? Number(parsed.bmi) : undefined,
-        category: toCategory(parsed.category),
-        weightKg: parsed.weightKg ? Number(parsed.weightKg) : undefined,
-        heightM: parsed.heightM ? Number(parsed.heightM) : undefined,
-        updatedAt: parsed.updatedAt ? Number(parsed.updatedAt) : undefined,
+        bmi: parsed.bmi ? Number(parsed.bmi) : Number(bmiVal.toFixed(2)),
+        category: toCategory(parsed.category) ?? category,
+        weightKg: parsed.weightKg ? Number(parsed.weightKg) : payload.weightKg,
+        heightM: parsed.heightM ? Number(parsed.heightM) : Number(normalizedHeight.toFixed(2)),
+        updatedAt: parsed.updatedAt ? Number(parsed.updatedAt) : Math.floor(Date.now() / 1000),
         remainingAttempts: 999,
         resetAt: undefined,
-        message: parsed.message || "BMI updated.",
+        message: "BMI updated.",
       };
     } catch {
-      // Fall through to TypeScript fallback.
+      /* fall through */
     }
   }
 
-  return updateBmiTypeScript(payload);
+  return {
+    bmi: Number(bmiVal.toFixed(2)),
+    category,
+    weightKg: payload.weightKg,
+    heightM: Number(normalizedHeight.toFixed(2)),
+    updatedAt: Math.floor(Date.now() / 1000),
+    remainingAttempts: 999,
+    resetAt: undefined,
+    message: "BMI updated.",
+  };
 }
 
 function getBmiTypeScript(studentId: string): BmiResult {
@@ -205,36 +243,3 @@ function getBmiTypeScript(studentId: string): BmiResult {
   };
 }
 
-function updateBmiTypeScript(payload: BmiPayload): BmiResult {
-  const now = currentTimestampSeconds();
-
-  const normalizedHeight = normalizeHeightToMeters(payload.height);
-  const bmi = payload.weightKg / (normalizedHeight * normalizedHeight);
-  const category: BmiEntry["category"] =
-    bmi < 18.5 ? "Underweight" : bmi < 25 ? "Normal" : "Overweight";
-
-  mkdirSync(join(process.cwd(), "native", "bmi"), { recursive: true });
-  appendFileSync(
-    dbPath(),
-    [
-      payload.studentId,
-      String(now),
-      payload.weightKg.toFixed(4),
-      normalizedHeight.toFixed(4),
-      bmi.toFixed(2),
-      category,
-    ].join("\t") + "\n",
-    "utf8"
-  );
-
-  return {
-    bmi: Number(bmi.toFixed(2)),
-    category,
-    weightKg: payload.weightKg,
-    heightM: Number(normalizedHeight.toFixed(2)),
-    updatedAt: now,
-    remainingAttempts: 999,
-    resetAt: undefined,
-    message: "BMI updated.",
-  };
-}

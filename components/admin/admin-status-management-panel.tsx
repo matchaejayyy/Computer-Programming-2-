@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
-import { Activity, CheckCircle, ChevronRight, LayoutGrid, XCircle } from "lucide-react";
+import { Activity, Ban, CheckCircle, ChevronRight, LayoutGrid, XCircle } from "lucide-react";
 
 import { HomeLink } from "@/components/admin/admin-homelink";
 import { Badge } from "@/components/ui/badge";
@@ -16,12 +16,14 @@ import { cn } from "@/lib/utils";
 
 type Row = AppointmentRequest & { updateId: number };
 
-type StatusFilter = "all" | "pending" | "approved" | "rejected";
+type StatusFilter = "all" | "pending" | "approved" | "rejected" | "cancelled" | "no_show";
 
 const statusLabels: Record<RequestStatus, string> = {
   pending: "Pending",
   approved: "Approved",
   rejected: "Rejected",
+  cancelled: "Cancelled",
+  no_show: "No Show",
 };
 
 const filterButtonLabels: Record<StatusFilter, string> = {
@@ -29,17 +31,29 @@ const filterButtonLabels: Record<StatusFilter, string> = {
   pending: "Pending",
   approved: "Approved",
   rejected: "Rejected",
+  cancelled: "Cancelled",
+  no_show: "No Show",
 };
 
 const statusBadge: Record<RequestStatus, string> = {
   pending: "border-amber-200 bg-amber-50 text-amber-900",
   approved: "border-green-600 bg-green-600 text-white",
   rejected: "border-red-200 bg-red-50 text-red-800",
+  cancelled: "border-slate-300 bg-slate-100 text-slate-700",
+  no_show: "border-red-300 bg-red-100 text-red-900",
 };
 
 export function AdminStatusManagementPanel() {
   const [rows, setRows] = useState<Row[]>([]);
-  const [stats, setStats] = useState({ total: 0, pending: 0, approved: 0, rejected: 0 });
+  const [stats, setStats] = useState({
+    total: 0,
+    pending: 0,
+    approved: 0,
+    rejected: 0,
+    cancelled: 0,
+    no_show: 0,
+  });
+  const [updatingId, setUpdatingId] = useState<number | null>(null);
   const [filter, setFilter] = useState<StatusFilter>("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
@@ -113,7 +127,7 @@ export function AdminStatusManagementPanel() {
         </div>
       </div>
 
-      <div className="mb-4 grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
+      <div className="mb-4 grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-6">
         <Card className="min-w-0 border border-border shadow-sm">
           <CardContent className="flex items-center gap-3 px-4 py-4 sm:gap-5 sm:px-8 sm:py-5">
             <div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-slate-50 text-slate-700">
@@ -158,13 +172,35 @@ export function AdminStatusManagementPanel() {
             </div>
           </CardContent>
         </Card>
+        <Card className="min-w-0 border border-border shadow-sm">
+          <CardContent className="flex items-center gap-3 px-4 py-4 sm:gap-5 sm:px-8 sm:py-5">
+            <div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-slate-100 text-slate-700">
+              <Ban className="size-5" aria-hidden />
+            </div>
+            <div className="min-w-0">
+              <p className="text-2xl font-bold tabular-nums text-foreground">{stats.cancelled}</p>
+              <p className="text-xs text-muted-foreground">Cancelled by student</p>
+            </div>
+          </CardContent>
+        </Card>
+        <Card className="min-w-0 border border-border shadow-sm">
+          <CardContent className="flex items-center gap-3 px-4 py-4 sm:gap-5 sm:px-8 sm:py-5">
+            <div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-red-100 text-red-700">
+              <Activity className="size-5" aria-hidden />
+            </div>
+            <div className="min-w-0">
+              <p className="text-2xl font-bold tabular-nums text-foreground">{stats.no_show}</p>
+              <p className="text-xs text-muted-foreground">No show</p>
+            </div>
+          </CardContent>
+        </Card>
       </div>
 
       <Card className="mb-4 border border-border shadow-sm">
         <CardContent className="p-3 sm:p-4">
           <Label className="text-sm font-medium">Filter by:</Label>
           <div className="mt-3 flex flex-wrap gap-2">
-            {(["all", "pending", "approved", "rejected"] as const).map((name) => (
+            {(["all", "pending", "approved", "rejected", "cancelled", "no_show"] as const).map((name) => (
               <Button
                 key={name}
                 type="button"
@@ -210,7 +246,11 @@ export function AdminStatusManagementPanel() {
                     ? "No appointments are waiting for a decision."
                     : filter === "approved"
                       ? "No confirmed appointments match this filter."
-                      : "No declined appointments match this filter."}
+                      : filter === "rejected"
+                        ? "No declined appointments match this filter."
+                        : filter === "cancelled"
+                          ? "No cancelled appointments match this filter."
+                          : "No no-show appointments match this filter."}
             </p>
           </CardContent>
         </Card>
@@ -270,6 +310,70 @@ export function AdminStatusManagementPanel() {
                           Note on file
                         </p>
                         <p className="mt-1 break-words text-foreground">{req.clinicNote}</p>
+                      </div>
+                    </>
+                  ) : null}
+                  {(req.status === "approved" || req.status === "no_show") ? (
+                    <>
+                      <Separator />
+                      <div className="flex flex-wrap gap-2">
+                        <Button
+                          type="button"
+                          size="sm"
+                          variant={req.status === "approved" ? "default" : "outline"}
+                          disabled={updatingId === req.updateId}
+                          onClick={async () => {
+                            setUpdatingId(req.updateId);
+                            try {
+                              await fetch("/api/admin/appointments", {
+                                method: "PATCH",
+                                headers: { "Content-Type": "application/json" },
+                                body: JSON.stringify({
+                                  updateId: req.updateId,
+                                  status: "approved",
+                                  adminNote: req.clinicNote ?? "",
+                                }),
+                              });
+                              await loadRows();
+                              await loadStats();
+                            } finally {
+                              setUpdatingId(null);
+                            }
+                          }}
+                        >
+                          {updatingId === req.updateId && req.status !== "approved"
+                            ? "Saving..."
+                            : "Set completed"}
+                        </Button>
+                        <Button
+                          type="button"
+                          size="sm"
+                          variant={req.status === "no_show" ? "destructive" : "outline"}
+                          disabled={updatingId === req.updateId}
+                          onClick={async () => {
+                            setUpdatingId(req.updateId);
+                            try {
+                              await fetch("/api/admin/appointments", {
+                                method: "PATCH",
+                                headers: { "Content-Type": "application/json" },
+                                body: JSON.stringify({
+                                  updateId: req.updateId,
+                                  status: "no_show",
+                                  adminNote:
+                                    (req.clinicNote?.trim() || "Marked as no-show by clinic staff."),
+                                }),
+                              });
+                              await loadRows();
+                              await loadStats();
+                            } finally {
+                              setUpdatingId(null);
+                            }
+                          }}
+                        >
+                          {updatingId === req.updateId && req.status !== "no_show"
+                            ? "Saving..."
+                            : "Set no show"}
+                        </Button>
                       </div>
                     </>
                   ) : null}

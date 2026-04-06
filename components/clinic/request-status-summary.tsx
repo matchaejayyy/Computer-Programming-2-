@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { ChevronRight, ClipboardList } from "lucide-react";
 
+import { useClinicStudentId } from "@/components/clinic/clinic-student-bridge";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
@@ -29,19 +30,48 @@ const rows = [
     badgeClass:
       "min-w-8 justify-center rounded-full border border-red-200 bg-red-50 px-2.5 py-0.5 text-red-600 tabular-nums",
   },
+  {
+    status: "cancelled" as const,
+    label: "Cancelled",
+    href: "/requests?filter=cancelled",
+    badgeClass:
+      "min-w-8 justify-center rounded-full border border-slate-300 bg-slate-100 px-2.5 py-0.5 text-slate-700 tabular-nums",
+  },
+  {
+    status: "no_show" as const,
+    label: "No Show",
+    href: "/requests?filter=no_show",
+    badgeClass:
+      "min-w-8 justify-center rounded-full border border-red-300 bg-red-100 px-2.5 py-0.5 text-red-900 tabular-nums",
+  },
 ];
 
 type Props = {
   studentId?: string;
 };
 
-export function RequestStatusSummary({ studentId = "student@usa.edu.ph" }: Props) {
-  const [counts, setCounts] = useState({ pending: 0, approved: 0, rejected: 0 });
+export function RequestStatusSummary({ studentId: studentIdProp }: Props) {
+  const fromContext = useClinicStudentId();
+  const studentId = studentIdProp ?? fromContext;
+  const [counts, setCounts] = useState({
+    pending: 0,
+    approved: 0,
+    rejected: 0,
+    cancelled: 0,
+    no_show: 0,
+  });
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
     (async () => {
+      if (!studentId) {
+        if (!cancelled) {
+          setCounts({ pending: 0, approved: 0, rejected: 0, cancelled: 0, no_show: 0 });
+          setMounted(true);
+        }
+        return;
+      }
       try {
         const res = await fetch(
           `/api/clinic-requests/stats?studentId=${encodeURIComponent(studentId)}`
@@ -50,17 +80,21 @@ export function RequestStatusSummary({ studentId = "student@usa.edu.ph" }: Props
           pending?: number;
           approved?: number;
           rejected?: number;
+          cancelled?: number;
+          no_show?: number;
         };
         if (!cancelled && res.ok) {
           setCounts({
             pending: data.pending ?? 0,
             approved: data.approved ?? 0,
             rejected: data.rejected ?? 0,
+            cancelled: data.cancelled ?? 0,
+            no_show: data.no_show ?? 0,
           });
         }
       } catch {
         if (!cancelled) {
-          setCounts({ pending: 0, approved: 0, rejected: 0 });
+          setCounts({ pending: 0, approved: 0, rejected: 0, cancelled: 0, no_show: 0 });
         }
       } finally {
         if (!cancelled) {
@@ -91,7 +125,11 @@ export function RequestStatusSummary({ studentId = "student@usa.edu.ph" }: Props
               ? counts.pending
               : row.status === "approved"
                 ? counts.approved
-                : counts.rejected;
+                : row.status === "rejected"
+                  ? counts.rejected
+                  : row.status === "cancelled"
+                    ? counts.cancelled
+                    : counts.no_show;
           return (
             <Link
               key={row.status}

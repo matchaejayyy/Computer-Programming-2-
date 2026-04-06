@@ -8,7 +8,7 @@ import { join } from "path";
  */
 export function searchAppointmentLineNumbersCpp(
   dbPath: string,
-  filter: "all" | "pending" | "approved" | "rejected",
+  filter: "all" | "pending" | "approved" | "rejected" | "cancelled" | "no_show",
   query: string
 ): number[] | null {
   const binary =

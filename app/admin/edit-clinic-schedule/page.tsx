@@ -11,6 +11,9 @@ import type { WeeklyHourRow } from "@/lib/clinic/clinic-weekly-hours-store";
 
 export default function EditClinicSchedulePage() {
   const [rows, setRows] = useState<WeeklyHourRow[]>([]);
+  const [timeSlotsText, setTimeSlotsText] = useState("");
+  const [blockedDatesText, setBlockedDatesText] = useState("");
+  const [slotCapacity, setSlotCapacity] = useState(10);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
@@ -23,12 +26,31 @@ export default function EditClinicSchedulePage() {
       setError(null);
       try {
         const res = await fetch("/api/admin/clinic-weekly-schedule");
-        const data = (await res.json()) as { rows?: WeeklyHourRow[]; error?: string };
+        const data = (await res.json()) as {
+          rows?: WeeklyHourRow[];
+          timeSlots?: string[];
+          blockedDates?: string[];
+          slotCapacity?: number;
+          error?: string;
+        };
         if (!res.ok) {
           throw new Error(data.error || "Failed to load");
         }
         if (!cancelled && Array.isArray(data.rows)) {
           setRows(data.rows);
+        }
+        if (!cancelled) {
+          setTimeSlotsText(
+            Array.isArray(data.timeSlots) ? data.timeSlots.join("\n") : ""
+          );
+          setBlockedDatesText(
+            Array.isArray(data.blockedDates) ? data.blockedDates.join("\n") : ""
+          );
+          setSlotCapacity(
+            typeof data.slotCapacity === "number" && data.slotCapacity > 0
+              ? Math.floor(data.slotCapacity)
+              : 10
+          );
         }
       } catch (e) {
         if (!cancelled) {
@@ -67,19 +89,44 @@ export default function EditClinicSchedulePage() {
     setMessage(null);
     setError(null);
     try {
+      const timeSlots = timeSlotsText
+        .split("\n")
+        .map((s) => s.trim())
+        .filter(Boolean);
+      const blockedDates = blockedDatesText
+        .split("\n")
+        .map((s) => s.trim())
+        .filter((s) => /^\d{4}-\d{2}-\d{2}$/.test(s));
       const res = await fetch("/api/admin/clinic-weekly-schedule", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ rows }),
+        body: JSON.stringify({ rows, timeSlots, blockedDates, slotCapacity }),
       });
-      const data = (await res.json()) as { error?: string; rows?: WeeklyHourRow[] };
+      const data = (await res.json()) as {
+        error?: string;
+        rows?: WeeklyHourRow[];
+        timeSlots?: string[];
+        blockedDates?: string[];
+        slotCapacity?: number;
+      };
       if (!res.ok) {
         throw new Error(data.error || "Save failed");
       }
       if (Array.isArray(data.rows)) {
         setRows(data.rows);
       }
-      setMessage("Saved. Students will see this on View clinic schedule.");
+      if (Array.isArray(data.timeSlots)) {
+        setTimeSlotsText(data.timeSlots.join("\n"));
+      }
+      if (Array.isArray(data.blockedDates)) {
+        setBlockedDatesText(data.blockedDates.join("\n"));
+      }
+      if (typeof data.slotCapacity === "number" && data.slotCapacity > 0) {
+        setSlotCapacity(Math.floor(data.slotCapacity));
+      }
+      setMessage(
+        "Saved. Weekly hours appear on View clinic schedule; time slots and blocked dates apply to Reserve appointment."
+      );
     } catch (e) {
       setError(e instanceof Error ? e.message : "Save failed.");
     } finally {
@@ -97,9 +144,9 @@ export default function EditClinicSchedulePage() {
         <div className="min-w-0">
           <h1 className="text-xl font-bold text-foreground sm:text-2xl">Edit clinic schedule</h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            Weekly hours shown on the student portal under View clinic schedule. Saving updates{" "}
-            <code className="text-xs text-foreground">clinic_weekly_hours.json</code> (C++ tool
-            when built).
+            Weekly hours, appointment time slots, and blocked dates. Saving updates the database and{" "}
+            <code className="text-xs text-foreground">clinic_weekly_hours.json</code> (C++ tool when
+            built).
           </p>
         </div>
       </div>
@@ -185,11 +232,63 @@ export default function EditClinicSchedulePage() {
                   disabled={saving || rows.length === 0}
                   onClick={() => void save()}
                 >
-                  {saving ? "Saving…" : "Save to student portal"}
+                  {saving ? "Saving…" : "Save schedule & slots"}
                 </Button>
               </div>
             </>
           )}
+        </CardContent>
+      </Card>
+
+      <Card className="mb-4 min-w-0 border border-border shadow-sm">
+        <CardHeader className="border-b border-border px-4 py-4 sm:px-5">
+          <CardTitle className="text-lg font-bold text-foreground">Reserve appointment — time slots</CardTitle>
+          <p className="mt-1 text-sm font-normal text-muted-foreground">
+            One slot per line (e.g. <code className="text-xs">9:00 AM</code>). Shown on the student
+            Reserve appointment form.
+          </p>
+        </CardHeader>
+        <CardContent className="p-3 sm:p-5">
+          <div className="mb-4 max-w-sm space-y-2">
+            <Label htmlFor="slot-capacity">Per-time-slot capacity</Label>
+            <Input
+              id="slot-capacity"
+              type="number"
+              min={1}
+              step={1}
+              value={slotCapacity}
+              onChange={(e) => setSlotCapacity(Math.max(1, Math.floor(Number(e.target.value) || 1)))}
+            />
+            <p className="text-xs text-muted-foreground">
+              Maximum students per time slot. Full slots will be marked unavailable.
+            </p>
+          </div>
+          <textarea
+            className="min-h-[160px] w-full rounded-lg border border-input bg-white px-3 py-2 font-mono text-sm"
+            value={timeSlotsText}
+            onChange={(e) => setTimeSlotsText(e.target.value)}
+            disabled={loading}
+            placeholder={"8:00 AM\n9:00 AM\n..."}
+          />
+        </CardContent>
+      </Card>
+
+      <Card className="mb-4 min-w-0 border border-border shadow-sm">
+        <CardHeader className="border-b border-border px-4 py-4 sm:px-5">
+          <CardTitle className="text-lg font-bold text-foreground">Blocked dates (unavailable)</CardTitle>
+          <p className="mt-1 text-sm font-normal text-muted-foreground">
+            One <code className="text-xs">YYYY-MM-DD</code> per line. Students cannot pick these
+            dates when reserving.
+          </p>
+        </CardHeader>
+        <CardContent className="p-3 sm:p-5">
+          <textarea
+            className="min-h-[120px] w-full rounded-lg border border-input bg-white px-3 py-2 font-mono text-sm"
+            value={blockedDatesText}
+            onChange={(e) => setBlockedDatesText(e.target.value)}
+            disabled={loading}
+            placeholder={"2026-04-18\n2026-05-01"}
+          />
         </CardContent>
       </Card>
     </div>

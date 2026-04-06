@@ -19,8 +19,8 @@ export async function GET(req: Request) {
     const { searchParams } = new URL(req.url);
     const q = searchParams.get("q")?.trim() ?? "";
 
-    const viaCpp = listStudentsViaCpp(q);
-    const raw = viaCpp ?? listStudentsTypeScriptFallback(q);
+    const viaCpp = await listStudentsViaCpp(q);
+    const raw = viaCpp ?? (await listStudentsTypeScriptFallback(q));
     const rows = [...raw].sort((a, b) =>
       a.name.localeCompare(b.name, undefined, { sensitivity: "base" })
     );

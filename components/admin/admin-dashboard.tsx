@@ -2,6 +2,7 @@
 
 import {
   Activity,
+  Ban,
   CalendarDays,
   CheckCircle2,
   ClipboardCheck,
@@ -27,10 +28,10 @@ const adminMenuCards = [
   {
     title: "Student registry finder",
     subtitle: "Accounts, personal info & BMI",
-    details: ["Browse registered accounts", "Personal data & measurements"],
+    details: ["View student account details"],
+    detailHrefs: ["/admin/patient-finder"],
     icon: UserSearch,
     color: "green",
-    href: "/admin/patient-finder",
   },
   {
     title: "Manage Appointments",
@@ -87,6 +88,8 @@ export function AdminDashboard() {
     pending: 0,
     approved: 0,
     rejected: 0,
+    cancelled: 0,
+    no_show: 0,
   });
   useEffect(() => {
     fetch("/api/admin-stats")
@@ -99,6 +102,8 @@ export function AdminDashboard() {
           pending: 0,
           approved: 0,
           rejected: 0,
+          cancelled: 0,
+          no_show: 0,
         });
       });
   }, []);
@@ -132,6 +137,20 @@ export function AdminDashboard() {
       icon: XCircle,
       tone: "bg-[#dc2626]/10 text-[#dc2626]",
     },
+    {
+      title: "Cancelled",
+      value: stats.cancelled,
+      note: "Cancelled by students",
+      icon: Ban,
+      tone: "bg-slate-200 text-slate-700",
+    },
+    {
+      title: "No Show",
+      value: stats.no_show,
+      note: "Marked by admins",
+      icon: XCircle,
+      tone: "bg-red-100 text-red-700",
+    },
   ];
 
   return (
@@ -157,7 +176,7 @@ export function AdminDashboard() {
           <p className="text-xs text-muted-foreground sm:text-sm">Real-time data</p>
         </div>
 
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4 xl:grid-cols-4">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4 xl:grid-cols-6">
           {statsData.map((item) => {
             const Icon = item.icon;
             return (

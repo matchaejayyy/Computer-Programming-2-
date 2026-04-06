@@ -1,5 +1,13 @@
 import { NextResponse } from "next/server";
 
+import { auth } from "@/auth";
+import { countAppointmentsForSlot } from "@/lib/clinic/appointment-db";
+import {
+  getClinicScheduleFromDisk,
+  validatePreferredSlot,
+} from "@/lib/clinic/clinic-weekly-hours-store";
+import { getStudentProfile } from "@/lib/clinic/profile-store";
+import { isProfileFieldUnset } from "@/lib/clinic/profile-placeholders";
 import { reserveAppointmentCpp, type ReserveAppointmentPayload } from "@/lib/clinic/cpp-reserve";
 
 function isString(value: unknown): value is string {
@@ -7,6 +15,11 @@ function isString(value: unknown): value is string {
 }
 
 export async function POST(req: Request) {
+  const session = await auth();
+  if (!session?.user?.email || session.user.role !== "STUDENT") {
+    return NextResponse.json({ error: "Unauthorized." }, { status: 401 });
+  }
+
   let body: unknown;
   try {
     body = await req.json();
@@ -19,6 +32,29 @@ export async function POST(req: Request) {
   }
 
   const payload = body as ReserveAppointmentPayload;
+  const profileLookup = session.user.studentId ?? session.user.email;
+  const student = await getStudentProfile(profileLookup);
+  if (!student) {
+    return NextResponse.json({ error: "Student profile not found." }, { status: 404 });
+  }
+  if (
+    isProfileFieldUnset(student.address) ||
+    isProfileFieldUnset(student.schoolIdNumber)
+  ) {
+    return NextResponse.json(
+      {
+        error:
+          "Complete your profile first (school ID number and address) before reserving an appointment.",
+      },
+      { status: 400 }
+    );
+  }
+
+  payload.studentName = student.name;
+  payload.email = student.email;
+  payload.schoolIdNumber = student.schoolIdNumber;
+  payload.address = student.address;
+
   const requiredFields: Array<keyof ReserveAppointmentPayload> = [
     "studentName",
     "email",
@@ -52,6 +88,22 @@ export async function POST(req: Request) {
   }
 
   try {
+    const schedule = await getClinicScheduleFromDisk();
+    const slotOk = validatePreferredSlot(
+      payload.preferredDate,
+      payload.preferredTime,
+      schedule
+    );
+    if (!slotOk.ok) {
+      return NextResponse.json({ error: slotOk.message }, { status: 400 });
+    }
+    const booked = await countAppointmentsForSlot(payload.preferredDate, payload.preferredTime);
+    if (booked >= schedule.slotCapacity) {
+      return NextResponse.json(
+        { error: "Selected time slot is full. Please choose another time." },
+        { status: 400 }
+      );
+    }
     const message = await reserveAppointmentCpp(payload);
     return NextResponse.json({ success: true, message });
   } catch (error) {

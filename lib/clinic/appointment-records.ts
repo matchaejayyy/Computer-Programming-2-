@@ -1,17 +1,14 @@
-import { existsSync, readFileSync, writeFileSync } from "fs";
-import { spawn, spawnSync } from "child_process";
+import { existsSync, readFileSync } from "fs";
+import { spawnSync } from "child_process";
 import { join } from "path";
 
 import { appointmentMatchesSearch } from "@/lib/clinic/admin-appointment-search";
+import { syncAppointmentsNativeFileFromDb, updateAppointmentInDb } from "@/lib/clinic/appointment-db";
+import { APPOINTMENTS_DB_PATH } from "@/lib/clinic/clinic-paths";
 import type { RequestStatus } from "@/lib/clinic/mock-requests";
 import { searchAppointmentLineNumbersCpp } from "@/lib/clinic/cpp-search-appointments";
 
-export const APPOINTMENTS_DB_PATH = join(
-  process.cwd(),
-  "native",
-  "appointments",
-  "appointments.db"
-);
+export { APPOINTMENTS_DB_PATH };
 
 export type RawAppointmentRecord = {
   id?: number;
@@ -53,13 +50,19 @@ export function effectiveUpdateIdFromLine(
 
 function recordStatus(record: RawAppointmentRecord): RequestStatus {
   const s = record.status;
-  if (s === "approved" || s === "rejected" || s === "pending") {
+  if (
+    s === "approved" ||
+    s === "rejected" ||
+    s === "pending" ||
+    s === "cancelled" ||
+    s === "no_show"
+  ) {
     return s;
   }
   return "pending";
 }
 
-export function readAllStoredAppointments(): StoredAppointment[] {
+function readAllStoredAppointmentsFromDisk(): StoredAppointment[] {
   const lines = readNonemptyLines(APPOINTMENTS_DB_PATH);
   const out: StoredAppointment[] = [];
   lines.forEach((line, i) => {
@@ -76,8 +79,13 @@ export function readAllStoredAppointments(): StoredAppointment[] {
   return out;
 }
 
+export async function readAllStoredAppointments(): Promise<StoredAppointment[]> {
+  await syncAppointmentsNativeFileFromDb();
+  return readAllStoredAppointmentsFromDisk();
+}
+
 function listStoredAppointmentsFromListBinary(
-  filter: "all" | "pending" | "approved" | "rejected"
+  filter: "all" | "pending" | "approved" | "rejected" | "cancelled" | "no_show"
 ): StoredAppointment[] | null {
   const binary =
     process.platform === "win32" ? "list_appointments.exe" : "list_appointments";
@@ -130,31 +138,39 @@ function listStoredAppointmentsFromListBinary(
   }
 }
 
-export function listStoredAppointments(
-  filter: "all" | "pending" | "approved" | "rejected"
+function listStoredAppointmentsFromDisk(
+  filter: "all" | "pending" | "approved" | "rejected" | "cancelled" | "no_show"
 ): StoredAppointment[] {
   const viaCpp = listStoredAppointmentsFromListBinary(filter);
   if (viaCpp !== null) {
     return viaCpp;
   }
 
-  const all = readAllStoredAppointments();
+  const all = readAllStoredAppointmentsFromDisk();
   if (filter === "all") {
     return all;
   }
   return all.filter(({ record }) => recordStatus(record) === filter);
 }
 
+export async function listStoredAppointments(
+  filter: "all" | "pending" | "approved" | "rejected" | "cancelled" | "no_show"
+): Promise<StoredAppointment[]> {
+  await syncAppointmentsNativeFileFromDb();
+  return listStoredAppointmentsFromDisk(filter);
+}
+
 /**
  * Status filter + optional text search. Uses C++ search_appointments when the binary exists;
  * otherwise filters in TypeScript (same matching rules).
  */
-export function listStoredAppointmentsWithSearch(
-  filter: "all" | "pending" | "approved" | "rejected",
+export async function listStoredAppointmentsWithSearch(
+  filter: "all" | "pending" | "approved" | "rejected" | "cancelled" | "no_show",
   query: string
-): StoredAppointment[] {
+): Promise<StoredAppointment[]> {
+  await syncAppointmentsNativeFileFromDb();
   const q = query.trim();
-  const base = listStoredAppointments(filter);
+  const base = listStoredAppointmentsFromDisk(filter);
   if (!q) {
     return base;
   }
@@ -185,84 +201,12 @@ export function listStoredAppointmentsWithSearch(
   return base.filter((item) => appointmentMatchesSearch(toAppointmentRequestView(item), q));
 }
 
-function runCppUpdateAppointment(
-  updateId: number,
-  status: RequestStatus,
-  adminNote: string
-): Promise<boolean> {
-  const binary =
-    process.platform === "win32" ? "update_appointment.exe" : "update_appointment";
-  const executable = join(process.cwd(), "native", "appointments", binary);
-  if (!existsSync(executable)) {
-    return Promise.resolve(false);
-  }
-
-  const stdin = `${updateId}\n${status}\n${adminNote}\n`;
-
-  return new Promise((resolve) => {
-    const child = spawn(executable, [APPOINTMENTS_DB_PATH], {
-      cwd: process.cwd(),
-      stdio: ["pipe", "pipe", "pipe"],
-    });
-    child.stderr?.on("data", () => {
-      /* stderr ignored; exit code drives fallback */
-    });
-    child.on("error", () => resolve(false));
-    child.on("close", (code) => resolve(code === 0));
-    child.stdin.write(stdin, "utf8");
-    child.stdin.end();
-  });
-}
-
-export function updateAppointmentRecordTypeScript(
-  updateId: number,
-  status: RequestStatus,
-  adminNote: string
-): void {
-  const lines = readNonemptyLines(APPOINTMENTS_DB_PATH);
-  if (lines.length === 0) {
-    throw new Error("No appointments database.");
-  }
-
-  const next = [...lines];
-  let found = false;
-  const reviewedAt = new Date().toISOString();
-
-  for (let i = 0; i < next.length; i++) {
-    try {
-      const record = JSON.parse(next[i]) as RawAppointmentRecord;
-      const eff = effectiveUpdateIdFromLine(record, i + 1);
-      if (eff !== updateId) {
-        continue;
-      }
-      record.status = status;
-      record.adminNote = adminNote;
-      record.reviewedAt = reviewedAt;
-      next[i] = JSON.stringify(record);
-      found = true;
-      break;
-    } catch {
-      /* continue */
-    }
-  }
-
-  if (!found) {
-    throw new Error("No appointment with that id.");
-  }
-
-  writeFileSync(APPOINTMENTS_DB_PATH, next.join("\n") + "\n", "utf8");
-}
-
 export async function updateAppointmentRecord(
   updateId: number,
   status: RequestStatus,
   adminNote: string
 ): Promise<void> {
-  const ok = await runCppUpdateAppointment(updateId, status, adminNote);
-  if (ok) {
-    return;
-  }
-  updateAppointmentRecordTypeScript(updateId, status, adminNote);
+  await updateAppointmentInDb(updateId, status, adminNote);
 }
 
 export function toAppointmentRequestView(item: StoredAppointment) {
@@ -290,18 +234,24 @@ export function toAppointmentRequestView(item: StoredAppointment) {
 }
 
 function appointmentStatsTypeScript() {
-  const all = readAllStoredAppointments();
+  const all = readAllStoredAppointmentsFromDisk();
   let pending = 0;
   let approved = 0;
   let rejected = 0;
+  let cancelled = 0;
+  let no_show = 0;
   for (const { record } of all) {
     const s = recordStatus(record);
     if (s === "pending") {
       pending += 1;
     } else if (s === "approved") {
       approved += 1;
-    } else {
+    } else if (s === "rejected") {
       rejected += 1;
+    } else if (s === "cancelled") {
+      cancelled += 1;
+    } else {
+      no_show += 1;
     }
   }
   return {
@@ -309,10 +259,13 @@ function appointmentStatsTypeScript() {
     pending,
     approved,
     rejected,
+    cancelled,
+    no_show,
   };
 }
 
-export function appointmentStats() {
+export async function appointmentStats() {
+  await syncAppointmentsNativeFileFromDb();
   const binary =
     process.platform === "win32" ? "count_by_status.exe" : "count_by_status";
   const executable = join(process.cwd(), "native", "appointments", binary);
@@ -336,6 +289,8 @@ export function appointmentStats() {
       pending?: number;
       approved?: number;
       rejected?: number;
+      cancelled?: number;
+      no_show?: number;
     };
     if (
       typeof data.total === "number" &&
@@ -348,6 +303,8 @@ export function appointmentStats() {
         pending: data.pending,
         approved: data.approved,
         rejected: data.rejected,
+        cancelled: typeof data.cancelled === "number" ? data.cancelled : 0,
+        no_show: typeof data.no_show === "number" ? data.no_show : 0,
       };
     }
   } catch {

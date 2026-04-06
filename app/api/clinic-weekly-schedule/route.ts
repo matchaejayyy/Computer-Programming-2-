@@ -1,12 +1,15 @@
 import { NextResponse } from "next/server";
 
-import { getWeeklyClinicHoursFromDisk } from "@/lib/clinic/clinic-weekly-hours-store";
+import { getClinicScheduleFromDisk } from "@/lib/clinic/clinic-weekly-hours-store";
 
 export async function GET() {
   try {
-    const rows = getWeeklyClinicHoursFromDisk();
-    return NextResponse.json({ rows });
+    const data = await getClinicScheduleFromDisk();
+    return NextResponse.json(data);
   } catch {
-    return NextResponse.json({ rows: [] }, { status: 200 });
+    return NextResponse.json(
+      { rows: [], timeSlots: [], blockedDates: [], slotCapacity: 10 },
+      { status: 200 }
+    );
   }
 }

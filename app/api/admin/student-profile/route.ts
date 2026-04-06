@@ -19,12 +19,13 @@ export async function GET(req: Request) {
   }
 
   const fromRegistry =
-    getStudentFromRegistryViaCpp(studentId) ?? getStudentFromRegistryFallback(studentId);
+    (await getStudentFromRegistryViaCpp(studentId)) ??
+    (await getStudentFromRegistryFallback(studentId));
   if (!fromRegistry) {
     return NextResponse.json({ error: "Student is not in the registry." }, { status: 404 });
   }
 
-  const bmi = await getBmi(studentId);
+  const bmi = await getBmi(fromRegistry.studentId);
   const age = calculateAge(fromRegistry.birthday);
 
   const bmiRecordedAt =
@@ -79,7 +80,8 @@ export async function PATCH(req: Request) {
   }
 
   const fromRegistry =
-    getStudentFromRegistryViaCpp(studentId) ?? getStudentFromRegistryFallback(studentId);
+    (await getStudentFromRegistryViaCpp(studentId)) ??
+    (await getStudentFromRegistryFallback(studentId));
   if (!fromRegistry) {
     return NextResponse.json({ error: "Student is not in the registry." }, { status: 404 });
   }
@@ -90,6 +92,7 @@ export async function PATCH(req: Request) {
     email: asOptionalString(raw.email),
     schoolIdNumber: asOptionalString(raw.schoolIdNumber),
     contactNumber: asOptionalString(raw.contactNumber),
+    address: asOptionalString(raw.address),
     birthday: asOptionalString(raw.birthday),
     gender: asOptionalString(raw.gender),
     symptomsOrCondition: asOptionalString(raw.symptomsOrCondition),
@@ -103,6 +106,7 @@ export async function PATCH(req: Request) {
     changes.email !== undefined ||
     changes.schoolIdNumber !== undefined ||
     changes.contactNumber !== undefined ||
+    changes.address !== undefined ||
     changes.birthday !== undefined ||
     changes.gender !== undefined ||
     changes.symptomsOrCondition !== undefined ||
@@ -114,7 +118,7 @@ export async function PATCH(req: Request) {
   }
 
   try {
-    const updated = updateStudentProfileAdmin(studentId, changes);
+    const updated = await updateStudentProfileAdmin(studentId, changes);
     const bmi = await getBmi(updated.studentId);
     const age = calculateAge(updated.birthday);
 

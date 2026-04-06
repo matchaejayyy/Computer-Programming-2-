@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 
+import { useClinicStudentId } from "@/components/clinic/clinic-student-bridge";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -22,7 +23,9 @@ type BmiData = {
   message?: string;
 };
 
-export function ProfileBmi({ studentId }: { studentId: string }) {
+export function ProfileBmi({ studentId: studentIdProp }: { studentId?: string }) {
+  const fromContext = useClinicStudentId();
+  const studentId = studentIdProp ?? fromContext;
   const [weightKg, setWeightKg] = useState("");
   const [height, setHeight] = useState("");
   const [loading, setLoading] = useState(true);
@@ -30,6 +33,12 @@ export function ProfileBmi({ studentId }: { studentId: string }) {
   const [error, setError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
   const [bmiData, setBmiData] = useState<BmiData | null>(null);
+  const [calculated, setCalculated] = useState<{
+    bmi: number;
+    category: BmiCategory;
+    weightKg: number;
+    heightM: number;
+  } | null>(null);
 
   async function loadBmi() {
     setLoading(true);
@@ -49,6 +58,11 @@ export function ProfileBmi({ studentId }: { studentId: string }) {
   }
 
   useEffect(() => {
+    if (!studentId) {
+      setLoading(false);
+      setBmiData(null);
+      return;
+    }
     loadBmi();
   }, [studentId]);
 
@@ -57,8 +71,38 @@ export function ProfileBmi({ studentId }: { studentId: string }) {
     [weightKg, height, saving]
   );
 
-  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+  function normalizeHeightToMeters(input: number): number {
+    return input > 3 ? input / 100 : input;
+  }
+
+  function categoryFromBmi(bmi: number): BmiCategory {
+    if (bmi < 18.5) return "Underweight";
+    if (bmi < 25) return "Normal";
+    return "Overweight";
+  }
+
+  function handleCalculate(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    const parsedWeight = Number(weightKg);
+    const parsedHeight = Number(height);
+    if (Number.isNaN(parsedWeight) || parsedWeight <= 0 || Number.isNaN(parsedHeight) || parsedHeight <= 0) {
+      setError("Weight and height must be positive numbers.");
+      return;
+    }
+    const heightM = normalizeHeightToMeters(parsedHeight);
+    const bmi = parsedWeight / (heightM * heightM);
+    setCalculated({
+      bmi: Number(bmi.toFixed(2)),
+      category: categoryFromBmi(bmi),
+      weightKg: parsedWeight,
+      heightM: Number(heightM.toFixed(2)),
+    });
+    setError(null);
+    setMessage("BMI calculated. Save to profile to keep it.");
+  }
+
+  async function handleSaveToProfile() {
+    if (!calculated) return;
     setSaving(true);
     setError(null);
     setMessage(null);
@@ -69,23 +113,32 @@ export function ProfileBmi({ studentId }: { studentId: string }) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           studentId,
-          weightKg: Number(weightKg),
-          height: Number(height),
+          weightKg: calculated.weightKg,
+          height: calculated.heightM,
         }),
       });
       const body = await response.json();
       if (!response.ok) {
-        throw new Error(body?.error || "BMI update failed.");
+        throw new Error(body?.error || "Saving BMI to profile failed.");
       }
       setBmiData(body.data);
-      setMessage(body?.data?.message || "BMI updated.");
+      setMessage("Saved to profile.");
+      setCalculated(null);
       setWeightKg("");
       setHeight("");
     } catch (submitError) {
-      setError(submitError instanceof Error ? submitError.message : "BMI update failed.");
+      setError(submitError instanceof Error ? submitError.message : "Saving BMI failed.");
     } finally {
       setSaving(false);
     }
+  }
+
+  if (!studentId) {
+    return (
+      <p className="text-sm text-muted-foreground pt-2">
+        Sign in as a student to use the BMI checker.
+      </p>
+    );
   }
 
   return (
@@ -116,10 +169,10 @@ export function ProfileBmi({ studentId }: { studentId: string }) {
 
       <Card className="border-border shadow-sm">
         <CardHeader className="border-b border-border pb-3">
-          <CardTitle className="text-base text-foreground">Update BMI</CardTitle>
+          <CardTitle className="text-base text-foreground">Calculate BMI</CardTitle>
         </CardHeader>
         <CardContent className="pt-4">
-          <form className="grid gap-3 sm:grid-cols-2" onSubmit={handleSubmit}>
+          <form className="grid gap-3 sm:grid-cols-2" onSubmit={handleCalculate}>
             <div className="space-y-2">
               <Label htmlFor="weightKg">Weight (kg)</Label>
               <Input
@@ -147,14 +200,31 @@ export function ProfileBmi({ studentId }: { studentId: string }) {
               />
             </div>
             <div className="sm:col-span-2">
-              <Button
-                type="submit"
-                disabled={!canSubmit}
-              >
-                {saving ? "Saving..." : "Save BMI"}
-              </Button>
+              <div className="flex flex-wrap gap-2">
+                <Button type="submit" disabled={!canSubmit || saving}>
+                  Calculate BMI
+                </Button>
+                <Button
+                  type="button"
+                  variant="secondary"
+                  disabled={!calculated || saving}
+                  onClick={() => void handleSaveToProfile()}
+                >
+                  {saving ? "Saving..." : "Save to profile"}
+                </Button>
+              </div>
             </div>
           </form>
+          {calculated ? (
+            <div className="mt-4 rounded-md border border-border bg-muted/30 p-3 text-sm">
+              <p className="font-medium text-foreground">
+                BMI: {calculated.bmi.toFixed(2)} ({calculated.category})
+              </p>
+              <p className="text-muted-foreground">
+                Weight: {calculated.weightKg.toFixed(2)} kg | Height: {calculated.heightM.toFixed(2)} m
+              </p>
+            </div>
+          ) : null}
         </CardContent>
       </Card>
 
