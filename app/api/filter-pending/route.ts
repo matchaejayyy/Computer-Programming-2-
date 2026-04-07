@@ -4,7 +4,7 @@ import { filterPendingIndicesCpp } from "@/lib/clinic/cpp-pending-filter";
 import type { RequestStatus } from "@/lib/clinic/mock-requests";
 
 function isRequestStatus(s: string): s is RequestStatus {
-  return s === "pending" || s === "approved" || s === "rejected";
+  return s === "pending" || s === "approved" || s === "rejected" || s === "cancelled" || s === "no_show";
 }
 
 export async function POST(req: Request) {

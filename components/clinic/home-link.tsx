@@ -11,7 +11,7 @@ type HomeLinkProps = {
   label?: string;
 };
 
-export function HomeLink({ className, href = "/", label = "Home" }: HomeLinkProps) {
+export function HomeLink({ className, href = "/", label = "Back" }: HomeLinkProps) {
   return (
     <Link
       href={href}

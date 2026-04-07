@@ -25,6 +25,13 @@ public:
 
   bool isValid() const;
   std::string serialize() const;
+  std::string serializeForDatabase(
+    int id,
+    const std::string& status,
+    const std::string& adminNote,
+    const std::string& submittedAt,
+    const std::string& reviewedAt
+  ) const;
 
   static bool isValidEmail(const std::string& email);
   static bool isWithinClinicHours(const std::string& time);
