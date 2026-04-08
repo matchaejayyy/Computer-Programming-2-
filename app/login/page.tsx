@@ -42,6 +42,10 @@ type ProfileSetupPayload = {
   address?: string;
 };
 
+function isValidEmailFormat(value: string): boolean {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
+}
+
 function requiresStudentSetup(data: ProfileSetupPayload): boolean {
   return (
     Boolean(data.needsInitialPasswordSetup) ||
@@ -66,6 +70,9 @@ function loginErrorMessage(code: string | null): string | null {
   }
   if (code === "AccountDbError") {
     return "Could not save your account (database error). Check DATABASE_URL, run npm run db:push, and try again.";
+  }
+  if (code === "NeonAuthSyncError") {
+    return "Could not sync your Neon auth account. Please try again.";
   }
   return "Sign-in failed. Try again or use email and password.";
 }
@@ -106,11 +113,37 @@ export default function LoginPage() {
     if (!selectedRole) return;
     setAuthError(null);
     const trimmedEmail = email.trim().toLowerCase();
-    if (selectedRole === "student" && !isAllowedStudentEmail(trimmedEmail)) {
-      setAuthError(
-        `Student login requires a University of San Agustin address ending in ${STUDENT_EMAIL_DOMAIN}.`
-      );
-      return;
+    if (selectedRole === "student") {
+      if (!isValidEmailFormat(trimmedEmail)) {
+        setAuthError("Invalid email.");
+        return;
+      }
+      if (!isAllowedStudentEmail(trimmedEmail)) {
+        setAuthError("Use your USA email account.");
+        return;
+      }
+      try {
+        const statusRes = await fetch(
+          `/api/auth/student-registration-status?email=${encodeURIComponent(trimmedEmail)}`
+        );
+        const statusBody = (await statusRes.json()) as {
+          registered?: boolean;
+          hasPassword?: boolean;
+        };
+        if (!statusBody.registered) {
+          setAuthError("Account is not yet registered. Please continue with Google.");
+          return;
+        }
+        if (!statusBody.hasPassword) {
+          setAuthError(
+            "This student account has no password yet. Please sign in using Continue with Google."
+          );
+          return;
+        }
+      } catch {
+        setAuthError("Could not check account status. Please try again.");
+        return;
+      }
     }
     setSubmitting(true);
     try {
@@ -122,7 +155,7 @@ export default function LoginPage() {
       if (result?.error) {
         setAuthError(
           selectedRole === "student"
-            ? "Invalid password, or email is not @usa.edu.ph. First-time students: we create your account on successful sign-in."
+            ? "Wrong password."
             : "Invalid email or password, or this admin account does not exist."
         );
         return;
@@ -326,7 +359,7 @@ export default function LoginPage() {
                     {submitting ? "Signing in…" : "Log In"}
                   </button>
                   <div className="text-center">
-                    <a href="#" className="text-sm font-semibold text-muted-foreground hover:text-[#E50000] transition-colors hover:underline">
+                    <a href="/forgot-password" className="text-sm font-semibold text-muted-foreground hover:text-[#E50000] transition-colors hover:underline">
                       Forgot password?
                     </a>
                   </div>

@@ -1,5 +1,18 @@
 [
   {
+    "studentId": "admin@usa.edu.ph",
+    "name": "Admin",
+    "birthday": "Not set",
+    "gender": "Not set",
+    "symptomsOrCondition": "Not set",
+    "contactNumber": "Not set",
+    "email": "admin@usa.edu.ph",
+    "schoolIdNumber": "Not set",
+    "address": "",
+    "birthdayEdited": false,
+    "genderEdited": false
+  },
+  {
     "studentId": "USA-2024-0003",
     "name": "Ana Cruz",
     "birthday": "2005-03-15",

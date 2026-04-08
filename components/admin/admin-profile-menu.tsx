@@ -52,13 +52,13 @@ export function AdminProfileMenu() {
       >
         <DropdownMenuItem
           className="cursor-pointer rounded-lg px-3 py-2.5 text-sm font-normal text-foreground focus:bg-muted"
-          onClick={() => router.push("/admin")}
+          onClick={() => router.push("/admin/profile")}
         >
           Profile
         </DropdownMenuItem>
         <DropdownMenuItem
           className="cursor-pointer rounded-lg px-3 py-2.5 text-sm font-normal text-foreground focus:bg-muted"
-          onClick={() => router.push("/admin")}
+          onClick={() => router.push("/admin/help")}
         >
           Help
         </DropdownMenuItem>
