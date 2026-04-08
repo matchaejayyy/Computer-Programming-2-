@@ -13,6 +13,7 @@ import {
   ListChecks,
   Megaphone,
   NotebookPen,
+  Pill,
   XCircle,
   type LucideIcon,
 } from "lucide-react";
@@ -100,19 +101,11 @@ const adminPortalLinks: AdminPortalLink[] = [
     accent: "emerald",
   },
   {
-    key: "broadcast",
-    title: "Broadcast notifications",
-    description: "Send announcements to students and staff",
-    href: "/admin/broadcast-notifications",
-    icon: Megaphone,
-    accent: "red",
-  },
-  {
     key: "medicine-requests-report",
-    title: "Medicine request analytics",
+    title: "Medicine Request",
     description: "Review, search, and export medicine request reports",
     href: "/admin/reports/medicine-requests",
-    icon: BarChart3,
+    icon: Pill,
     accent: "amber",
   },
   {
@@ -122,6 +115,14 @@ const adminPortalLinks: AdminPortalLink[] = [
     href: "/admin/reports",
     icon: BarChart3,
     accent: "amber",
+  },
+  {
+    key: "broadcast",
+    title: "Broadcast notifications",
+    description: "Send announcements to students and staff",
+    href: "/admin/broadcast-notifications",
+    icon: Megaphone,
+    accent: "red",
   },
 ];
 

@@ -43,3 +43,10 @@ export const HELP_CONTENT_PATH = join(
   "appointments",
   "help_content.json"
 );
+
+export const MEDICINE_REQUESTS_DB_PATH = join(
+  process.cwd(),
+  "native",
+  "medicine",
+  "medicine_requests.db"
+);

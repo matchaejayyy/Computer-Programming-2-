@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 
 import { prisma } from "@/lib/prisma";
+import { countMedicineByMedicationCpp } from "@/lib/clinic/medicine-request-records";
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
@@ -28,17 +29,31 @@ export async function GET(request: Request) {
     const completed = await prisma.appointment.count({ where: { status: "approved" } });
     const cancelled = await prisma.appointment.count({ where: { status: "cancelled" } });
     const noShow = await prisma.appointment.count({ where: { status: "no_show" } });
+
+    const cppCounts = await countMedicineByMedicationCpp();
+    let medicineStats: Record<string, number>;
+
+    if (cppCounts !== null) {
+      medicineStats = cppCounts.medications;
+    } else {
+      const medicineAgg = await prisma.medicineRequest.groupBy({
+        by: ["medication"],
+        _count: { medication: true },
+        orderBy: { _count: { medication: "desc" } },
+      });
+      medicineStats = {};
+      for (const row of medicineAgg) {
+        medicineStats[row.medication] = row._count.medication;
+      }
+    }
+
     const stats = {
       totalPatients,
       todayAppointments,
       completed,
       cancelled,
       noShow,
-      medicineStats: {
-        Paracetamol: Math.min(15, Math.max(3, Math.floor(totalPatients * 0.4))),
-        Amoxicillin: Math.min(8, Math.max(2, Math.floor(totalPatients * 0.15))),
-        Ibuprofen: Math.min(5, Math.max(1, Math.floor(totalPatients * 0.1))),
-      },
+      medicineStats,
     };
 
     return NextResponse.json(stats);
