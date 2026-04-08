@@ -7,13 +7,26 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import type { HistoryEntry, HistoryStatus } from "@/lib/clinic/appointment-history-mapper";
-import { appointmentToHistoryEntry } from "@/lib/clinic/appointment-history-mapper";
+import { storedAppointmentToHistoryEntry } from "@/lib/clinic/appointment-history-mapper";
+import { readAllStoredAppointments } from "@/lib/clinic/appointment-records";
 import { getStudentProfile } from "@/lib/clinic/profile-store";
-import { prisma } from "@/lib/prisma";
 import { cn } from "@/lib/utils";
 
+export const dynamic = "force-dynamic";
+
+type VisibleHistoryStatus = "completed" | "cancelled-by-you" | "rejected" | "no-show";
+
+function isVisibleHistoryStatus(s: HistoryStatus): s is VisibleHistoryStatus {
+  return (
+    s === "completed" ||
+    s === "cancelled-by-you" ||
+    s === "rejected" ||
+    s === "no-show"
+  );
+}
+
 const statusConfig: Record<
-  HistoryStatus,
+  VisibleHistoryStatus,
   { label: string; icon: typeof CheckCircle; badgeClass: string }
 > = {
   completed: {
@@ -50,11 +63,20 @@ export default async function HistoryPage() {
     redirect("/login");
   }
 
-  const rows = await prisma.appointment.findMany({
-    where: { email: { equals: profile.email, mode: "insensitive" } },
-    orderBy: { submittedAt: "desc" },
-  });
-  const history: HistoryEntry[] = rows.map(appointmentToHistoryEntry);
+  const email = profile.email.trim().toLowerCase();
+  const all = await readAllStoredAppointments();
+  const rows = all
+    .filter(({ record }) => record.email.trim().toLowerCase() === email)
+    .sort((a, b) => {
+      const ta = new Date(a.record.submittedAt ?? 0).getTime();
+      const tb = new Date(b.record.submittedAt ?? 0).getTime();
+      return tb - ta;
+    });
+  const history: HistoryEntry[] = rows.map(storedAppointmentToHistoryEntry);
+  const pastAppointments = history.filter(
+    (h): h is HistoryEntry & { status: VisibleHistoryStatus } =>
+      isVisibleHistoryStatus(h.status)
+  );
 
   const completedCount = history.filter((h) => h.status === "completed").length;
   const cancelledByYouCount = history.filter((h) => h.status === "cancelled-by-you").length;
@@ -74,7 +96,7 @@ export default async function HistoryPage() {
         </p>
       </div>
 
-      <div className="mb-4 grid grid-cols-1 gap-3 md:grid-cols-4">
+      <div className="mb-4 grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
         <Card className="border border-border shadow-sm">
           <CardContent className="flex items-center gap-4 px-4 py-4 sm:gap-5 sm:px-6 sm:py-5">
             <div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-green-50 text-green-600">
@@ -123,7 +145,7 @@ export default async function HistoryPage() {
         </Card>
       </div>
 
-      {history.length === 0 ? (
+      {pastAppointments.length === 0 ? (
         <>
           <div className="flex items-center justify-between pb-4">
             <h2 className="text-lg font-bold text-foreground">Past appointments</h2>
@@ -133,8 +155,7 @@ export default async function HistoryPage() {
             <CardContent className="space-y-2 py-10 text-center text-sm text-muted-foreground">
               <p className="font-medium text-foreground">No history yet</p>
               <p>
-                Completed and past clinic visits will appear here after your appointments are
-                finished.
+                Completed and past clinic visits will appear here after your appointments are finished.
               </p>
             </CardContent>
           </Card>
@@ -143,10 +164,10 @@ export default async function HistoryPage() {
         <div className="flex flex-col gap-4">
           <div className="flex items-center justify-between">
             <h2 className="text-lg font-bold text-foreground">Past appointments</h2>
-            <span className="text-sm text-muted-foreground">{history.length} total</span>
+            <span className="text-sm text-muted-foreground">{pastAppointments.length} total</span>
           </div>
           <ul className="flex flex-col gap-4">
-            {history.map((entry) => {
+            {pastAppointments.map((entry) => {
               const config = statusConfig[entry.status];
               const StatusIcon = config.icon;
               return (

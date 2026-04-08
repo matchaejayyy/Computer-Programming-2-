@@ -6,6 +6,7 @@ import Image from "next/image";
 import { getProviders, signIn, signOut } from "next-auth/react";
 import { User, ShieldUser, ArrowLeft, Eye, EyeOff } from "lucide-react";
 
+import { Card, CardContent } from "@/components/ui/card";
 import { isBirthdayUnset, isProfileFieldUnset } from "@/lib/clinic/profile-placeholders";
 import { isAllowedStudentEmail, STUDENT_EMAIL_DOMAIN } from "@/lib/clinic/student-email";
 
@@ -165,21 +166,17 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen w-full relative overflow-hidden bg-background font-sans">
+    <div className="min-h-dvh w-full relative overflow-hidden bg-[#f4f4f5] text-foreground font-sans">
       
       {/* 
         LEFT COLUMN (Form container)
         Translates to the right half when a role is selected 
       */}
       <div 
-        className={`absolute top-0 left-0 w-full lg:w-1/2 h-full z-20 bg-slate-50/90 flex flex-col overflow-y-auto transition-transform duration-[800ms] ease-in-out ${
+        className={`absolute top-0 left-0 w-full lg:w-1/2 h-full z-20 bg-[#f4f4f5] flex flex-col overflow-y-auto transition-transform duration-800 ease-in-out ${
           selectedRole ? "lg:translate-x-full shadow-2xl" : "translate-x-0"
         }`}
       >
-        {/* Subtle decorative background blobs to enhance the liquid crystal glassmorphism */}
-        <div className="absolute top-[5%] -left-[5%] w-[450px] h-[450px] bg-[#1d4ed8]/15 rounded-full blur-[90px] -z-10 pointer-events-none"></div>
-        <div className="absolute bottom-[10%] -right-[5%] w-[500px] h-[500px] bg-[#E50000]/15 rounded-full blur-[100px] -z-10 pointer-events-none"></div>
-
         {/* Brand Header */}
         <div className="w-full p-8 sm:p-12 pb-4 flex items-center gap-3 shrink-0">
           <div className="w-10 h-10 bg-[#E50000] rounded-xl flex items-center justify-center text-white font-bold text-xl shadow-sm">
@@ -191,13 +188,8 @@ export default function LoginPage() {
         </div>
 
         <div className="flex-1 flex flex-col items-center justify-center w-full px-4 sm:px-12 md:px-20 pb-16 min-h-max">
-          {/* Content Wrapper (Crystal/Clear Container) */}
-          <div className="w-full max-w-[500px] relative shrink-0 my-auto bg-gradient-to-br from-white/70 via-white/40 to-white/20 backdrop-blur-[40px] border-[1.5px] border-white/60 shadow-[0_8px_32px_rgba(0,0,0,0.04),inset_0_0_32px_rgba(255,255,255,0.4)] rounded-[2.5rem] overflow-hidden">
-          
-          {/* Subtle shiny reflection ring inside the liquid crystal */}
-          <div className="absolute inset-0 rounded-[2.5rem] ring-1 ring-inset ring-white/50 pointer-events-none"></div>
-
-          <div className="relative grid grid-cols-1 grid-rows-1 w-full p-8 sm:p-12">
+          <Card className="w-full max-w-[500px] relative shrink-0 my-auto bg-linear-to-br from-white/80 via-white/55 to-white/35 backdrop-blur-[18px] ring-1 ring-white/60 shadow-[0_10px_30px_rgba(0,0,0,0.07)]">
+            <CardContent className="grid grid-cols-1 grid-rows-1 w-full p-8 sm:p-12">
             
             {/* Role Selection View */}
             <div className={`col-start-1 row-start-1 transition-all duration-500 flex flex-col justify-center ${
@@ -342,17 +334,17 @@ export default function LoginPage() {
               </form>
             </div>
 
-          </div>
+            </CardContent>
+          </Card>
         </div>
       </div>
-    </div>
 
     {/* 
       RIGHT COLUMN (Image container)
       Translates to the left half when a role is selected
     */}
     <div 
-        className={`hidden lg:block absolute top-0 right-0 w-1/2 h-full z-0 bg-neutral-900 overflow-hidden transition-transform duration-[800ms] ease-in-out ${
+        className={`hidden lg:block absolute top-0 right-0 w-1/2 h-full z-0 bg-neutral-900 overflow-hidden transition-transform duration-800 ease-in-out ${
           selectedRole ? "-translate-x-full" : "translate-x-0"
         }`}
       >

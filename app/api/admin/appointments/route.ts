@@ -4,18 +4,18 @@ import {
   listStoredAppointmentsWithSearch,
   toAppointmentRequestView,
   updateAppointmentRecord,
+  type AppointmentListFilter,
 } from "@/lib/clinic/appointment-records";
 import { isRequestStatus } from "@/lib/clinic/mock-requests";
 
-function parseFilter(
-  raw: string | null
-): "all" | "pending" | "approved" | "rejected" | "cancelled" | "no_show" {
+function parseFilter(raw: string | null): AppointmentListFilter {
   if (
     raw === "pending" ||
     raw === "approved" ||
     raw === "rejected" ||
     raw === "cancelled" ||
     raw === "no_show" ||
+    raw === "completed" ||
     raw === "all"
   ) {
     return raw;
@@ -27,8 +27,10 @@ export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
   const filter = parseFilter(searchParams.get("filter"));
   const q = searchParams.get("q")?.trim() ?? "";
+  const dateRaw = searchParams.get("date")?.trim() ?? "";
+  const dateIso = /^\d{4}-\d{2}-\d{2}$/.test(dateRaw) ? dateRaw : undefined;
   try {
-    const items = (await listStoredAppointmentsWithSearch(filter, q)).map(
+    const items = (await listStoredAppointmentsWithSearch(filter, q, dateIso)).map(
       toAppointmentRequestView
     );
     return NextResponse.json({ appointments: items });

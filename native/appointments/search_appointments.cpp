@@ -3,7 +3,7 @@
  * a status filter and an optional search query (same rules as the admin UI).
  *
  * Usage:
- *   printf '%s' "query" | search_appointments <db_path> <all|pending|approved|rejected|cancelled|no_show>
+ *   printf '%s' "query" | search_appointments <db_path> <all|pending|approved|rejected|cancelled|no_show|completed>
  * stdout: {"lineNumbers":[1,3,5]}
  *
  * Build (from repo root):
@@ -41,6 +41,7 @@ bool matchesFilter(const std::string& line, const std::string& filter) {
   const bool hasRejected = line.find("\"status\":\"rejected\"") != std::string::npos;
   const bool hasCancelled = line.find("\"status\":\"cancelled\"") != std::string::npos;
   const bool hasNoShow = line.find("\"status\":\"no_show\"") != std::string::npos;
+  const bool hasCompleted = line.find("\"status\":\"completed\"") != std::string::npos;
   const bool hasStatusKey = line.find("\"status\":") != std::string::npos;
 
   if (filter == "pending") {
@@ -57,6 +58,9 @@ bool matchesFilter(const std::string& line, const std::string& filter) {
   }
   if (filter == "no_show") {
     return hasNoShow;
+  }
+  if (filter == "completed") {
+    return hasCompleted;
   }
 
   return true;
@@ -218,7 +222,7 @@ bool matchesSearch(const std::string& line, int lineIndex1, const std::string& q
 
 int main(int argc, char** argv) {
   if (argc < 3) {
-    std::cerr << "usage: search_appointments <db_path> <all|pending|approved|rejected|cancelled|no_show>" << std::endl;
+    std::cerr << "usage: search_appointments <db_path> <all|pending|approved|rejected|cancelled|no_show|completed>" << std::endl;
     return 1;
   }
 

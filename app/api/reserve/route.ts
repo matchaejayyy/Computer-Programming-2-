@@ -1,8 +1,9 @@
 import { NextResponse } from "next/server";
 
 import { auth } from "@/auth";
-import { countAppointmentsForSlot } from "@/lib/clinic/appointment-db";
+import { countAppointmentsForSlot, hasStudentBookedSameSlot } from "@/lib/clinic/appointment-db";
 import {
+  getSlotCapacityForDateTime,
   getClinicScheduleFromDisk,
   validatePreferredSlot,
 } from "@/lib/clinic/clinic-weekly-hours-store";
@@ -97,8 +98,24 @@ export async function POST(req: Request) {
     if (!slotOk.ok) {
       return NextResponse.json({ error: slotOk.message }, { status: 400 });
     }
+    const duplicate = await hasStudentBookedSameSlot({
+      email: payload.email,
+      preferredDate: payload.preferredDate,
+      preferredTime: payload.preferredTime,
+    });
+    if (duplicate) {
+      return NextResponse.json(
+        { error: "You already have a pending/approved booking for this date and time." },
+        { status: 400 }
+      );
+    }
+    const slotCapacity = getSlotCapacityForDateTime(
+      schedule,
+      payload.preferredDate,
+      payload.preferredTime
+    );
     const booked = await countAppointmentsForSlot(payload.preferredDate, payload.preferredTime);
-    if (booked >= schedule.slotCapacity) {
+    if (booked >= slotCapacity) {
       return NextResponse.json(
         { error: "Selected time slot is full. Please choose another time." },
         { status: 400 }

@@ -12,6 +12,7 @@ const requestStatusPriority = {
   rejected: 2,
   cancelled: 3,
   no_show: 4,
+  completed: 5,
 } as const;
 
 export async function GET(req: Request) {

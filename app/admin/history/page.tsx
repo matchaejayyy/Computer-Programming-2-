@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useMemo, useEffect } from "react";
-import { CheckCircle, XCircle, AlertCircle, Filter } from "lucide-react";
+import { CheckCircle, XCircle, AlertCircle, Clock, Filter } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -45,10 +45,20 @@ const statusConfig: Record<
   HistoryStatus,
   { label: string; icon: typeof CheckCircle; badgeClass: string }
 > = {
+  pending: {
+    label: "Pending",
+    icon: Clock,
+    badgeClass: "border-amber-200 bg-amber-50 text-amber-900",
+  },
   completed: {
     label: "Completed",
     icon: CheckCircle,
     badgeClass: "border-green-600 bg-green-600 text-white",
+  },
+  confirmed: {
+    label: "Approved",
+    icon: CheckCircle,
+    badgeClass: "border-emerald-200 bg-emerald-50 text-emerald-900",
   },
   "cancelled-by-you": {
     label: "Cancelled by student",
@@ -117,9 +127,11 @@ export default function AdminHistoryPage() {
     });
   }, [dateFilter, statusFilter, history]);
 
+  const pendingCount = filteredHistory.filter((h) => h.status === "pending").length;
   const completedCount = filteredHistory.filter(
     (h) => h.status === "completed",
   ).length;
+  const confirmedCount = filteredHistory.filter((h) => h.status === "confirmed").length;
   const cancelledCount = filteredHistory.filter((h) => h.status === "cancelled-by-you").length;
   const rejectedCount = filteredHistory.filter((h) => h.status === "rejected").length;
   const noShowCount = filteredHistory.filter((h) => h.status === "no-show").length;
@@ -179,7 +191,9 @@ export default function AdminHistoryPage() {
                 className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
               >
                 <option value="all">All Statuses</option>
+                <option value="pending">Pending</option>
                 <option value="completed">Completed</option>
+                <option value="confirmed">Approved</option>
                 <option value="cancelled-by-you">Cancelled by student</option>
                 <option value="rejected">Rejected</option>
                 <option value="no-show">No Show</option>
@@ -198,7 +212,22 @@ export default function AdminHistoryPage() {
       </Card>
 
       {/* Summary Stats */}
-      <div className="mb-4 grid grid-cols-1 gap-3 md:grid-cols-4">
+      <div className="mb-4 grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
+        {/* Pending */}
+        <Card className="min-w-0 border border-border shadow-sm">
+          <CardContent className="flex items-center gap-3 px-4 py-4 sm:gap-5 sm:px-8 sm:py-5">
+            <div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-amber-50 text-amber-600">
+              <Clock className="size-5" aria-hidden />
+            </div>
+            <div className="min-w-0">
+              <p className="text-2xl font-bold tabular-nums text-foreground">
+                {pendingCount}
+              </p>
+              <p className="text-xs text-muted-foreground">Pending</p>
+            </div>
+          </CardContent>
+        </Card>
+
         {/* Completed */}
         <Card className="min-w-0 border border-border shadow-sm">
           <CardContent className="flex items-center gap-3 px-4 py-4 sm:gap-5 sm:px-8 sm:py-5">
@@ -210,6 +239,21 @@ export default function AdminHistoryPage() {
                 {completedCount}
               </p>
               <p className="text-xs text-muted-foreground">Completed</p>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Approved (scheduled) */}
+        <Card className="min-w-0 border border-border shadow-sm">
+          <CardContent className="flex items-center gap-3 px-4 py-4 sm:gap-5 sm:px-8 sm:py-5">
+            <div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-emerald-50 text-emerald-700">
+              <CheckCircle className="size-5" aria-hidden />
+            </div>
+            <div className="min-w-0">
+              <p className="text-2xl font-bold tabular-nums text-foreground">
+                {confirmedCount}
+              </p>
+              <p className="text-xs text-muted-foreground">Approved</p>
             </div>
           </CardContent>
         </Card>

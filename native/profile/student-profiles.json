@@ -8,7 +8,7 @@
     "contactNumber": "091700030003",
     "email": "student0003@usa.edu.ph",
     "schoolIdNumber": "2024-0003",
-    "address": "",
+    "address": "102 General Luna St., Iloilo City",
     "birthdayEdited": false,
     "genderEdited": false
   },
@@ -21,7 +21,7 @@
     "contactNumber": "091700140014",
     "email": "student0014@usa.edu.ph",
     "schoolIdNumber": "2024-0014",
-    "address": "",
+    "address": "113 General Luna St., Iloilo City",
     "birthdayEdited": false,
     "genderEdited": false
   },
@@ -34,7 +34,7 @@
     "contactNumber": "091700120012",
     "email": "student0012@usa.edu.ph",
     "schoolIdNumber": "2024-0012",
-    "address": "",
+    "address": "111 General Luna St., Iloilo City",
     "birthdayEdited": false,
     "genderEdited": false
   },
@@ -47,7 +47,7 @@
     "contactNumber": "091700050005",
     "email": "student0005@usa.edu.ph",
     "schoolIdNumber": "2024-0005",
-    "address": "",
+    "address": "104 General Luna St., Iloilo City",
     "birthdayEdited": false,
     "genderEdited": false
   },
@@ -60,7 +60,7 @@
     "contactNumber": "091700170017",
     "email": "student0017@usa.edu.ph",
     "schoolIdNumber": "2024-0017",
-    "address": "",
+    "address": "116 General Luna St., Iloilo City",
     "birthdayEdited": false,
     "genderEdited": false
   },
@@ -73,14 +73,14 @@
     "contactNumber": "091700090009",
     "email": "student0009@usa.edu.ph",
     "schoolIdNumber": "2024-0009",
-    "address": "",
+    "address": "108 General Luna St., Iloilo City",
     "birthdayEdited": false,
     "genderEdited": false
   },
   {
     "studentId": "ejcortez@usa.edu.ph",
     "name": "Elmor John Cortez",
-    "birthday": "0004-04-29",
+    "birthday": "2004-08-29",
     "gender": "Male",
     "symptomsOrCondition": "Not set",
     "contactNumber": "09671628520",
@@ -99,9 +99,22 @@
     "contactNumber": "091700160016",
     "email": "student0016@usa.edu.ph",
     "schoolIdNumber": "2024-0016",
-    "address": "",
+    "address": "115 General Luna St., Iloilo City",
     "birthdayEdited": false,
     "genderEdited": false
+  },
+  {
+    "studentId": "hgalve@usa.edu.ph",
+    "name": "HANNA SOPHIA GALVE",
+    "birthday": "2007-05-14",
+    "gender": "Female",
+    "symptomsOrCondition": "None",
+    "contactNumber": "0934342345323",
+    "email": "hgalve@usa.edu.ph",
+    "schoolIdNumber": "2024-0302149384",
+    "address": "Yes",
+    "birthdayEdited": true,
+    "genderEdited": true
   },
   {
     "studentId": "USA-2024-0011",
@@ -112,7 +125,7 @@
     "contactNumber": "091700110011",
     "email": "student0011@usa.edu.ph",
     "schoolIdNumber": "2024-0011",
-    "address": "",
+    "address": "110 General Luna St., Iloilo City",
     "birthdayEdited": false,
     "genderEdited": false
   },
@@ -125,7 +138,7 @@
     "contactNumber": "091700040004",
     "email": "student0004@usa.edu.ph",
     "schoolIdNumber": "2024-0004",
-    "address": "",
+    "address": "103 General Luna St., Iloilo City",
     "birthdayEdited": false,
     "genderEdited": false
   },
@@ -138,7 +151,7 @@
     "contactNumber": "091700020002",
     "email": "student0002@usa.edu.ph",
     "schoolIdNumber": "2024-0002",
-    "address": "",
+    "address": "101 General Luna St., Iloilo City",
     "birthdayEdited": false,
     "genderEdited": false
   },
@@ -151,7 +164,7 @@
     "contactNumber": "091700130013",
     "email": "student0013@usa.edu.ph",
     "schoolIdNumber": "2024-0013",
-    "address": "",
+    "address": "112 General Luna St., Iloilo City",
     "birthdayEdited": false,
     "genderEdited": false
   },
@@ -164,7 +177,7 @@
     "contactNumber": "091700060006",
     "email": "student0006@usa.edu.ph",
     "schoolIdNumber": "2024-0006",
-    "address": "",
+    "address": "105 General Luna St., Iloilo City",
     "birthdayEdited": false,
     "genderEdited": false
   },
@@ -177,7 +190,7 @@
     "contactNumber": "091700180018",
     "email": "student0018@usa.edu.ph",
     "schoolIdNumber": "2024-0018",
-    "address": "",
+    "address": "117 General Luna St., Iloilo City",
     "birthdayEdited": false,
     "genderEdited": false
   },
@@ -186,11 +199,11 @@
     "name": "Maria Santos",
     "birthday": "2003-01-15",
     "gender": "Female",
-    "symptomsOrCondition": "Flu",
+    "symptomsOrCondition": "No current symptoms reported.",
     "contactNumber": "091700010001",
     "email": "student0001@usa.edu.ph",
     "schoolIdNumber": "2024-0001",
-    "address": "",
+    "address": "100 General Luna St., Iloilo City",
     "birthdayEdited": false,
     "genderEdited": false
   },
@@ -203,7 +216,7 @@
     "contactNumber": "091700100010",
     "email": "student0010@usa.edu.ph",
     "schoolIdNumber": "2024-0010",
-    "address": "",
+    "address": "109 General Luna St., Iloilo City",
     "birthdayEdited": false,
     "genderEdited": false
   },
@@ -216,7 +229,7 @@
     "contactNumber": "091700150015",
     "email": "student0015@usa.edu.ph",
     "schoolIdNumber": "2024-0015",
-    "address": "",
+    "address": "114 General Luna St., Iloilo City",
     "birthdayEdited": false,
     "genderEdited": false
   },
@@ -229,7 +242,7 @@
     "contactNumber": "091700080008",
     "email": "student0008@usa.edu.ph",
     "schoolIdNumber": "2024-0008",
-    "address": "",
+    "address": "107 General Luna St., Iloilo City",
     "birthdayEdited": false,
     "genderEdited": false
   },
@@ -242,7 +255,7 @@
     "contactNumber": "091700200020",
     "email": "student0020@usa.edu.ph",
     "schoolIdNumber": "2024-0020",
-    "address": "",
+    "address": "119 General Luna St., Iloilo City",
     "birthdayEdited": false,
     "genderEdited": false
   },
@@ -255,7 +268,7 @@
     "contactNumber": "091700070007",
     "email": "student0007@usa.edu.ph",
     "schoolIdNumber": "2024-0007",
-    "address": "",
+    "address": "106 General Luna St., Iloilo City",
     "birthdayEdited": false,
     "genderEdited": false
   },
@@ -268,7 +281,7 @@
     "contactNumber": "091700190019",
     "email": "student0019@usa.edu.ph",
     "schoolIdNumber": "2024-0019",
-    "address": "",
+    "address": "118 General Luna St., Iloilo City",
     "birthdayEdited": false,
     "genderEdited": false
   }

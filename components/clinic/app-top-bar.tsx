@@ -16,22 +16,25 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { useAppointmentRefreshKey } from "@/components/clinic/clinic-student-bridge";
 import type { AppointmentRequest, RequestStatus } from "@/lib/clinic/mock-requests";
 
 type NotificationItem = {
   key: string;
-  requestId: string;
   title: string;
   message: string;
-  submittedAt: string;
-  status: RequestStatus;
+  createdAt: string;
+  status?: RequestStatus;
+  requestId?: string;
+  href: string;
 };
 
 function statusTitle(status: RequestStatus): string {
   if (status === "approved") return "Appointment approved";
   if (status === "rejected") return "Appointment rejected";
   if (status === "cancelled") return "Appointment cancelled";
-  if (status === "no_show") return "Appointment completed";
+  if (status === "no_show") return "Marked no show";
+  if (status === "completed") return "Visit completed";
   return "Appointment update";
 }
 
@@ -46,14 +49,21 @@ function statusMessage(req: AppointmentRequest): string {
     return `Your request ${req.id} has been cancelled.`;
   }
   if (req.status === "no_show") {
-    return `Your request ${req.id} is marked as completed/no show.`;
+    return `Your request ${req.id} was marked as no show.${req.clinicNote ? ` Note: ${req.clinicNote}` : ""}`;
+  }
+  if (req.status === "completed") {
+    return `Your visit for ${req.id} was marked completed.${req.clinicNote ? ` Note: ${req.clinicNote}` : ""}`;
   }
   return `Your request ${req.id} is still pending.`;
 }
 
 export function AppTopBar({ studentId }: { studentId?: string }) {
   const router = useRouter();
+  const appointmentRefreshKey = useAppointmentRefreshKey();
   const [appointments, setAppointments] = useState<AppointmentRequest[]>([]);
+  const [broadcasts, setBroadcasts] = useState<
+    Array<{ id: string; title: string; message: string; createdAt: string }>
+  >([]);
   const [menuOpen, setMenuOpen] = useState(false);
   const [seenKeys, setSeenKeys] = useState<Record<string, true>>({});
 
@@ -73,7 +83,26 @@ export function AppTopBar({ studentId }: { studentId?: string }) {
     return () => {
       cancelled = true;
     };
-  }, [studentId]);
+  }, [studentId, appointmentRefreshKey]);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await fetch("/api/broadcast-notifications");
+        const body = (await res.json()) as {
+          notifications?: Array<{ id: string; title: string; message: string; createdAt: string }>;
+        };
+        if (!res.ok || cancelled) return;
+        setBroadcasts(Array.isArray(body.notifications) ? body.notifications : []);
+      } catch {
+        if (!cancelled) setBroadcasts([]);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   useEffect(() => {
     if (!studentId) return;
@@ -81,25 +110,43 @@ export function AppTopBar({ studentId }: { studentId?: string }) {
       const raw = localStorage.getItem(`student_notifications_seen_${studentId}`);
       if (!raw) return;
       const parsed = JSON.parse(raw) as Record<string, true>;
-      setSeenKeys(parsed && typeof parsed === "object" ? parsed : {});
+      const next = parsed && typeof parsed === "object" ? parsed : {};
+      window.setTimeout(() => {
+        setSeenKeys(next);
+      }, 0);
     } catch {
-      setSeenKeys({});
+      window.setTimeout(() => {
+        setSeenKeys({});
+      }, 0);
     }
   }, [studentId]);
 
   const notifications = useMemo<NotificationItem[]>(() => {
-    return appointments
+    const appointmentNotifications = appointments
       .filter((req) => req.status !== "pending")
       .map((req) => ({
         key: `${req.id}:${req.status}`,
-        requestId: req.id,
         title: statusTitle(req.status),
         message: statusMessage(req),
-        submittedAt: req.submittedAt,
+        createdAt: req.submittedAt,
         status: req.status,
+        requestId: req.id,
+        href: `/requests?filter=${encodeURIComponent(req.status)}&requestId=${encodeURIComponent(req.id)}`,
       }))
-      .sort((a, b) => new Date(b.submittedAt).getTime() - new Date(a.submittedAt).getTime());
-  }, [appointments]);
+      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+
+    const broadcastNotifications = broadcasts.map((note) => ({
+      key: `broadcast:${note.id}`,
+      title: note.title,
+      message: note.message,
+      createdAt: note.createdAt,
+      href: "/dashboard",
+    }));
+
+    return [...appointmentNotifications, ...broadcastNotifications].sort(
+      (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+    );
+  }, [appointments, broadcasts]);
 
   const unreadCount = notifications.filter((n) => !seenKeys[n.key]).length;
 
@@ -159,7 +206,7 @@ export function AppTopBar({ studentId }: { studentId?: string }) {
               <DropdownMenuSeparator />
               {notifications.length === 0 ? (
                 <div className="px-2 py-5 text-center text-sm text-muted-foreground">
-                  No appointment updates yet.
+                  No notifications yet.
                 </div>
               ) : (
                 notifications.slice(0, 8).map((note) => (
@@ -168,9 +215,7 @@ export function AppTopBar({ studentId }: { studentId?: string }) {
                     className="items-start gap-2 rounded-lg px-2 py-2.5"
                     onClick={() => {
                       setMenuOpen(false);
-                      router.push(
-                        `/requests?filter=${encodeURIComponent(note.status)}&requestId=${encodeURIComponent(note.requestId)}`
-                      );
+                      router.push(note.href);
                     }}
                   >
                     <div className="mt-1 size-2 rounded-full bg-[#E50000]" />

@@ -96,6 +96,22 @@ export async function countAppointmentsForSlot(
   });
 }
 
+export async function hasStudentBookedSameSlot(input: {
+  email: string;
+  preferredDate: string;
+  preferredTime: string;
+}): Promise<boolean> {
+  const count = await prisma.appointment.count({
+    where: {
+      email: input.email,
+      preferredDate: input.preferredDate,
+      preferredTime: input.preferredTime,
+      status: { in: ACTIVE_APPOINTMENT_STATUSES },
+    },
+  });
+  return count > 0;
+}
+
 export async function countAppointmentsByDateAndTime(
   preferredDate: string
 ): Promise<Record<string, number>> {

@@ -1,9 +1,23 @@
 "use client";
 
-import { createContext, useContext } from "react";
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useMemo,
+  useState,
+} from "react";
 
-const ClinicStudentContext = createContext<{ studentId: string }>({
+type ClinicStudentContextValue = {
+  studentId: string;
+  appointmentRefreshKey: number;
+  notifyAppointmentsChanged: () => void;
+};
+
+const ClinicStudentContext = createContext<ClinicStudentContextValue>({
   studentId: "",
+  appointmentRefreshKey: 0,
+  notifyAppointmentsChanged: () => {},
 });
 
 export function ClinicStudentBridge({
@@ -13,8 +27,22 @@ export function ClinicStudentBridge({
   studentId: string;
   children: React.ReactNode;
 }) {
+  const [appointmentRefreshKey, setAppointmentRefreshKey] = useState(0);
+  const notifyAppointmentsChanged = useCallback(() => {
+    setAppointmentRefreshKey((k) => k + 1);
+  }, []);
+
+  const value = useMemo(
+    () => ({
+      studentId,
+      appointmentRefreshKey,
+      notifyAppointmentsChanged,
+    }),
+    [studentId, appointmentRefreshKey, notifyAppointmentsChanged]
+  );
+
   return (
-    <ClinicStudentContext.Provider value={{ studentId }}>
+    <ClinicStudentContext.Provider value={value}>
       {children}
     </ClinicStudentContext.Provider>
   );
@@ -22,4 +50,13 @@ export function ClinicStudentBridge({
 
 export function useClinicStudentId() {
   return useContext(ClinicStudentContext).studentId;
+}
+
+/** Bumps when the student’s appointment data may have changed (sidebar stats, etc.). */
+export function useAppointmentRefreshKey() {
+  return useContext(ClinicStudentContext).appointmentRefreshKey;
+}
+
+export function useNotifyAppointmentsChanged() {
+  return useContext(ClinicStudentContext).notifyAppointmentsChanged;
 }

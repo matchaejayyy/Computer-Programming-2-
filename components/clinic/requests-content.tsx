@@ -7,7 +7,10 @@ import { HomeLink } from "@/components/clinic/home-link";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { useClinicStudentId } from "@/components/clinic/clinic-student-bridge";
+import {
+  useClinicStudentId,
+  useNotifyAppointmentsChanged,
+} from "@/components/clinic/clinic-student-bridge";
 import type { AppointmentRequest, RequestStatus } from "@/lib/clinic/mock-requests";
 import { cn } from "@/lib/utils";
 
@@ -17,6 +20,7 @@ const statusLabels: Record<RequestStatus, string> = {
   rejected: "Rejected",
   cancelled: "Cancelled",
   no_show: "No Show",
+  completed: "Completed",
 };
 
 const statusBadge: Record<RequestStatus, string> = {
@@ -25,6 +29,7 @@ const statusBadge: Record<RequestStatus, string> = {
   rejected: "border-red-200 bg-red-50 text-red-800",
   cancelled: "border-slate-300 bg-slate-100 text-slate-700",
   no_show: "border-red-300 bg-red-100 text-red-900",
+  completed: "border-emerald-700 bg-emerald-700 text-white",
 };
 
 type Props = {
@@ -37,14 +42,16 @@ const filterEndpointByStatus: Record<RequestStatus, string> = {
   rejected: "/api/filter-rejected",
   cancelled: "/api/filter-cancelled",
   no_show: "/api/filter-no-show",
+  completed: "/api/filter-completed",
 };
 
 export function RequestsContent({ studentId: studentIdProp }: Props) {
   const fromContext = useClinicStudentId();
+  const notifyAppointmentsChanged = useNotifyAppointmentsChanged();
   const studentId = studentIdProp ?? fromContext;
   const searchParams = useSearchParams();
   const [activeFilter, setActiveFilter] = useState<
-    "all" | "pending" | "approved" | "rejected" | "cancelled" | "no_show"
+    "all" | "pending" | "approved" | "rejected" | "cancelled" | "no_show" | "completed"
   >("all");
   const [initialRequests, setInitialRequests] = useState<AppointmentRequest[]>([]);
   const [dataLoading, setDataLoading] = useState(true);
@@ -115,6 +122,7 @@ export function RequestsContent({ studentId: studentIdProp }: Props) {
       rawFilter === "rejected" ||
       rawFilter === "cancelled" ||
       rawFilter === "no_show" ||
+      rawFilter === "completed" ||
       rawFilter === "all"
     ) {
       setActiveFilter(rawFilter);
@@ -164,7 +172,7 @@ export function RequestsContent({ studentId: studentIdProp }: Props) {
   const items = filteredItems;
   const title = "Appointment requests";
   const filterButtonClass = (
-    name: "all" | "pending" | "approved" | "rejected" | "cancelled" | "no_show"
+    name: "all" | "pending" | "approved" | "rejected" | "cancelled" | "no_show" | "completed"
   ) =>
     cn(
       "min-w-24 cursor-pointer rounded-md border px-3 py-1.5 text-sm font-medium transition-all duration-200 active:scale-[0.98]",
@@ -191,6 +199,7 @@ export function RequestsContent({ studentId: studentIdProp }: Props) {
       throw new Error(body.error || "Failed to load requests.");
     }
     setInitialRequests(Array.isArray(body.appointments) ? body.appointments : []);
+    notifyAppointmentsChanged();
   }
 
   async function submitCancel(req: AppointmentRequest) {
@@ -288,6 +297,13 @@ export function RequestsContent({ studentId: studentIdProp }: Props) {
             className={filterButtonClass("no_show")}
           >
             No Show
+          </button>
+          <button
+            type="button"
+            onClick={() => setActiveFilter("completed")}
+            className={filterButtonClass("completed")}
+          >
+            Completed
           </button>
         </div>
       </div>

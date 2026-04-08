@@ -40,8 +40,10 @@ export function AdminPatientFinder({ className }: Props) {
   useEffect(() => {
     const params = new URLSearchParams();
     if (debouncedQuery) params.set("q", debouncedQuery);
-    setListLoading(true);
-    setListError(null);
+    window.setTimeout(() => {
+      setListLoading(true);
+      setListError(null);
+    }, 0);
     fetch(`/api/admin/patients?${params.toString()}`)
       .then((res) => res.json())
       .then((body) => {

@@ -78,7 +78,61 @@ export async function PUT(req: Request) {
     slotCapacity = Math.floor(parsed);
   }
 
-  const data: ClinicScheduleData = { rows, timeSlots, blockedDates, slotCapacity };
+  let dateOverrides = current.dateOverrides;
+  if (Array.isArray(b.dateOverrides)) {
+    dateOverrides = b.dateOverrides
+      .filter((x): x is { date: string; available: boolean } => !!x && typeof x === "object")
+      .map((x) => ({
+        date: String(x.date ?? "").trim(),
+        available: Boolean(x.available),
+      }))
+      .filter((x) => /^\d{4}-\d{2}-\d{2}$/.test(x.date));
+  }
+
+  let disabledSlotsByDate = current.disabledSlotsByDate;
+  if (b.disabledSlotsByDate && typeof b.disabledSlotsByDate === "object") {
+    const next: Record<string, string[]> = {};
+    for (const [date, slotsRaw] of Object.entries(b.disabledSlotsByDate as Record<string, unknown>)) {
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) continue;
+      if (!Array.isArray(slotsRaw)) continue;
+      const slots = slotsRaw
+        .filter((x): x is string => typeof x === "string")
+        .map((x) => x.trim())
+        .filter(Boolean);
+      next[date] = Array.from(new Set(slots));
+    }
+    disabledSlotsByDate = next;
+  }
+
+  let slotCapacityByDateTime = current.slotCapacityByDateTime;
+  if (b.slotCapacityByDateTime && typeof b.slotCapacityByDateTime === "object") {
+    const next: Record<string, Record<string, number>> = {};
+    for (const [date, perSlotRaw] of Object.entries(
+      b.slotCapacityByDateTime as Record<string, unknown>
+    )) {
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) continue;
+      if (!perSlotRaw || typeof perSlotRaw !== "object") continue;
+      const perSlot: Record<string, number> = {};
+      for (const [time, capRaw] of Object.entries(perSlotRaw as Record<string, unknown>)) {
+        const cap = Number(capRaw);
+        const timeKey = time.trim();
+        if (!timeKey || !Number.isFinite(cap) || cap < 1) continue;
+        perSlot[timeKey] = Math.floor(cap);
+      }
+      next[date] = perSlot;
+    }
+    slotCapacityByDateTime = next;
+  }
+
+  const data: ClinicScheduleData = {
+    rows,
+    timeSlots,
+    blockedDates,
+    slotCapacity,
+    dateOverrides,
+    disabledSlotsByDate,
+    slotCapacityByDateTime,
+  };
 
   if (data.rows.length === 0) {
     return NextResponse.json({ error: "At least one weekly row is required." }, { status: 400 });
