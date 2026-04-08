@@ -185,7 +185,7 @@ export function MedicineRequestsMedications() {
               <Label className="text-xs font-bold">Medication</Label>
               <Select
                 value={medicationFilter}
-                onValueChange={(value) => setMedicationFilter(value === "all" ? "" : value)}
+                onValueChange={(value) => setMedicationFilter(value === "all" || !value ? "" : value)}
               >
                 <SelectTrigger className="h-10">
                   <SelectValue placeholder="All medications" />
