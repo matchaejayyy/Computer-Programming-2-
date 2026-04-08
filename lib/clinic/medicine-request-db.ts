@@ -7,6 +7,7 @@ import { MEDICINE_REQUESTS_DB_PATH } from "@/lib/clinic/clinic-paths";
 export { MEDICINE_REQUESTS_DB_PATH };
 
 export async function syncMedicineRequestsNativeFileFromDb(): Promise<void> {
+  if (process.env.VERCEL) return;
   const rows = await prisma.medicineRequest.findMany({ orderBy: { id: "asc" } });
   mkdirSync(dirname(MEDICINE_REQUESTS_DB_PATH), { recursive: true });
   const lines =

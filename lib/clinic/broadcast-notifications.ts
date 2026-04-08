@@ -243,8 +243,6 @@ export function listBroadcastNotifications(): BroadcastNotification[] {
 }
 
 export function createBroadcastNotification(input: NewBroadcastInput): BroadcastNotification {
-  mkdirSync(dirname(BROADCAST_NOTIFICATIONS_DB_PATH), { recursive: true });
-
   const viaCpp = createBroadcastNotificationFromCpp(input);
   if (viaCpp !== null) {
     return viaCpp;
@@ -262,17 +260,26 @@ export function createBroadcastNotification(input: NewBroadcastInput): Broadcast
     attachmentPath: input.attachmentPath?.trim() || undefined,
     attachmentMimeType: input.attachmentMimeType?.trim() || undefined,
   };
-  appendFileSync(BROADCAST_NOTIFICATIONS_DB_PATH, `${JSON.stringify(row)}\n`, "utf8");
+  try {
+    mkdirSync(dirname(BROADCAST_NOTIFICATIONS_DB_PATH), { recursive: true });
+    appendFileSync(BROADCAST_NOTIFICATIONS_DB_PATH, `${JSON.stringify(row)}\n`, "utf8");
+  } catch {
+    // Read-only filesystem (e.g. Vercel) — return the record without persisting to disk.
+  }
   return row;
 }
 
 function writeBroadcastNotifications(notifications: BroadcastNotification[]) {
-  mkdirSync(dirname(BROADCAST_NOTIFICATIONS_DB_PATH), { recursive: true });
-  const body =
-    notifications.length > 0
-      ? `${notifications.map((row) => JSON.stringify(row)).join("\n")}\n`
-      : "";
-  writeFileSync(BROADCAST_NOTIFICATIONS_DB_PATH, body, "utf8");
+  try {
+    mkdirSync(dirname(BROADCAST_NOTIFICATIONS_DB_PATH), { recursive: true });
+    const body =
+      notifications.length > 0
+        ? `${notifications.map((row) => JSON.stringify(row)).join("\n")}\n`
+        : "";
+    writeFileSync(BROADCAST_NOTIFICATIONS_DB_PATH, body, "utf8");
+  } catch {
+    // Read-only filesystem (e.g. Vercel) — skip disk write.
+  }
 }
 
 export function updateBroadcastNotification(

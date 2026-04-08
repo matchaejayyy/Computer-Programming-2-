@@ -7,6 +7,7 @@ import { BMI_DB_PATH } from "@/lib/clinic/clinic-paths";
 
 /** Writes all BMI rows to the tab-separated file consumed by native/bmi/bmi_tool.cpp */
 export async function syncBmiNativeFileFromDb(): Promise<void> {
+  if (process.env.VERCEL) return;
   const users = await prisma.user.findMany({
     where: { role: "STUDENT" },
     include: {

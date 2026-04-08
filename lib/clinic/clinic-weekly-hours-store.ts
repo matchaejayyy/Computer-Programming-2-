@@ -446,8 +446,12 @@ async function persistSchedule(data: ClinicScheduleData): Promise<void> {
   }
   const ok = await runCppScheduleSave(body);
   if (!ok) {
-    mkdirSync(dirname(CLINIC_WEEKLY_HOURS_PATH), { recursive: true });
-    writeFileSync(CLINIC_WEEKLY_HOURS_PATH, body, "utf8");
+    try {
+      mkdirSync(dirname(CLINIC_WEEKLY_HOURS_PATH), { recursive: true });
+      writeFileSync(CLINIC_WEEKLY_HOURS_PATH, body, "utf8");
+    } catch {
+      // Read-only filesystem (e.g. Vercel) — DB write above is the primary store.
+    }
   }
 }
 

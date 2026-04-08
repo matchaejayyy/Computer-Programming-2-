@@ -169,8 +169,6 @@ export function listVisitorLogRecords(): VisitorLogRecord[] {
 }
 
 export function createVisitorLogRecord(input: NewVisitorLogInput): VisitorLogRecord {
-  mkdirSync(dirname(VISITOR_LOGS_DB_PATH), { recursive: true });
-
   const viaCpp = createVisitorLogRecordFromCpp(input);
   if (viaCpp !== null) {
     return viaCpp;
@@ -190,7 +188,11 @@ export function createVisitorLogRecord(input: NewVisitorLogInput): VisitorLogRec
     createdAt: input.createdAt,
   };
 
-  mkdirSync(dirname(VISITOR_LOGS_DB_PATH), { recursive: true });
-  appendFileSync(VISITOR_LOGS_DB_PATH, `${JSON.stringify(row)}\n`, "utf8");
+  try {
+    mkdirSync(dirname(VISITOR_LOGS_DB_PATH), { recursive: true });
+    appendFileSync(VISITOR_LOGS_DB_PATH, `${JSON.stringify(row)}\n`, "utf8");
+  } catch {
+    // Read-only filesystem (e.g. Vercel) — return the record without persisting to disk.
+  }
   return row;
 }

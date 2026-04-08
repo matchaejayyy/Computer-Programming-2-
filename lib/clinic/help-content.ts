@@ -61,7 +61,11 @@ export function getHelpContent(): HelpContent {
 export function updateHelpContent(input: Partial<HelpContent>): HelpContent {
   const current = getHelpContent();
   const next = sanitizeHelpContent({ ...current, ...input });
-  mkdirSync(dirname(HELP_CONTENT_PATH), { recursive: true });
-  writeFileSync(HELP_CONTENT_PATH, JSON.stringify(next, null, 2), "utf8");
+  try {
+    mkdirSync(dirname(HELP_CONTENT_PATH), { recursive: true });
+    writeFileSync(HELP_CONTENT_PATH, JSON.stringify(next, null, 2), "utf8");
+  } catch {
+    // Read-only filesystem (e.g. Vercel) — skip disk write.
+  }
   return next;
 }

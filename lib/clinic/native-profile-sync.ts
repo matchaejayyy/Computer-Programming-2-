@@ -5,6 +5,7 @@ import { STUDENT_PROFILES_JSON_PATH } from "@/lib/clinic/clinic-paths";
 import { listStoredStudentProfiles } from "@/lib/clinic/profile-store";
 
 export async function syncStudentProfilesJsonFromDb(): Promise<void> {
+  if (process.env.VERCEL) return;
   // Use canonical profile list so missing profiles are auto-created and
   // users without explicit studentId still appear via email-based login id.
   const arr = await listStoredStudentProfiles();

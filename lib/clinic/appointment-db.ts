@@ -9,6 +9,7 @@ import { APPOINTMENTS_DB_PATH } from "@/lib/clinic/clinic-paths";
 const ACTIVE_APPOINTMENT_STATUSES: AppointmentStatus[] = ["pending", "approved"];
 
 export async function syncAppointmentsNativeFileFromDb(): Promise<void> {
+  if (process.env.VERCEL) return;
   const rows = await prisma.appointment.findMany({ orderBy: { id: "asc" } });
   mkdirSync(dirname(APPOINTMENTS_DB_PATH), { recursive: true });
   const lines =
