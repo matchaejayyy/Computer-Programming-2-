@@ -6,13 +6,12 @@ A full-stack school clinic management system built for San Agustin, enabling stu
 
 | Layer | Technology |
 |-------|------------|
+| Languages | TypeScript, JavaScript, C++, SQL, HTML, CSS |
 | Framework | [Next.js 16](https://nextjs.org) (App Router) |
 | UI | [React 19](https://react.dev), [Tailwind CSS 4](https://tailwindcss.com), [shadcn/ui](https://ui.shadcn.com), [Lucide Icons](https://lucide.dev) |
-| Language | TypeScript 5 (strict) |
 | Database | PostgreSQL via [Prisma 6](https://www.prisma.io) |
 | Auth | [NextAuth v5](https://authjs.dev) (Credentials + Google OAuth), [Neon Auth](https://neon.tech) |
 | State | [Zustand](https://zustand.docs.pmnd.rs) |
-| Native | C++17 binaries invoked from Node via `child_process` |
 
 ## Features
 
