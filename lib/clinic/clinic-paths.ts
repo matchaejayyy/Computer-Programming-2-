@@ -7,6 +7,20 @@ export const APPOINTMENTS_DB_PATH = join(
   "appointments.db"
 );
 
+export const VISITOR_LOGS_DB_PATH = join(
+  process.cwd(),
+  "native",
+  "appointments",
+  "visitor_logs.db"
+);
+
+export const BROADCAST_NOTIFICATIONS_DB_PATH = join(
+  process.cwd(),
+  "native",
+  "appointments",
+  "broadcast_notifications.db"
+);
+
 export const STUDENT_PROFILES_JSON_PATH = join(
   process.cwd(),
   "native",

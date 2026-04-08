@@ -1,6 +1,6 @@
 /**
  * Lists appointment records as JSON. Usage:
- *   list_appointments <db_path> <all|pending|approved|rejected|cancelled|no_show>
+ *   list_appointments <db_path> <all|pending|approved|rejected|cancelled|no_show|completed>
  * Writes: {"lineNumbers":[...],"appointments":[ ...objects... ]}\n
  * (lineNumbers are 1-based indices of non-empty trimmed lines, matching TypeScript readers.)
  *
@@ -37,6 +37,7 @@ bool matchesFilter(const std::string& line, const std::string& filter) {
   const bool hasRejected = line.find("\"status\":\"rejected\"") != std::string::npos;
   const bool hasCancelled = line.find("\"status\":\"cancelled\"") != std::string::npos;
   const bool hasNoShow = line.find("\"status\":\"no_show\"") != std::string::npos;
+  const bool hasCompleted = line.find("\"status\":\"completed\"") != std::string::npos;
   const bool hasStatusKey = line.find("\"status\":") != std::string::npos;
 
   if (filter == "pending") {
@@ -54,6 +55,9 @@ bool matchesFilter(const std::string& line, const std::string& filter) {
   if (filter == "no_show") {
     return hasNoShow;
   }
+  if (filter == "completed") {
+    return hasCompleted;
+  }
 
   return true;
 }
@@ -62,7 +66,7 @@ bool matchesFilter(const std::string& line, const std::string& filter) {
 
 int main(int argc, char** argv) {
   if (argc < 3) {
-    std::cerr << "usage: list_appointments <db_path> <all|pending|approved|rejected|cancelled|no_show>" << std::endl;
+    std::cerr << "usage: list_appointments <db_path> <all|pending|approved|rejected|cancelled|no_show|completed>" << std::endl;
     return 1;
   }
 

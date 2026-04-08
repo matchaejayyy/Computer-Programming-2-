@@ -1,8 +1,7 @@
 "use client";
 
-import Link from "next/link";
-import { useCallback, useEffect, useState } from "react";
-import { Activity, Ban, CheckCircle, ChevronRight, LayoutGrid, XCircle } from "lucide-react";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { CalendarDays } from "lucide-react";
 
 import { HomeLink } from "@/components/admin/admin-homelink";
 import { Badge } from "@/components/ui/badge";
@@ -11,70 +10,42 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
-import type { AppointmentRequest, RequestStatus } from "@/lib/clinic/mock-requests";
+import type { AppointmentRequest } from "@/lib/clinic/mock-requests";
 import { cn } from "@/lib/utils";
 
 type Row = AppointmentRequest & { updateId: number };
 
-type StatusFilter = "all" | "pending" | "approved" | "rejected" | "cancelled" | "no_show";
+function todayIsoDate(): string {
+  const d = new Date();
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
+}
 
-const statusLabels: Record<RequestStatus, string> = {
-  pending: "Pending",
-  approved: "Approved",
-  rejected: "Rejected",
-  cancelled: "Cancelled",
-  no_show: "No Show",
-};
+function formatSelectedDayLabel(iso: string): string {
+  const [y, mo, da] = iso.split("-").map(Number);
+  if (!y || !mo || !da) return iso;
+  const d = new Date(y, mo - 1, da);
+  return d.toLocaleDateString(undefined, {
+    weekday: "long",
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  });
+}
 
-const filterButtonLabels: Record<StatusFilter, string> = {
-  all: "All",
-  pending: "Pending",
-  approved: "Approved",
-  rejected: "Rejected",
-  cancelled: "Cancelled",
-  no_show: "No Show",
-};
-
-const statusBadge: Record<RequestStatus, string> = {
-  pending: "border-amber-200 bg-amber-50 text-amber-900",
-  approved: "border-green-600 bg-green-600 text-white",
-  rejected: "border-red-200 bg-red-50 text-red-800",
-  cancelled: "border-slate-300 bg-slate-100 text-slate-700",
-  no_show: "border-red-300 bg-red-100 text-red-900",
-};
+const approvedBadgeClass =
+  "border-green-600 bg-green-600 text-white";
 
 export function AdminStatusManagementPanel() {
   const [rows, setRows] = useState<Row[]>([]);
-  const [stats, setStats] = useState({
-    total: 0,
-    pending: 0,
-    approved: 0,
-    rejected: 0,
-    cancelled: 0,
-    no_show: 0,
-  });
+  const [appointmentDate, setAppointmentDate] = useState(todayIsoDate);
   const [updatingId, setUpdatingId] = useState<number | null>(null);
-  const [filter, setFilter] = useState<StatusFilter>("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-
-  const loadStats = useCallback(async () => {
-    try {
-      const statRes = await fetch("/api/admin-stats");
-      const statData = (await statRes.json()) as typeof stats;
-      if (statRes.ok && statData && typeof statData.total === "number") {
-        setStats(statData);
-      }
-    } catch {
-      /* stats optional */
-    }
-  }, []);
-
-  useEffect(() => {
-    void loadStats();
-  }, [loadStats]);
 
   useEffect(() => {
     if (searchQuery.trim() === "") {
@@ -90,10 +61,12 @@ export function AdminStatusManagementPanel() {
     setError(null);
     try {
       const q = debouncedSearch.trim();
-      const url = q
-        ? `/api/admin/appointments?filter=${filter}&q=${encodeURIComponent(q)}`
-        : `/api/admin/appointments?filter=${filter}`;
-      const apptRes = await fetch(url);
+      const params = new URLSearchParams({
+        filter: "approved",
+        date: appointmentDate,
+      });
+      if (q) params.set("q", q);
+      const apptRes = await fetch(`/api/admin/appointments?${params.toString()}`);
       const apptData = (await apptRes.json()) as { appointments?: Row[]; error?: string };
       if (!apptRes.ok) {
         throw new Error(apptData.error || "Failed to load");
@@ -105,11 +78,13 @@ export function AdminStatusManagementPanel() {
     } finally {
       setLoading(false);
     }
-  }, [filter, debouncedSearch]);
+  }, [appointmentDate, debouncedSearch]);
 
   useEffect(() => {
     void loadRows();
   }, [loadRows]);
+
+  const dayLabel = useMemo(() => formatSelectedDayLabel(appointmentDate), [appointmentDate]);
 
   return (
     <div className="grid w-full min-w-0 max-w-full grid-cols-1 gap-2">
@@ -121,97 +96,43 @@ export function AdminStatusManagementPanel() {
         <div className="min-w-0">
           <h1 className="text-xl font-bold text-foreground sm:text-2xl">Status management</h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            Choose All or a status, then search by reference, name, or school ID. The server uses C++
-            to list and search appointments when the native binaries are built.
+            Approved appointments only. After the visit, mark each as completed or no show. Students
+            cancel approved slots from their own account (cancelled does not appear here). Use the
+            date control to view another day; it defaults to today.
           </p>
         </div>
       </div>
 
-      <div className="mb-4 grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-6">
-        <Card className="min-w-0 border border-border shadow-sm">
-          <CardContent className="flex items-center gap-3 px-4 py-4 sm:gap-5 sm:px-8 sm:py-5">
-            <div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-slate-50 text-slate-700">
-              <LayoutGrid className="size-5" aria-hidden />
-            </div>
-            <div className="min-w-0">
-              <p className="text-2xl font-bold tabular-nums text-foreground">{stats.total}</p>
-              <p className="text-xs text-muted-foreground">All statuses</p>
-            </div>
-          </CardContent>
-        </Card>
-        <Card className="min-w-0 border border-border shadow-sm">
-          <CardContent className="flex items-center gap-3 px-4 py-4 sm:gap-5 sm:px-8 sm:py-5">
-            <div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-amber-50 text-amber-600">
-              <Activity className="size-5" aria-hidden />
-            </div>
-            <div className="min-w-0">
-              <p className="text-2xl font-bold tabular-nums text-foreground">{stats.pending}</p>
-              <p className="text-xs text-muted-foreground">Still waiting</p>
-            </div>
-          </CardContent>
-        </Card>
-        <Card className="min-w-0 border border-border shadow-sm">
-          <CardContent className="flex items-center gap-3 px-4 py-4 sm:gap-5 sm:px-8 sm:py-5">
-            <div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-green-50 text-green-600">
-              <CheckCircle className="size-5" aria-hidden />
-            </div>
-            <div className="min-w-0">
-              <p className="text-2xl font-bold tabular-nums text-foreground">{stats.approved}</p>
-              <p className="text-xs text-muted-foreground">Accepted</p>
-            </div>
-          </CardContent>
-        </Card>
-        <Card className="min-w-0 border border-border shadow-sm">
-          <CardContent className="flex items-center gap-3 px-4 py-4 sm:gap-5 sm:px-8 sm:py-5">
-            <div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-red-50 text-red-600">
-              <XCircle className="size-5" aria-hidden />
-            </div>
-            <div className="min-w-0">
-              <p className="text-2xl font-bold tabular-nums text-foreground">{stats.rejected}</p>
-              <p className="text-xs text-muted-foreground">Turned down</p>
-            </div>
-          </CardContent>
-        </Card>
-        <Card className="min-w-0 border border-border shadow-sm">
-          <CardContent className="flex items-center gap-3 px-4 py-4 sm:gap-5 sm:px-8 sm:py-5">
-            <div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-slate-100 text-slate-700">
-              <Ban className="size-5" aria-hidden />
-            </div>
-            <div className="min-w-0">
-              <p className="text-2xl font-bold tabular-nums text-foreground">{stats.cancelled}</p>
-              <p className="text-xs text-muted-foreground">Cancelled by student</p>
-            </div>
-          </CardContent>
-        </Card>
-        <Card className="min-w-0 border border-border shadow-sm">
-          <CardContent className="flex items-center gap-3 px-4 py-4 sm:gap-5 sm:px-8 sm:py-5">
-            <div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-red-100 text-red-700">
-              <Activity className="size-5" aria-hidden />
-            </div>
-            <div className="min-w-0">
-              <p className="text-2xl font-bold tabular-nums text-foreground">{stats.no_show}</p>
-              <p className="text-xs text-muted-foreground">No show</p>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
       <Card className="mb-4 border border-border shadow-sm">
-        <CardContent className="p-3 sm:p-4">
-          <Label className="text-sm font-medium">Filter by:</Label>
-          <div className="mt-3 flex flex-wrap gap-2">
-            {(["all", "pending", "approved", "rejected", "cancelled", "no_show"] as const).map((name) => (
-              <Button
-                key={name}
-                type="button"
-                variant={filter === name ? "default" : "outline"}
-                size="sm"
-                onClick={() => setFilter(name)}
-                className="min-h-10 sm:min-h-9"
-              >
-                {filterButtonLabels[name]}
-              </Button>
-            ))}
+        <CardContent className="flex flex-col gap-4 p-4 sm:flex-row sm:items-end sm:justify-between">
+          <div className="space-y-2">
+            <Label htmlFor="status-mgmt-date" className="text-sm font-medium">
+              Appointment date
+            </Label>
+            <div className="flex flex-wrap items-center gap-3">
+              <Input
+                id="status-mgmt-date"
+                type="date"
+                value={appointmentDate}
+                onChange={(e) => setAppointmentDate(e.target.value)}
+                className="w-full max-w-[220px]"
+              />
+              <p className="flex items-center gap-2 text-sm text-muted-foreground">
+                <CalendarDays className="size-4 shrink-0" aria-hidden />
+                <span>{dayLabel}</span>
+              </p>
+            </div>
+          </div>
+          <div className="rounded-lg border border-border bg-muted/40 px-4 py-3 text-sm">
+            <p className="font-medium text-foreground">
+              {loading ? "…" : `${rows.length} approved`}
+              {!loading ? (
+                <span className="font-normal text-muted-foreground">
+                  {" "}
+                  on this date
+                </span>
+              ) : null}
+            </p>
           </div>
         </CardContent>
       </Card>
@@ -235,22 +156,12 @@ export function AdminStatusManagementPanel() {
             <p className="font-medium text-foreground">
               {debouncedSearch.trim() !== ""
                 ? "No matching appointments"
-                : "Nothing in this list"}
+                : "No approved appointments"}
             </p>
             <p>
               {debouncedSearch.trim() !== ""
                 ? "Try another reference, name, or school ID, or clear the search box."
-                : filter === "all"
-                  ? "There are no appointments on record."
-                  : filter === "pending"
-                    ? "No appointments are waiting for a decision."
-                    : filter === "approved"
-                      ? "No confirmed appointments match this filter."
-                      : filter === "rejected"
-                        ? "No declined appointments match this filter."
-                        : filter === "cancelled"
-                          ? "No cancelled appointments match this filter."
-                          : "No no-show appointments match this filter."}
+                : "Nothing is scheduled for this date with status approved, or every booking was already marked completed/no show."}
             </p>
           </CardContent>
         </Card>
@@ -259,7 +170,7 @@ export function AdminStatusManagementPanel() {
           <Card className="border border-border shadow-sm">
             <CardContent className="space-y-2 p-4 sm:p-5">
               <Label htmlFor="admin-status-search" className="text-sm font-medium">
-                Search in this list
+                Search on this date
               </Label>
               <Input
                 id="admin-status-search"
@@ -272,137 +183,104 @@ export function AdminStatusManagementPanel() {
               />
             </CardContent>
           </Card>
-        <ul className="flex flex-col gap-4">
-          {rows.map((req) => {
-            const inner = (
-              <>
-                <CardHeader className="flex flex-row flex-wrap items-start justify-between gap-2 border-b border-border px-4 py-4 sm:px-5">
-                  <div className="min-w-0 flex-1 space-y-1">
-                    <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                      Reference
-                    </p>
-                    <CardTitle className="break-words font-mono text-base text-foreground">
-                      {req.id}
-                    </CardTitle>
-                  </div>
-                  <div className="flex shrink-0 items-center gap-2">
-                    <Badge variant="outline" className={cn(statusBadge[req.status])}>
-                      {statusLabels[req.status]}
-                    </Badge>
-                    {req.status === "pending" ? (
-                      <ChevronRight className="size-5 text-muted-foreground" aria-hidden />
-                    ) : null}
-                  </div>
-                </CardHeader>
-                <CardContent className="space-y-4 px-4 py-4 text-sm sm:px-5">
-                  <div className="space-y-3">
-                    <DetailRow label="Student name" value={req.studentName} />
-                    {req.schoolIdNumber ? (
-                      <DetailRow label="School ID" value={req.schoolIdNumber} />
-                    ) : null}
-                    <DetailRow label="Date and time they asked for" value={req.requestedDate} />
-                  </div>
-                  {req.clinicNote ? (
-                    <>
-                      <Separator />
-                      <div>
-                        <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                          Note on file
-                        </p>
-                        <p className="mt-1 break-words text-foreground">{req.clinicNote}</p>
-                      </div>
-                    </>
-                  ) : null}
-                  {(req.status === "approved" || req.status === "no_show") ? (
-                    <>
-                      <Separator />
-                      <div className="flex flex-wrap gap-2">
-                        <Button
-                          type="button"
-                          size="sm"
-                          variant={req.status === "approved" ? "default" : "outline"}
-                          disabled={updatingId === req.updateId}
-                          onClick={async () => {
-                            setUpdatingId(req.updateId);
-                            try {
-                              await fetch("/api/admin/appointments", {
-                                method: "PATCH",
-                                headers: { "Content-Type": "application/json" },
-                                body: JSON.stringify({
-                                  updateId: req.updateId,
-                                  status: "approved",
-                                  adminNote: req.clinicNote ?? "",
-                                }),
-                              });
-                              await loadRows();
-                              await loadStats();
-                            } finally {
-                              setUpdatingId(null);
-                            }
-                          }}
-                        >
-                          {updatingId === req.updateId && req.status !== "approved"
-                            ? "Saving..."
-                            : "Set completed"}
-                        </Button>
-                        <Button
-                          type="button"
-                          size="sm"
-                          variant={req.status === "no_show" ? "destructive" : "outline"}
-                          disabled={updatingId === req.updateId}
-                          onClick={async () => {
-                            setUpdatingId(req.updateId);
-                            try {
-                              await fetch("/api/admin/appointments", {
-                                method: "PATCH",
-                                headers: { "Content-Type": "application/json" },
-                                body: JSON.stringify({
-                                  updateId: req.updateId,
-                                  status: "no_show",
-                                  adminNote:
-                                    (req.clinicNote?.trim() || "Marked as no-show by clinic staff."),
-                                }),
-                              });
-                              await loadRows();
-                              await loadStats();
-                            } finally {
-                              setUpdatingId(null);
-                            }
-                          }}
-                        >
-                          {updatingId === req.updateId && req.status !== "no_show"
-                            ? "Saving..."
-                            : "Set no show"}
-                        </Button>
-                      </div>
-                    </>
-                  ) : null}
-                </CardContent>
-              </>
-            );
-
-            if (req.status === "pending") {
-              return (
-                <li key={req.id}>
-                  <Link
-                    href={`/admin/requests?updateId=${encodeURIComponent(String(req.updateId))}&returnTo=${encodeURIComponent("status-management")}`}
-                    className="block rounded-lg outline-none ring-offset-background focus-visible:ring-2 focus-visible:ring-ring"
-                  >
-                    <Card className="min-w-0 border-border shadow-sm transition-colors hover:bg-neutral-50/80">
-                      {inner}
-                    </Card>
-                  </Link>
-                </li>
-              );
-            }
-
-            return (
+          <ul className="flex flex-col gap-4">
+            {rows.map((req) => (
               <li key={req.id}>
-                <Card className="min-w-0 border-border shadow-sm">{inner}</Card>
+                <Card className="min-w-0 border-border shadow-sm">
+                  <CardHeader className="flex flex-row flex-wrap items-start justify-between gap-2 border-b border-border px-4 py-4 sm:px-5">
+                    <div className="min-w-0 flex-1 space-y-1">
+                      <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                        Reference
+                      </p>
+                      <CardTitle className="break-words font-mono text-base text-foreground">
+                        {req.id}
+                      </CardTitle>
+                    </div>
+                    <div className="flex shrink-0 items-center gap-2">
+                      <Badge variant="outline" className={cn(approvedBadgeClass)}>
+                        Approved
+                      </Badge>
+                    </div>
+                  </CardHeader>
+                  <CardContent className="space-y-4 px-4 py-4 text-sm sm:px-5">
+                    <div className="space-y-3">
+                      <DetailRow label="Student name" value={req.studentName} />
+                      {req.schoolIdNumber ? (
+                        <DetailRow label="School ID" value={req.schoolIdNumber} />
+                      ) : null}
+                      <DetailRow label="Date and time they asked for" value={req.requestedDate} />
+                    </div>
+                    {req.clinicNote ? (
+                      <>
+                        <Separator />
+                        <div>
+                          <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                            Note on file
+                          </p>
+                          <p className="mt-1 break-words text-foreground">{req.clinicNote}</p>
+                        </div>
+                      </>
+                    ) : null}
+                    <Separator />
+                    <div className="flex flex-wrap gap-2">
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant="default"
+                        disabled={updatingId === req.updateId}
+                        onClick={async () => {
+                          setUpdatingId(req.updateId);
+                          try {
+                            await fetch("/api/admin/appointments", {
+                              method: "PATCH",
+                              headers: { "Content-Type": "application/json" },
+                              body: JSON.stringify({
+                                updateId: req.updateId,
+                                status: "completed",
+                                adminNote:
+                                  req.clinicNote?.trim() || "Visit marked completed by clinic staff.",
+                              }),
+                            });
+                            await loadRows();
+                          } finally {
+                            setUpdatingId(null);
+                          }
+                        }}
+                      >
+                        {updatingId === req.updateId ? "Saving…" : "Mark completed"}
+                      </Button>
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant="destructive"
+                        disabled={updatingId === req.updateId}
+                        onClick={async () => {
+                          setUpdatingId(req.updateId);
+                          try {
+                            await fetch("/api/admin/appointments", {
+                              method: "PATCH",
+                              headers: { "Content-Type": "application/json" },
+                              body: JSON.stringify({
+                                updateId: req.updateId,
+                                status: "no_show",
+                                adminNote:
+                                  req.clinicNote?.trim() || "Marked as no-show by clinic staff.",
+                              }),
+                            });
+                            await loadRows();
+                          } finally {
+                            setUpdatingId(null);
+                          }
+                        }}
+                      >
+                        {updatingId === req.updateId ? "Saving…" : "Mark no show"}
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
               </li>
-            );
-          })}
-        </ul>
+            ))}
+          </ul>
         </div>
       )}
     </div>

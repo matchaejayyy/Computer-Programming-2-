@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { Eye, EyeOff } from "lucide-react";
 
 import { useClinicStudentId } from "@/components/clinic/clinic-student-bridge";
 import { Badge } from "@/components/ui/badge";
@@ -80,8 +81,12 @@ export function ProfilePatientDetails({
   const [passwordMessage, setPasswordMessage] = useState<string | null>(null);
   const [passwordError, setPasswordError] = useState<string | null>(null);
   const [showResetPasswordForm, setShowResetPasswordForm] = useState(false);
+  const [showCurrentPassword, setShowCurrentPassword] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const editingEnabled = editingEnabledProp ?? internalEditingEnabled;
+  const setupMode = Boolean(data?.needsInitialPasswordSetup);
   const setEditingEnabled = (next: boolean) => {
     if (editingEnabledProp !== undefined && onEditingEnabledChange) {
       onEditingEnabledChange(next);
@@ -138,13 +143,13 @@ export function ProfilePatientDetails({
 
   const canEditAddress = useMemo(() => {
     if (!data || saving) return false;
-    return editingEnabled;
-  }, [data, editingEnabled, saving]);
+    return editingEnabled || setupMode;
+  }, [data, editingEnabled, saving, setupMode]);
 
   const canEditContact = useMemo(() => {
     if (!data || saving) return false;
-    return editingEnabled;
-  }, [data, editingEnabled, saving]);
+    return editingEnabled || setupMode;
+  }, [data, editingEnabled, saving, setupMode]);
 
   const canEditSchool = useMemo(() => {
     if (!data || saving) return false;
@@ -201,7 +206,9 @@ export function ProfilePatientDetails({
     if (!hasAnyChange) return false;
 
     if (canEditBirthday && birthdayInput.trim().length < 8) return false;
+    if (setupMode && genderInput.trim() === "") return false;
     if (canEditSchool && !schoolInput.trim()) return false;
+    if (setupMode && !addressInput.trim()) return false;
     return true;
   }, [
     addressInput,
@@ -217,6 +224,7 @@ export function ProfilePatientDetails({
     genderInput,
     saving,
     schoolInput,
+    setupMode,
     symptomsInput,
   ]);
 
@@ -241,13 +249,23 @@ export function ProfilePatientDetails({
       payload.schoolIdNumber = schoolIdNumber;
     }
 
-    if (canEditGender && (genderInput === "Male" || genderInput === "Female")) {
-      payload.gender = genderInput;
+    if (canEditGender) {
+      if (setupMode && (genderInput !== "Male" && genderInput !== "Female")) {
+        setError("Gender is required.");
+        return false;
+      }
+      if (genderInput === "Male" || genderInput === "Female") {
+        payload.gender = genderInput;
+      }
     }
     if (canEditContact) {
       payload.contactNumber = contactInput.trim();
     }
     if (canEditAddress) {
+      if (setupMode && !addressInput.trim()) {
+        setError("Address is required.");
+        return false;
+      }
       payload.address = addressInput.trim();
     }
     if (canEditSymptoms && symptomsInput.trim()) {
@@ -270,6 +288,15 @@ export function ProfilePatientDetails({
   }
 
   const needsCreatePasswordOnly = Boolean(data?.needsInitialPasswordSetup);
+  const profileSetupComplete = useMemo(() => {
+    if (!data) return false;
+    const birthdayDone = !isBirthdayUnset(data.birthday);
+    const genderDone = !isProfileFieldUnset(data.gender);
+    const schoolIdDone = !isProfileFieldUnset(data.schoolIdNumber);
+    const addressDone = !isProfileFieldUnset(data.address);
+    return birthdayDone && genderDone && schoolIdDone && addressDone;
+  }, [data]);
+  const showCreatePasswordNow = needsCreatePasswordOnly && profileSetupComplete;
 
   async function verifyCurrentPasswordFirst(): Promise<boolean> {
     setPasswordError(null);
@@ -349,6 +376,10 @@ export function ProfilePatientDetails({
       setNewPassword("");
       setConfirmPassword("");
       setCurrentPasswordVerified(false);
+      if (needsCreatePasswordOnly) {
+        window.location.href = "/";
+        return true;
+      }
       await loadProfile();
       return true;
     } catch (err) {
@@ -375,8 +406,146 @@ export function ProfilePatientDetails({
     return <p className="text-sm text-destructive">Unable to load profile details.</p>;
   }
 
+  const passwordCard = (
+    <Card className="border-border shadow-sm">
+      <CardHeader className="border-b border-border pb-3">
+        <CardTitle className="text-base text-foreground">
+          {needsCreatePasswordOnly ? "Create password" : "Reset password"}
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="pt-4">
+        <div className="max-w-md space-y-3">
+          {needsCreatePasswordOnly && !showCreatePasswordNow ? (
+            <p className="text-xs text-muted-foreground">
+              Finish and save your required profile details first. Create password becomes available as the final step.
+            </p>
+          ) : null}
+          {showCreatePasswordNow ? (
+            <p className="text-xs text-muted-foreground">
+              Set your account password now to finish first-time setup.
+            </p>
+          ) : null}
+          {!needsCreatePasswordOnly && !showResetPasswordForm ? (
+            <Button
+              type="button"
+              onClick={() => {
+                setShowResetPasswordForm(true);
+                setPasswordError(null);
+                setPasswordMessage(null);
+              }}
+            >
+              Reset password
+            </Button>
+          ) : null}
+          {!needsCreatePasswordOnly && showResetPasswordForm && !currentPasswordVerified ? (
+            <div className="space-y-2">
+              <Label htmlFor="pw-current">Current password</Label>
+              <div className="relative">
+                <Input
+                  id="pw-current"
+                  type={showCurrentPassword ? "text" : "password"}
+                  autoComplete="current-password"
+                  value={currentPassword}
+                  onChange={(e) => setCurrentPassword(e.target.value)}
+                  disabled={passwordSaving}
+                  className="pr-10"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowCurrentPassword((prev) => !prev)}
+                  className="absolute right-2 top-1/2 inline-flex size-8 -translate-y-1/2 items-center justify-center rounded-md text-muted-foreground hover:bg-muted hover:text-foreground"
+                  aria-label={showCurrentPassword ? "Hide current password" : "Show current password"}
+                >
+                  {showCurrentPassword ? <EyeOff className="size-4" aria-hidden /> : <Eye className="size-4" aria-hidden />}
+                </button>
+              </div>
+              <Button
+                type="button"
+                variant="secondary"
+                onClick={() => void verifyCurrentPasswordFirst()}
+                disabled={passwordSaving}
+              >
+                Confirm current password
+              </Button>
+            </div>
+          ) : null}
+          {!needsCreatePasswordOnly && showResetPasswordForm && currentPasswordVerified ? (
+            <p className="text-xs text-green-700">Current password confirmed.</p>
+          ) : null}
+          {showCreatePasswordNow || (showResetPasswordForm && currentPasswordVerified) ? (
+            <>
+              <div className="space-y-2">
+                <Label htmlFor="pw-new">
+                  {showCreatePasswordNow
+                    ? "Create password (min. 8 characters)"
+                    : "Set new password (min. 8 characters)"}
+                </Label>
+                <div className="relative">
+                  <Input
+                    id="pw-new"
+                    type={showNewPassword ? "text" : "password"}
+                    autoComplete="new-password"
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                    disabled={passwordSaving}
+                    className="pr-10"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowNewPassword((prev) => !prev)}
+                    className="absolute right-2 top-1/2 inline-flex size-8 -translate-y-1/2 items-center justify-center rounded-md text-muted-foreground hover:bg-muted hover:text-foreground"
+                    aria-label={showNewPassword ? "Hide new password" : "Show new password"}
+                  >
+                    {showNewPassword ? <EyeOff className="size-4" aria-hidden /> : <Eye className="size-4" aria-hidden />}
+                  </button>
+                </div>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="pw-confirm">Confirm new password</Label>
+                <div className="relative">
+                  <Input
+                    id="pw-confirm"
+                    type={showConfirmPassword ? "text" : "password"}
+                    autoComplete="new-password"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    disabled={passwordSaving}
+                    className="pr-10"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowConfirmPassword((prev) => !prev)}
+                    className="absolute right-2 top-1/2 inline-flex size-8 -translate-y-1/2 items-center justify-center rounded-md text-muted-foreground hover:bg-muted hover:text-foreground"
+                    aria-label={showConfirmPassword ? "Hide confirm password" : "Show confirm password"}
+                  >
+                    {showConfirmPassword ? <EyeOff className="size-4" aria-hidden /> : <Eye className="size-4" aria-hidden />}
+                  </button>
+                </div>
+              </div>
+            </>
+          ) : null}
+          {showCreatePasswordNow || showResetPasswordForm ? (
+            <Button type="button" onClick={() => void submitPasswordChange()} disabled={passwordSaving}>
+              {passwordSaving ? "Saving..." : showCreatePasswordNow ? "Create password" : "Save new password"}
+            </Button>
+          ) : null}
+          {passwordMessage ? (
+            <p className="text-sm text-green-700">{passwordMessage}</p>
+          ) : null}
+          {passwordError ? (
+            <p className="text-sm text-destructive">{passwordError}</p>
+          ) : null}
+        </div>
+      </CardContent>
+    </Card>
+  );
+
   return (
     <div className="space-y-4 text-sm">
+      {needsCreatePasswordOnly ? passwordCard : null}
+
+      {showCreatePasswordNow ? null : (
+        <>
       <Card className="border-border shadow-sm">
         <CardHeader className="border-b border-border pb-3">
           <CardTitle className="text-base text-foreground">Student details</CardTitle>
@@ -542,103 +711,16 @@ export function ProfilePatientDetails({
           ) : (
             <DetailRow label="Address" value={data.address} />
           )}
-          {editingEnabled ? (
+          {editingEnabled || setupMode ? (
             <Button type="button" onClick={() => void saveAllDetails()} disabled={!canSaveAllDetails}>
               {saving ? "Saving..." : "Save changes"}
             </Button>
           ) : null}
         </CardContent>
       </Card>
-
-      <Card className="border-border shadow-sm">
-        <CardHeader className="border-b border-border pb-3">
-          <CardTitle className="text-base text-foreground">
-            {needsCreatePasswordOnly ? "Create password" : "Reset password"}
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="pt-4">
-          <div className="max-w-md space-y-3">
-            {!needsCreatePasswordOnly && !showResetPasswordForm ? (
-              <Button
-                type="button"
-                onClick={() => {
-                  setShowResetPasswordForm(true);
-                  setPasswordError(null);
-                  setPasswordMessage(null);
-                }}
-              >
-                Reset password
-              </Button>
-            ) : null}
-            {!needsCreatePasswordOnly && showResetPasswordForm ? (
-              <div className="space-y-2">
-                <Label htmlFor="pw-current">Current password</Label>
-                <Input
-                  id="pw-current"
-                  type="password"
-                  autoComplete="current-password"
-                  value={currentPassword}
-                  onChange={(e) => setCurrentPassword(e.target.value)}
-                  disabled={passwordSaving}
-                />
-                {currentPasswordVerified ? (
-                  <p className="text-xs text-green-700">Current password confirmed.</p>
-                ) : (
-                  <Button
-                    type="button"
-                    variant="secondary"
-                    onClick={() => void verifyCurrentPasswordFirst()}
-                    disabled={passwordSaving}
-                  >
-                    Confirm current password
-                  </Button>
-                )}
-              </div>
-            ) : null}
-            {needsCreatePasswordOnly || (showResetPasswordForm && currentPasswordVerified) ? (
-              <>
-                <div className="space-y-2">
-                  <Label htmlFor="pw-new">
-                    {needsCreatePasswordOnly
-                      ? "Create password (min. 8 characters)"
-                      : "Set new password (min. 8 characters)"}
-                  </Label>
-                  <Input
-                    id="pw-new"
-                    type="password"
-                    autoComplete="new-password"
-                    value={newPassword}
-                    onChange={(e) => setNewPassword(e.target.value)}
-                    disabled={passwordSaving}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="pw-confirm">Confirm new password</Label>
-                  <Input
-                    id="pw-confirm"
-                    type="password"
-                    autoComplete="new-password"
-                    value={confirmPassword}
-                    onChange={(e) => setConfirmPassword(e.target.value)}
-                    disabled={passwordSaving}
-                  />
-                </div>
-              </>
-            ) : null}
-            {needsCreatePasswordOnly || showResetPasswordForm ? (
-              <Button type="button" onClick={() => void submitPasswordChange()} disabled={passwordSaving}>
-                {passwordSaving ? "Saving..." : needsCreatePasswordOnly ? "Create password" : "Save new password"}
-              </Button>
-            ) : null}
-            {passwordMessage ? (
-              <p className="text-sm text-green-700">{passwordMessage}</p>
-            ) : null}
-            {passwordError ? (
-              <p className="text-sm text-destructive">{passwordError}</p>
-            ) : null}
-          </div>
-        </CardContent>
-      </Card>
+        </>
+      )}
+      {!needsCreatePasswordOnly ? passwordCard : null}
 
       {message ? <p className="text-sm text-green-700">{message}</p> : null}
       {error ? <p className="text-sm text-destructive">{error}</p> : null}

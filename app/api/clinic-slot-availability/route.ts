@@ -1,7 +1,12 @@
 import { NextResponse } from "next/server";
 
 import { countAppointmentsByDateAndTime } from "@/lib/clinic/appointment-db";
-import { getClinicScheduleFromDisk } from "@/lib/clinic/clinic-weekly-hours-store";
+import {
+  getClinicScheduleFromDisk,
+  getSlotCapacityForDateTime,
+  isDateAvailable,
+  isSlotDisabledForDate,
+} from "@/lib/clinic/clinic-weekly-hours-store";
 import { countAppointmentsByDateAndTimeCpp } from "@/lib/clinic/cpp-count-by-date-time";
 
 export async function GET(req: Request) {
@@ -12,22 +17,23 @@ export async function GET(req: Request) {
   }
 
   const schedule = await getClinicScheduleFromDisk();
-  const blocked = schedule.blockedDates.includes(date);
+  const blocked = !isDateAvailable(date, schedule);
   const counts =
     (await countAppointmentsByDateAndTimeCpp(date)) ?? (await countAppointmentsByDateAndTime(date));
-  const slotCapacity = schedule.slotCapacity;
   const slots = schedule.timeSlots.map((time) => {
     const booked = counts[time] ?? 0;
-    const full = booked >= slotCapacity;
-    return { time, booked, capacity: slotCapacity, full };
+    const disabled = isSlotDisabledForDate(date, time, schedule);
+    const capacity = getSlotCapacityForDateTime(schedule, date, time);
+    const full = booked >= capacity;
+    return { time, booked, capacity, full, disabled, available: !disabled && !full };
   });
-  const allFull = slots.length > 0 && slots.every((slot) => slot.full);
+  const allFull = slots.length > 0 && slots.every((slot) => slot.full || slot.disabled);
 
   return NextResponse.json({
     date,
     blocked,
     allFull,
-    slotCapacity,
+    slotCapacity: schedule.slotCapacity,
     slots,
   });
 }

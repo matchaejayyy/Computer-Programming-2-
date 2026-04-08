@@ -3,13 +3,18 @@
 import {
   Activity,
   Ban,
-  CalendarDays,
+  BarChart3,
+  CalendarCog,
+  CalendarRange,
   CheckCircle2,
-  ClipboardCheck,
-  FileSpreadsheet,
-  FolderClock,
-  UserSearch,
+  History,
+  IdCard,
+  Inbox,
+  ListChecks,
+  Megaphone,
+  NotebookPen,
   XCircle,
+  type LucideIcon,
 } from "lucide-react";
 import Link from "next/link";
 
@@ -18,67 +23,99 @@ import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 
-const colorStyles = {
-  green: "bg-[#65a30d]",
-  blue: "bg-[#1d4ed8]",
-  amber: "bg-[#d97706]",
-} as const;
+type Accent = "red" | "blue" | "amber" | "emerald" | "slate";
 
-const adminMenuCards = [
-  {
-    title: "Student registry finder",
-    subtitle: "Accounts, personal info & BMI",
-    details: ["View student account details"],
-    detailHrefs: ["/admin/patient-finder"],
-    icon: UserSearch,
-    color: "green",
-  },
-  {
-    title: "Manage Appointments",
-    subtitle: "View All Requests",
-    details: ["View Request", "Status Management", "Edit Schedule"],
-    detailHrefs: ["/admin/requests", "/admin/status-management", "/admin/edit-clinic-schedule"],
-    icon: ClipboardCheck,
-    color: "blue",
-  },
-  {
-    title: "Manage Schedule",
-    subtitle: "Set Available Dates",
-    details: ["Set Time Slots", "Block Unavailable Dates"],
-    icon: CalendarDays,
-    color: "amber",
-    href: "/admin/schedule",
-  },
-  {
-    title: "Appointment History",
-    subtitle: "View Past Appointments",
-    details: ["Filter by Date", "Filter by Student", "Filter by Status"],
-    icon: FolderClock,
-    color: "blue",
-    href: "/admin/history",
-  },
-  {
-    title: "Reports",
-    subtitle: "Clinic Reporting",
-    details: ["Patient Statistics", "Download Reports", "click"],
-    icon: FileSpreadsheet,
-    color: "amber",
-    href: "/admin/reports",
-  },
-] as const satisfies ReadonlyArray<{
+const accentIconStyles: Record<Accent, string> = {
+  red: "bg-red-50 text-[#E50000]",
+  blue: "bg-blue-50 text-blue-700",
+  amber: "bg-amber-50 text-amber-800",
+  emerald: "bg-emerald-50 text-emerald-800",
+  slate: "bg-slate-100 text-slate-700",
+};
+
+type AdminPortalLink = {
+  key: string;
   title: string;
-  subtitle: string;
-  details: readonly string[];
-  icon:
-    | typeof UserSearch
-    | typeof ClipboardCheck
-    | typeof CalendarDays
-    | typeof FolderClock
-    | typeof FileSpreadsheet;
-  color: keyof typeof colorStyles;
-  href?: string;
-  detailHrefs?: readonly string[];
-}>;
+  description: string;
+  href: string;
+  icon: LucideIcon;
+  accent: Accent;
+};
+
+const adminPortalLinks: AdminPortalLink[] = [
+  {
+    key: "patient-finder",
+    title: "Student registry finder",
+    description: "Look up accounts, profiles, and BMI records",
+    href: "/admin/patient-finder",
+    icon: IdCard,
+    accent: "emerald",
+  },
+  {
+    key: "requests",
+    title: "Appointment requests",
+    description: "Review pending requests and approve or reject",
+    href: "/admin/requests",
+    icon: Inbox,
+    accent: "blue",
+  },
+  {
+    key: "status-management",
+    title: "Status management",
+    description: "Mark approved visits as completed or no-show",
+    href: "/admin/status-management",
+    icon: ListChecks,
+    accent: "blue",
+  },
+  {
+    key: "edit-schedule",
+    title: "Edit clinic schedule",
+    description: "Configure weekly hours and slot rules",
+    href: "/admin/edit-clinic-schedule",
+    icon: CalendarCog,
+    accent: "amber",
+  },
+  {
+    key: "schedule",
+    title: "Manage schedule",
+    description: "Set time slots and block unavailable dates",
+    href: "/admin/schedule",
+    icon: CalendarRange,
+    accent: "amber",
+  },
+  {
+    key: "history",
+    title: "Appointment history",
+    description: "Browse past visits with date and status filters",
+    href: "/admin/history",
+    icon: History,
+    accent: "slate",
+  },
+  {
+    key: "visitor-log",
+    title: "Visitor log",
+    description: "Record visitors and track on-site visits",
+    href: "/admin/visitor-log",
+    icon: NotebookPen,
+    accent: "emerald",
+  },
+  {
+    key: "broadcast",
+    title: "Broadcast notifications",
+    description: "Send announcements to students and staff",
+    href: "/admin/broadcast-notifications",
+    icon: Megaphone,
+    accent: "red",
+  },
+  {
+    key: "reports",
+    title: "Clinic reports",
+    description: "Statistics and downloadable reports",
+    href: "/admin/reports",
+    icon: BarChart3,
+    accent: "amber",
+  },
+];
 
 /* ================= COMPONENT ================= */
 
@@ -90,13 +127,13 @@ export function AdminDashboard() {
     rejected: 0,
     cancelled: 0,
     no_show: 0,
+    completed: 0,
   });
   useEffect(() => {
     fetch("/api/admin-stats")
       .then((res) => res.json())
       .then(setStats)
       .catch(() => {
-        // fallback if API not ready
         setStats({
           total: 0,
           pending: 0,
@@ -104,6 +141,7 @@ export function AdminDashboard() {
           rejected: 0,
           cancelled: 0,
           no_show: 0,
+          completed: 0,
         });
       });
   }, []);
@@ -113,7 +151,7 @@ export function AdminDashboard() {
       title: "Total Appointments",
       value: stats.total,
       note: "All records",
-      icon: CalendarDays,
+      icon: CalendarRange,
       tone: "bg-[#1d4ed8]/10 text-[#1d4ed8]",
     },
     {
@@ -126,9 +164,16 @@ export function AdminDashboard() {
     {
       title: "Approved",
       value: stats.approved,
-      note: "Processed successfully",
+      note: "Confirmed visits pending marking",
       icon: CheckCircle2,
       tone: "bg-[#16a34a]/10 text-[#16a34a]",
+    },
+    {
+      title: "Completed",
+      value: stats.completed,
+      note: "Marked completed after visit",
+      icon: CheckCircle2,
+      tone: "bg-emerald-100 text-emerald-800",
     },
     {
       title: "Rejected",
@@ -176,7 +221,7 @@ export function AdminDashboard() {
           <p className="text-xs text-muted-foreground sm:text-sm">Real-time data</p>
         </div>
 
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4 xl:grid-cols-6">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4 lg:grid-cols-3 xl:grid-cols-7">
           {statsData.map((item) => {
             const Icon = item.icon;
             return (
@@ -217,90 +262,35 @@ export function AdminDashboard() {
       <section className="space-y-3 sm:space-y-4">
         <div className="px-1">
           <h2 className="text-lg font-bold text-foreground sm:text-xl">Admin portal menu</h2>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Quick access to clinic tools — each card opens a dedicated area.
+          </p>
         </div>
 
-        <div className="grid grid-cols-1 items-stretch gap-3 sm:gap-4 md:grid-cols-2 xl:grid-cols-3">
-          {adminMenuCards.map((item) => {
+        <div className="grid grid-cols-1 gap-3 sm:gap-4 sm:grid-cols-2 xl:grid-cols-3">
+          {adminPortalLinks.map((item) => {
             const Icon = item.icon;
-
-            if ("detailHrefs" in item && item.detailHrefs) {
-              return (
-                <Card
-                  key={item.title}
-                  className="h-full rounded-2xl border border-neutral-200 bg-white shadow-none flex flex-col"
-                >
-                  <CardHeader className="pb-3">
-                    <div className="flex items-center gap-3">
-                      <span
-                        className={cn(
-                          "flex size-10 shrink-0 items-center justify-center rounded-xl text-white",
-                          colorStyles[item.color]
-                        )}
-                      >
-                        <Icon className="size-5" aria-hidden />
-                      </span>
-                      <div className="min-w-0 space-y-0.5">
-                        <CardTitle className="text-base font-bold text-foreground">
-                          {item.title}
-                        </CardTitle>
-                        <p className="text-sm text-muted-foreground">{item.subtitle}</p>
-                      </div>
-                    </div>
-                  </CardHeader>
-                  <CardContent className="pt-0 flex-1 min-h-[120px]">
-                    <div className="space-y-2">
-                      {item.details.map((detail, index) => (
-                        <Link
-                          key={detail}
-                          href={item.detailHrefs[index] ?? "/admin/requests"}
-                          className="block min-h-10 rounded-lg border border-neutral-200 bg-neutral-50 px-3 py-2.5 text-sm text-foreground"
-                        >
-                          {detail}
-                        </Link>
-                      ))}
-                    </div>
-                  </CardContent>
-                </Card>
-              );
-            }
-
-            if (!("href" in item)) {
-              return null;
-            }
-
             return (
-              <Link key={item.title} href={item.href} className="block h-full">
-                <Card className="h-full rounded-2xl border border-neutral-200 bg-white shadow-none transition-colors hover:bg-neutral-50 flex flex-col">
-                  <CardHeader className="pb-3">
-                    <div className="flex items-center gap-3">
-                      <span
-                        className={cn(
-                          "flex size-10 shrink-0 items-center justify-center rounded-xl text-white",
-                          colorStyles[item.color]
-                        )}
-                      >
-                        <Icon className="size-5" aria-hidden />
-                      </span>
-                      <div className="min-w-0 space-y-0.5">
-                        <CardTitle className="text-base font-bold text-foreground">
-                          {item.title}
-                        </CardTitle>
-                        <p className="text-sm text-muted-foreground">{item.subtitle}</p>
-                      </div>
+              <Link key={item.key} href={item.href} className="group block h-full min-h-[108px]">
+                <Card className="h-full rounded-2xl border border-neutral-200 bg-white shadow-sm transition-colors hover:border-neutral-300 hover:bg-neutral-50/80">
+                  <CardHeader className="flex flex-row items-start gap-4 space-y-0 p-5">
+                    <span
+                      className={cn(
+                        "flex size-12 shrink-0 items-center justify-center rounded-xl",
+                        accentIconStyles[item.accent]
+                      )}
+                    >
+                      <Icon className="size-6" aria-hidden />
+                    </span>
+                    <div className="min-w-0 flex-1 space-y-1.5">
+                      <CardTitle className="text-base font-semibold leading-snug text-foreground transition-colors group-hover:text-[#E50000]">
+                        {item.title}
+                      </CardTitle>
+                      <p className="text-sm leading-relaxed text-muted-foreground">
+                        {item.description}
+                      </p>
                     </div>
                   </CardHeader>
-                  <CardContent className="pt-0 flex-1 min-h-[120px]">
-                    <div className="space-y-2">
-                      {item.details.map((detail) => (
-                        <div
-                          key={detail}
-                          className="rounded-lg border border-neutral-200 bg-neutral-50 px-3 py-2.5 text-sm text-foreground"
-                        >
-                          {detail}
-                        </div>
-                      ))}
-                    </div>
-                  </CardContent>
                 </Card>
               </Link>
             );

@@ -6,7 +6,17 @@ import { appointmentMatchesSearch } from "@/lib/clinic/admin-appointment-search"
 import { syncAppointmentsNativeFileFromDb, updateAppointmentInDb } from "@/lib/clinic/appointment-db";
 import { APPOINTMENTS_DB_PATH } from "@/lib/clinic/clinic-paths";
 import type { RequestStatus } from "@/lib/clinic/mock-requests";
+import { preferredDateToIso } from "@/lib/clinic/preferred-date-iso";
 import { searchAppointmentLineNumbersCpp } from "@/lib/clinic/cpp-search-appointments";
+
+export type AppointmentListFilter =
+  | "all"
+  | "pending"
+  | "approved"
+  | "rejected"
+  | "cancelled"
+  | "no_show"
+  | "completed";
 
 export { APPOINTMENTS_DB_PATH };
 
@@ -55,11 +65,23 @@ function recordStatus(record: RawAppointmentRecord): RequestStatus {
     s === "rejected" ||
     s === "pending" ||
     s === "cancelled" ||
-    s === "no_show"
+    s === "no_show" ||
+    s === "completed"
   ) {
     return s;
   }
   return "pending";
+}
+
+function filterStoredByDateIso(
+  items: StoredAppointment[],
+  dateIso: string | undefined
+): StoredAppointment[] {
+  if (!dateIso?.trim()) {
+    return items;
+  }
+  const want = dateIso.trim();
+  return items.filter((item) => preferredDateToIso(item.record.preferredDate) === want);
 }
 
 function readAllStoredAppointmentsFromDisk(): StoredAppointment[] {
@@ -85,7 +107,7 @@ export async function readAllStoredAppointments(): Promise<StoredAppointment[]> 
 }
 
 function listStoredAppointmentsFromListBinary(
-  filter: "all" | "pending" | "approved" | "rejected" | "cancelled" | "no_show"
+  filter: AppointmentListFilter
 ): StoredAppointment[] | null {
   const binary =
     process.platform === "win32" ? "list_appointments.exe" : "list_appointments";
@@ -138,9 +160,7 @@ function listStoredAppointmentsFromListBinary(
   }
 }
 
-function listStoredAppointmentsFromDisk(
-  filter: "all" | "pending" | "approved" | "rejected" | "cancelled" | "no_show"
-): StoredAppointment[] {
+function listStoredAppointmentsFromDisk(filter: AppointmentListFilter): StoredAppointment[] {
   const viaCpp = listStoredAppointmentsFromListBinary(filter);
   if (viaCpp !== null) {
     return viaCpp;
@@ -154,7 +174,7 @@ function listStoredAppointmentsFromDisk(
 }
 
 export async function listStoredAppointments(
-  filter: "all" | "pending" | "approved" | "rejected" | "cancelled" | "no_show"
+  filter: AppointmentListFilter
 ): Promise<StoredAppointment[]> {
   await syncAppointmentsNativeFileFromDb();
   return listStoredAppointmentsFromDisk(filter);
@@ -165,40 +185,43 @@ export async function listStoredAppointments(
  * otherwise filters in TypeScript (same matching rules).
  */
 export async function listStoredAppointmentsWithSearch(
-  filter: "all" | "pending" | "approved" | "rejected" | "cancelled" | "no_show",
-  query: string
+  filter: AppointmentListFilter,
+  query: string,
+  dateIso?: string
 ): Promise<StoredAppointment[]> {
   await syncAppointmentsNativeFileFromDb();
   const q = query.trim();
   const base = listStoredAppointmentsFromDisk(filter);
+  let rows: StoredAppointment[];
   if (!q) {
-    return base;
+    rows = base;
+  } else {
+    const lineNums = searchAppointmentLineNumbersCpp(APPOINTMENTS_DB_PATH, filter, q);
+    if (lineNums !== null) {
+      const want = new Set(lineNums);
+      const lines = readNonemptyLines(APPOINTMENTS_DB_PATH);
+      const out: StoredAppointment[] = [];
+      lines.forEach((line, i) => {
+        const n = i + 1;
+        if (!want.has(n)) {
+          return;
+        }
+        try {
+          const record = JSON.parse(line) as RawAppointmentRecord;
+          out.push({
+            updateId: effectiveUpdateIdFromLine(record, n),
+            record,
+          });
+        } catch {
+          /* skip malformed */
+        }
+      });
+      rows = out;
+    } else {
+      rows = base.filter((item) => appointmentMatchesSearch(toAppointmentRequestView(item), q));
+    }
   }
-
-  const lineNums = searchAppointmentLineNumbersCpp(APPOINTMENTS_DB_PATH, filter, q);
-  if (lineNums !== null) {
-    const want = new Set(lineNums);
-    const lines = readNonemptyLines(APPOINTMENTS_DB_PATH);
-    const out: StoredAppointment[] = [];
-    lines.forEach((line, i) => {
-      const n = i + 1;
-      if (!want.has(n)) {
-        return;
-      }
-      try {
-        const record = JSON.parse(line) as RawAppointmentRecord;
-        out.push({
-          updateId: effectiveUpdateIdFromLine(record, n),
-          record,
-        });
-      } catch {
-        /* skip malformed */
-      }
-    });
-    return out;
-  }
-
-  return base.filter((item) => appointmentMatchesSearch(toAppointmentRequestView(item), q));
+  return filterStoredByDateIso(rows, dateIso);
 }
 
 export async function updateAppointmentRecord(
@@ -240,6 +263,7 @@ function appointmentStatsTypeScript() {
   let rejected = 0;
   let cancelled = 0;
   let no_show = 0;
+  let completed = 0;
   for (const { record } of all) {
     const s = recordStatus(record);
     if (s === "pending") {
@@ -250,8 +274,10 @@ function appointmentStatsTypeScript() {
       rejected += 1;
     } else if (s === "cancelled") {
       cancelled += 1;
-    } else {
+    } else if (s === "no_show") {
       no_show += 1;
+    } else {
+      completed += 1;
     }
   }
   return {
@@ -261,6 +287,7 @@ function appointmentStatsTypeScript() {
     rejected,
     cancelled,
     no_show,
+    completed,
   };
 }
 
@@ -291,6 +318,7 @@ export async function appointmentStats() {
       rejected?: number;
       cancelled?: number;
       no_show?: number;
+      completed?: number;
     };
     if (
       typeof data.total === "number" &&
@@ -305,6 +333,7 @@ export async function appointmentStats() {
         rejected: data.rejected,
         cancelled: typeof data.cancelled === "number" ? data.cancelled : 0,
         no_show: typeof data.no_show === "number" ? data.no_show : 0,
+        completed: typeof data.completed === "number" ? data.completed : 0,
       };
     }
   } catch {

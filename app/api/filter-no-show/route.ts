@@ -8,7 +8,8 @@ function isRequestStatus(s: string): s is RequestStatus {
     s === "approved" ||
     s === "rejected" ||
     s === "cancelled" ||
-    s === "no_show"
+    s === "no_show" ||
+    s === "completed"
   );
 }
 

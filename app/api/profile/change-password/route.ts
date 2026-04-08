@@ -27,17 +27,6 @@ export async function POST(req: Request) {
   const confirmPassword = String(raw.confirmPassword ?? "").trim();
   const verifyOnly = raw.verifyOnly === true;
 
-  if (!newPassword) {
-    return NextResponse.json({ error: "New password is required." }, { status: 400 });
-  }
-
-  if (newPassword.length < 8) {
-    return NextResponse.json(
-      { error: "New password must be at least 8 characters." },
-      { status: 400 }
-    );
-  }
-
   const user = await prisma.user.findUnique({
     where: { email: session.user.email },
   });
@@ -66,6 +55,17 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Current password is incorrect." }, { status: 400 });
     }
     return NextResponse.json({ success: true });
+  }
+
+  if (!newPassword) {
+    return NextResponse.json({ error: "New password is required." }, { status: 400 });
+  }
+
+  if (newPassword.length < 8) {
+    return NextResponse.json(
+      { error: "New password must be at least 8 characters." },
+      { status: 400 }
+    );
   }
 
   if (needsInitialSetup) {

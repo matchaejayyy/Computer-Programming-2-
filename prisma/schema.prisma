@@ -18,6 +18,7 @@ enum AppointmentStatus {
   rejected
   cancelled
   no_show
+  completed
 }
 
 model User {
@@ -81,7 +82,93 @@ model Appointment {
 }
 
 model ClinicWeeklyHours {
-  id        Int      @id @default(1)
-  rowsJson String
-  updatedAt DateTime @updatedAt
+  id         Int      @id @default(autoincrement())
+  orderIndex Int
+  label      String
+  hours      String
+  updatedAt  DateTime @updatedAt
+
+  @@unique([orderIndex])
+}
+
+model ClinicAppointmentSchedule {
+  id            Int      @id @default(1)
+  slotCapacity  Int      @default(10)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  timeSlots               ClinicAppointmentTimeSlot[]
+  blockedDates            ClinicAppointmentBlockedDate[]
+  dateOverrides           ClinicAppointmentDateOverride[]
+  disabledSlots           ClinicAppointmentDisabledSlot[]
+  slotCapacityByDateTime  ClinicAppointmentSlotCapacityOverride[]
+}
+
+model ClinicAppointmentTimeSlot {
+  id         Int      @id @default(autoincrement())
+  scheduleId Int
+  orderIndex Int
+  time       String
+
+  schedule ClinicAppointmentSchedule @relation(fields: [scheduleId], references: [id], onDelete: Cascade)
+
+  @@unique([scheduleId, orderIndex])
+  @@unique([scheduleId, time])
+}
+
+model ClinicAppointmentBlockedDate {
+  id         Int      @id @default(autoincrement())
+  scheduleId Int
+  date       String
+
+  schedule ClinicAppointmentSchedule @relation(fields: [scheduleId], references: [id], onDelete: Cascade)
+
+  @@unique([scheduleId, date])
+}
+
+model ClinicAppointmentDateOverride {
+  id         Int      @id @default(autoincrement())
+  scheduleId Int
+  date       String
+  available  Boolean
+
+  schedule ClinicAppointmentSchedule @relation(fields: [scheduleId], references: [id], onDelete: Cascade)
+
+  @@unique([scheduleId, date])
+}
+
+model ClinicAppointmentDisabledSlot {
+  id         Int      @id @default(autoincrement())
+  scheduleId Int
+  date       String
+  time       String
+
+  schedule ClinicAppointmentSchedule @relation(fields: [scheduleId], references: [id], onDelete: Cascade)
+
+  @@unique([scheduleId, date, time])
+}
+
+model ClinicAppointmentSlotCapacityOverride {
+  id         Int      @id @default(autoincrement())
+  scheduleId Int
+  date       String
+  time       String
+  capacity   Int
+
+  schedule ClinicAppointmentSchedule @relation(fields: [scheduleId], references: [id], onDelete: Cascade)
+
+  @@unique([scheduleId, date, time])
+}
+
+model VisitorLog {
+  id         Int      @id @default(autoincrement())
+  reference  String?  @unique
+  name       String
+  email      String
+  department String
+  course     String
+  year       String
+  time       String
+  purpose    String
+  loggedAt   DateTime @default(now())
 }

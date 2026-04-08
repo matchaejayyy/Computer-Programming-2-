@@ -1,11 +1,80 @@
 {
   "rows": [
-    { "label": "Monday", "hours": "8:00 AM – 4:00 PM" },
-    { "label": "Tuesday", "hours": "8:00 AM – 4:00 PM" },
-    { "label": "Wednesday", "hours": "8:00 AM – 4:00 PM" },
-    { "label": "Thursday", "hours": "8:00 AM – 4:00 PM" },
-    { "label": "Friday", "hours": "8:00 AM – 4:00 PM" },
-    { "label": "Saturday", "hours": "8:00 AM – 12:00 PM" },
-    { "label": "Sunday & holidays", "hours": "Closed" }
-  ]
+    {
+      "label": "Monday",
+      "hours": "8:00 AM – 4:00 PM"
+    },
+    {
+      "label": "Tuesday",
+      "hours": "8:00 AM – 4:00 PM"
+    },
+    {
+      "label": "Wednesday",
+      "hours": "8:00 AM – 4:00 PM"
+    },
+    {
+      "label": "Thursday",
+      "hours": "8:00 AM – 4:00 PM"
+    },
+    {
+      "label": "Friday",
+      "hours": "8:00 AM – 3:00 PM"
+    },
+    {
+      "label": "Saturday",
+      "hours": "Closed"
+    },
+    {
+      "label": "Sunday",
+      "hours": "Closed"
+    },
+    {
+      "label": "New day",
+      "hours": "8:00 AM – 4:00 PM"
+    }
+  ],
+  "timeSlots": [
+    "7:00 AM",
+    "8:00 AM",
+    "9:00 AM",
+    "10:00 AM",
+    "11:00 AM",
+    "1:30 PM",
+    "2:30 PM",
+    "3:30 PM"
+  ],
+  "blockedDates": [
+    "2026-04-11"
+  ],
+  "slotCapacity": 10,
+  "dateOverrides": [
+    {
+      "date": "2026-04-10",
+      "available": true
+    },
+    {
+      "date": "2026-04-14",
+      "available": true
+    },
+    {
+      "date": "2026-04-11",
+      "available": false
+    },
+    {
+      "date": "2026-04-09",
+      "available": true
+    }
+  ],
+  "disabledSlotsByDate": {
+    "2026-04-09": [],
+    "2026-04-10": []
+  },
+  "slotCapacityByDateTime": {
+    "2026-04-09": {
+      "8:00 AM": 10
+    },
+    "2026-04-11": {
+      "8:00 AM": 10
+    }
+  }
 }

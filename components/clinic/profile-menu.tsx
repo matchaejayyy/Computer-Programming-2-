@@ -48,7 +48,7 @@ export function ProfileMenu() {
       <DropdownMenuContent
         align="end"
         sideOffset={8}
-        className="min-w-[12rem] rounded-xl border border-border/60 bg-card p-2 text-foreground shadow-lg ring-1 ring-black/5"
+        className="min-w-[12rem] rounded-xl border border-neutral-200 bg-card p-2 text-foreground shadow-lg ring-1 ring-neutral-200/70"
       >
         <DropdownMenuItem
           className="cursor-pointer rounded-lg px-3 py-2.5 text-sm font-normal text-foreground focus:bg-muted"
