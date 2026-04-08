@@ -7,6 +7,7 @@ import { Bell } from "lucide-react";
 
 import { ProfileMenu } from "@/components/clinic/profile-menu";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -24,9 +25,13 @@ type NotificationItem = {
   title: string;
   message: string;
   createdAt: string;
+  kind: "appointment" | "broadcast";
   status?: RequestStatus;
   requestId?: string;
   href: string;
+  attachmentName?: string;
+  attachmentPath?: string;
+  attachmentMimeType?: string;
 };
 
 function statusTitle(status: RequestStatus): string {
@@ -62,10 +67,19 @@ export function AppTopBar({ studentId }: { studentId?: string }) {
   const appointmentRefreshKey = useAppointmentRefreshKey();
   const [appointments, setAppointments] = useState<AppointmentRequest[]>([]);
   const [broadcasts, setBroadcasts] = useState<
-    Array<{ id: string; title: string; message: string; createdAt: string }>
+    Array<{
+      id: string;
+      title: string;
+      message: string;
+      createdAt: string;
+      attachmentName?: string;
+      attachmentPath?: string;
+      attachmentMimeType?: string;
+    }>
   >([]);
   const [menuOpen, setMenuOpen] = useState(false);
   const [seenKeys, setSeenKeys] = useState<Record<string, true>>({});
+  const [selectedBroadcast, setSelectedBroadcast] = useState<NotificationItem | null>(null);
 
   useEffect(() => {
     if (!studentId) return;
@@ -129,6 +143,7 @@ export function AppTopBar({ studentId }: { studentId?: string }) {
         title: statusTitle(req.status),
         message: statusMessage(req),
         createdAt: req.submittedAt,
+        kind: "appointment" as const,
         status: req.status,
         requestId: req.id,
         href: `/requests?filter=${encodeURIComponent(req.status)}&requestId=${encodeURIComponent(req.id)}`,
@@ -140,7 +155,11 @@ export function AppTopBar({ studentId }: { studentId?: string }) {
       title: note.title,
       message: note.message,
       createdAt: note.createdAt,
+      kind: "broadcast" as const,
       href: "/dashboard",
+      attachmentName: note.attachmentName,
+      attachmentPath: note.attachmentPath,
+      attachmentMimeType: note.attachmentMimeType,
     }));
 
     return [...appointmentNotifications, ...broadcastNotifications].sort(
@@ -215,6 +234,10 @@ export function AppTopBar({ studentId }: { studentId?: string }) {
                     className="items-start gap-2 rounded-lg px-2 py-2.5"
                     onClick={() => {
                       setMenuOpen(false);
+                      if (note.kind === "broadcast") {
+                        setSelectedBroadcast(note);
+                        return;
+                      }
                       router.push(note.href);
                     }}
                   >
@@ -246,6 +269,49 @@ export function AppTopBar({ studentId }: { studentId?: string }) {
           </div>
         </div>
       </div>
+      {selectedBroadcast ? (
+        <div
+          className="fixed inset-0 z-50 flex items-end justify-center bg-black/50 p-4 sm:items-center"
+          onClick={() => setSelectedBroadcast(null)}
+        >
+          <div
+            className="w-full max-w-xl rounded-xl bg-background p-4 shadow-xl sm:p-5"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <div className="mb-2 flex items-center justify-between">
+              <h3 className="text-base font-semibold text-foreground">{selectedBroadcast.title}</h3>
+              <Button type="button" variant="ghost" size="sm" onClick={() => setSelectedBroadcast(null)}>
+                Close
+              </Button>
+            </div>
+            <p className="mb-3 text-sm text-muted-foreground">{selectedBroadcast.message}</p>
+            {selectedBroadcast.attachmentPath ? (
+              selectedBroadcast.attachmentMimeType?.startsWith("image/") ? (
+                <img
+                  src={selectedBroadcast.attachmentPath}
+                  alt={selectedBroadcast.attachmentName || "Notification attachment"}
+                  className="max-h-[65vh] w-full rounded-lg border border-border object-contain"
+                />
+              ) : selectedBroadcast.attachmentMimeType === "application/pdf" ? (
+                <iframe
+                  src={selectedBroadcast.attachmentPath}
+                  title={selectedBroadcast.attachmentName || "Notification PDF"}
+                  className="h-[70vh] w-full rounded-lg border border-border"
+                />
+              ) : (
+                <a
+                  href={selectedBroadcast.attachmentPath}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="text-sm text-primary underline"
+                >
+                  Open attachment
+                </a>
+              )
+            ) : null}
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 }

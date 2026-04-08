@@ -1,4 +1,4 @@
-#include <filesystem>
+#include <cctype>
 #include <fstream>
 #include <iomanip>
 #include <iostream>
@@ -38,17 +38,68 @@ std::string jsonEscape(const std::string& in) {
   return out.str();
 }
 
-int countNonEmptyLines(const std::string& path) {
+std::string extractJsonStringField(const std::string& row, const std::string& key) {
+  const std::string prefix = "\"" + key + "\":\"";
+  const auto start = row.find(prefix);
+  if (start == std::string::npos) return "";
+
+  std::string out;
+  bool escaping = false;
+  for (std::size_t i = start + prefix.size(); i < row.size(); ++i) {
+    const char ch = row[i];
+    if (escaping) {
+      switch (ch) {
+        case 'n': out.push_back('\n'); break;
+        case 'r': out.push_back('\r'); break;
+        case 't': out.push_back('\t'); break;
+        case 'b': out.push_back('\b'); break;
+        case 'f': out.push_back('\f'); break;
+        default: out.push_back(ch); break;
+      }
+      escaping = false;
+      continue;
+    }
+    if (ch == '\\') {
+      escaping = true;
+      continue;
+    }
+    if (ch == '"') {
+      return out;
+    }
+    out.push_back(ch);
+  }
+  return "";
+}
+
+int parseBroadcastNumber(const std::string& id) {
+  constexpr char prefix[] = "BCAST-";
+  if (id.rfind(prefix, 0) != 0) return -1;
+  const std::string numeric = id.substr(sizeof(prefix) - 1);
+  if (numeric.empty()) return -1;
+  for (char ch : numeric) {
+    if (!std::isdigit(static_cast<unsigned char>(ch))) return -1;
+  }
+  try {
+    return std::stoi(numeric);
+  } catch (...) {
+    return -1;
+  }
+}
+
+int getNextBroadcastNumber(const std::string& path) {
   std::ifstream in(path);
-  if (!in) return 0;
-  int count = 0;
+  if (!in) return 1;
+
+  int maxId = 0;
   std::string line;
   while (std::getline(in, line)) {
-    if (!trim(line).empty()) {
-      ++count;
-    }
+    const std::string raw = trim(line);
+    if (raw.empty()) continue;
+
+    const int value = parseBroadcastNumber(extractJsonStringField(raw, "id"));
+    if (value > maxId) maxId = value;
   }
-  return count;
+  return maxId + 1;
 }
 
 std::string pad4(int n) {
@@ -71,32 +122,34 @@ int main(int argc, char* argv[]) {
   while (std::getline(std::cin, line)) {
     lines.push_back(line);
   }
-  while (lines.size() < 3) lines.push_back("");
+  while (lines.size() < 6) lines.push_back("");
 
   const std::string title = trim(lines[0]);
   const std::string message = trim(lines[1]);
   const std::string createdAt = trim(lines[2]);
+  const std::string attachmentName = trim(lines[3]);
+  const std::string attachmentPath = trim(lines[4]);
+  const std::string attachmentMimeType = trim(lines[5]);
 
   if (title.empty() || message.empty() || createdAt.empty()) {
     std::cerr << "title, message, and createdAt are required." << std::endl;
     return 1;
   }
 
-  try {
-    std::filesystem::create_directories(std::filesystem::path(dbPath).parent_path());
-  } catch (...) {
-    std::cerr << "could not create output directory." << std::endl;
-    return 1;
-  }
-
-  const int next = countNonEmptyLines(dbPath) + 1;
+  const int next = getNextBroadcastNumber(dbPath);
   const std::string id = "BCAST-" + pad4(next);
 
   std::ostringstream row;
   row << "{\"id\":\"" << jsonEscape(id) << "\","
       << "\"title\":\"" << jsonEscape(title) << "\","
       << "\"message\":\"" << jsonEscape(message) << "\","
-      << "\"createdAt\":\"" << jsonEscape(createdAt) << "\"}";
+      << "\"createdAt\":\"" << jsonEscape(createdAt) << "\"";
+  if (!attachmentName.empty() && !attachmentPath.empty() && !attachmentMimeType.empty()) {
+    row << ",\"attachmentName\":\"" << jsonEscape(attachmentName) << "\""
+        << ",\"attachmentPath\":\"" << jsonEscape(attachmentPath) << "\""
+        << ",\"attachmentMimeType\":\"" << jsonEscape(attachmentMimeType) << "\"";
+  }
+  row << "}";
 
   {
     std::ofstream out(dbPath, std::ios::app);
