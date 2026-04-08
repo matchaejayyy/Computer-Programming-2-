@@ -8,6 +8,7 @@ import {
   ClipboardCheck,
   FileSpreadsheet,
   FolderClock,
+  Pill,
   UserSearch,
   XCircle,
 } from "lucide-react";
@@ -65,6 +66,14 @@ const adminMenuCards = [
     color: "amber",
     href: "/admin/reports",
   },
+  {
+    title: "Medicine Request Analytic Report",
+    subtitle: "Daily medication request insights",
+    details: ["View medicine requests"],
+    icon: Pill,
+    color: "green",
+    href: "/admin/reports/medicine-requests",
+  },
 ] as const satisfies ReadonlyArray<{
   title: string;
   subtitle: string;
@@ -74,7 +83,8 @@ const adminMenuCards = [
     | typeof ClipboardCheck
     | typeof CalendarDays
     | typeof FolderClock
-    | typeof FileSpreadsheet;
+    | typeof FileSpreadsheet
+    | typeof Pill;
   color: keyof typeof colorStyles;
   href?: string;
   detailHrefs?: readonly string[];
