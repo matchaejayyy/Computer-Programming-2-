@@ -41,30 +41,6 @@ type MedicineRequest = {
 };
 
 const sampleRequests: MedicineRequest[] = [
-  {
-    id: "MR-2026-001",
-    studentId: "2024-0001",
-    name: "John Doe",
-    medication: "Paracetamol",
-    quantity: 2,
-    requestedAt: new Date().toLocaleString(),
-  },
-  {
-    id: "MR-2026-002",
-    studentId: "2024-0042",
-    name: "Maria Cruz",
-    medication: "Ibuprofen",
-    quantity: 1,
-    requestedAt: new Date().toLocaleString(),
-  },
-  {
-    id: "MR-2026-003",
-    studentId: "2024-0019",
-    name: "Angel Santos",
-    medication: "Cetirizine",
-    quantity: 1,
-    requestedAt: new Date().toLocaleString(),
-  },
 ];
 
 const statusStyles: Record<string, string> = {
@@ -167,7 +143,7 @@ export function MedicineRequestsReport() {
       req.studentId,
       req.name,
       req.medication,
-      `${req.quantity} tablets`,
+      `${req.quantity} tablet${req.quantity === 1 ? '' : 's'}`,
       req.requestedAt,
     ]);
 
@@ -211,7 +187,7 @@ export function MedicineRequestsReport() {
       <Card className="border border-border shadow-sm">
         <CardHeader className="pb-3">
           <CardTitle className="text-sm font-medium flex items-center gap-2">
-            <Pill className="size-4" /> Quick Add Medicine Request
+            <Pill className="size-4" /> Add to the list
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -289,7 +265,7 @@ export function MedicineRequestsReport() {
       <Card className="border border-border shadow-sm">
         <CardHeader>
           <CardTitle className="text-base font-semibold">
-            All medications requested for {selectedDate}
+            All medications requested for {selectedDate || 'all dates'}
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -313,14 +289,14 @@ export function MedicineRequestsReport() {
         <CardContent>
           <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
             <div className="space-y-2">
-              <Label className="text-xs font-bold">All</Label>
+              <Label className="text-xs font-bold">Clear filter</Label>
               <Button
                 variant="outline"
                 size="sm"
                 className="w-full"
                 onClick={() => setSelectedDate("")}
               >
-                All
+                View all
               </Button>
             </div>
             <div className="space-y-2">
@@ -347,7 +323,7 @@ export function MedicineRequestsReport() {
       <Card className="border border-border shadow-sm">
         <CardHeader>
           <CardTitle className="text-base font-semibold">
-            Medicine requests for {selectedDate}
+            Medicine requests for {selectedDate || 'all dates'}
           </CardTitle>
         </CardHeader>
         <CardContent className="p-0 overflow-x-auto">
@@ -418,7 +394,7 @@ export function MedicineRequestsReport() {
                           onChange={(e) => setEditRequest({ ...editRequest, quantity: parseInt(e.target.value) || 1 })}
                         />
                       ) : (
-                        `${request.quantity} tablets`
+                        `${request.quantity} tablet${request.quantity === 1 ? '' : 's'}`
                       )}
                     </td>
                     <td className="px-4 py-3">
@@ -436,7 +412,12 @@ export function MedicineRequestsReport() {
                           />
                         </div>
                       ) : (
-                        request.requestedAt
+                        (() => {
+                          const [datePart, timePart] = request.requestedAt.split(" ");
+                          const formattedDate = new Date(datePart).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+                          const formattedTime = new Date(`2000-01-01T${timePart}:00`).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
+                          return `${formattedDate} at ${formattedTime}`;
+                        })()
                       )}
                     </td>
                     <td className="px-4 py-3 space-x-2">

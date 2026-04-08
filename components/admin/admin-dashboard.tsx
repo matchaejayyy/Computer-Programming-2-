@@ -108,6 +108,14 @@ const adminPortalLinks: AdminPortalLink[] = [
     accent: "red",
   },
   {
+    key: "medicine-requests-report",
+    title: "Medicine request analytics",
+    description: "Review, search, and export medicine request reports",
+    href: "/admin/reports/medicine-requests",
+    icon: BarChart3,
+    accent: "amber",
+  },
+  {
     key: "reports",
     title: "Clinic reports",
     description: "Statistics and downloadable reports",
