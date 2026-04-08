@@ -36,3 +36,10 @@ export const CLINIC_WEEKLY_HOURS_PATH = join(
   "appointments",
   "clinic_weekly_hours.json"
 );
+
+export const HELP_CONTENT_PATH = join(
+  process.cwd(),
+  "native",
+  "appointments",
+  "help_content.json"
+);

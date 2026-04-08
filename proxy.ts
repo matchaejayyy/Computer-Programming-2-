@@ -1,4 +1,4 @@
-import { NextResponse, type NextRequest } from "next/server";
+import { NextResponse } from "next/server";
 
 import { auth } from "@/auth";
 
@@ -48,7 +48,7 @@ function isAdminApi(pathname: string): boolean {
 }
 
 function isPublicApi(pathname: string): boolean {
-  return pathname.startsWith("/api/auth/");
+  return pathname.startsWith("/api/auth/") || pathname.startsWith("/api/neon-auth/");
 }
 
 export default auth((req) => {
@@ -57,7 +57,6 @@ export default auth((req) => {
   const session = req.auth;
   const role = session?.user?.role;
 
-  // Login page: signed-in users are routed to their portal.
   if (pathname === "/login") {
     if (role === "ADMIN") {
       return NextResponse.redirect(new URL("/admin", nextUrl));
@@ -68,7 +67,6 @@ export default auth((req) => {
     return NextResponse.next();
   }
 
-  // Root: signed-out -> login; signed-in routed by role.
   if (pathname === "/") {
     if (!session?.user?.email) {
       return NextResponse.redirect(new URL("/login", nextUrl));
