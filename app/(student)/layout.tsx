@@ -13,17 +13,17 @@ export default async function ClinicLayout({
       : "";
 
   return (
-    <div className="flex min-h-dvh flex-col bg-[#f4f4f5] text-foreground">
-      <div className="sticky top-0 z-50 shrink-0">
-        <AppTopBar studentId={studentId} />
-      </div>
-      <div className="flex flex-1 flex-col">
-        <div className="mx-auto w-full px-4 py-6 sm:px-6 sm:py-8 lg:px-8 xl:px-12 2xl:px-16">
-          <ClinicStudentBridge studentId={studentId}>
+    <ClinicStudentBridge studentId={studentId}>
+      <div className="flex min-h-dvh flex-col bg-[#f4f4f5] text-foreground">
+        <div className="sticky top-0 z-50 shrink-0">
+          <AppTopBar studentId={studentId} />
+        </div>
+        <div className="flex flex-1 flex-col">
+          <div className="mx-auto w-full px-4 py-6 sm:px-6 sm:py-8 lg:px-8 xl:px-12 2xl:px-16">
             <PageTransition>{children}</PageTransition>
-          </ClinicStudentBridge>
+          </div>
         </div>
       </div>
-    </div>
+    </ClinicStudentBridge>
   );
 }

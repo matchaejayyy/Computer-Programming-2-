@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useEffect, useMemo, useState } from "react";
+import { FormEvent, useCallback, useEffect, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
 import { useRouter } from "next/navigation";
 
@@ -10,7 +10,9 @@ import { Calendar } from "@/components/ui/calendar";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { useNotifyAppointmentsChanged } from "@/components/clinic/clinic-student-bridge";
 import { FormField } from "@/components/clinic/form-field";
+import { isDateAvailableForSchedule } from "@/lib/clinic/schedule-date-availability";
 import { cn } from "@/lib/utils";
 
 const reasonOptions = [
@@ -51,9 +53,16 @@ type SlotAvailability = {
   blocked: boolean;
   allFull: boolean;
   slotCapacity: number;
-  slots: Array<{ time: string; booked: number; capacity: number; full: boolean }>;
+  slots: Array<{
+    time: string;
+    booked: number;
+    capacity: number;
+    full: boolean;
+    disabled: boolean;
+    available: boolean;
+  }>;
 };
-type WeeklyHourRow = { label: string; hours: string };
+type DateOverride = { date: string; available: boolean };
 
 function todayIsoDate(): string {
   const d = new Date();
@@ -87,6 +96,17 @@ function formatIsoDate(value: string): string {
   });
 }
 
+/** Normalize YYYY-M-D → YYYY-MM-DD so overrides match calendar ISO strings. */
+function normalizeIsoDateInput(value: string): string {
+  const t = value.trim();
+  const m = /^(\d{4})-(\d{1,2})-(\d{1,2})$/.exec(t);
+  if (!m) return t;
+  const y = m[1];
+  const mo = String(Number(m[2])).padStart(2, "0");
+  const d = String(Number(m[3])).padStart(2, "0");
+  return `${y}-${mo}-${d}`;
+}
+
 const initialState = (firstSlot: string): ReserveFormState => ({
   studentName: "",
   email: "",
@@ -101,10 +121,13 @@ const initialState = (firstSlot: string): ReserveFormState => ({
 export function ReserveForm() {
   const modalRoot = typeof document !== "undefined" ? document.body : null;
   const router = useRouter();
+  const notifyAppointmentsChanged = useNotifyAppointmentsChanged();
   const minDateIso = useMemo(() => todayIsoDate(), []);
   const [timeSlots, setTimeSlots] = useState<string[]>(FALLBACK_TIME_SLOTS);
   const [blockedDates, setBlockedDates] = useState<string[]>([]);
   const [slotCapacity, setSlotCapacity] = useState(10);
+  const [dateOverrides, setDateOverrides] = useState<DateOverride[]>([]);
+  const [scheduleRulesLoading, setScheduleRulesLoading] = useState(true);
   const [availability, setAvailability] = useState<SlotAvailability | null>(null);
   const [activeModal, setActiveModal] = useState<"date" | "time" | null>(null);
   const [formState, setFormState] = useState<ReserveFormState>(() =>
@@ -113,34 +136,61 @@ export function ReserveForm() {
   const [submitState, setSubmitState] = useState<SubmitState>("idle");
   const [statusMessage, setStatusMessage] = useState<string>("");
 
+  const loadScheduleRules = useCallback(async () => {
+    setScheduleRulesLoading(true);
+    try {
+      const res = await fetch("/api/clinic-weekly-schedule", { cache: "no-store" });
+      const data = (await res.json()) as {
+        timeSlots?: string[];
+        blockedDates?: string[];
+        slotCapacity?: number;
+        dateOverrides?: DateOverride[];
+      };
+      const slots =
+        Array.isArray(data.timeSlots) && data.timeSlots.length > 0
+          ? data.timeSlots
+          : FALLBACK_TIME_SLOTS;
+      setTimeSlots(slots);
+      setBlockedDates(
+        Array.isArray(data.blockedDates)
+          ? data.blockedDates
+              .filter((x): x is string => typeof x === "string")
+              .map((x) => normalizeIsoDateInput(x))
+          : []
+      );
+      setSlotCapacity(
+        typeof data.slotCapacity === "number" && data.slotCapacity > 0
+          ? Math.floor(data.slotCapacity)
+          : 10
+      );
+      setDateOverrides(
+        Array.isArray(data.dateOverrides)
+          ? data.dateOverrides
+              .filter(
+                (e): e is DateOverride =>
+                  !!e && typeof e === "object" && typeof (e as DateOverride).date === "string"
+              )
+              .map((entry) => ({
+                date: normalizeIsoDateInput(entry.date),
+                available: Boolean(entry.available),
+              }))
+          : []
+      );
+      setFormState((prev) => ({
+        ...prev,
+        preferredTime: slots.includes(prev.preferredTime) ? prev.preferredTime : slots[0]!,
+      }));
+    } finally {
+      setScheduleRulesLoading(false);
+    }
+  }, []);
+
   useEffect(() => {
     let cancelled = false;
     (async () => {
       try {
-        const res = await fetch("/api/clinic-weekly-schedule");
-        const data = (await res.json()) as {
-          timeSlots?: string[];
-          blockedDates?: string[];
-          slotCapacity?: number;
-        };
+        await loadScheduleRules();
         if (cancelled) return;
-        const slots =
-          Array.isArray(data.timeSlots) && data.timeSlots.length > 0
-            ? data.timeSlots
-            : FALLBACK_TIME_SLOTS;
-        setTimeSlots(slots);
-        setBlockedDates(Array.isArray(data.blockedDates) ? data.blockedDates : []);
-        setSlotCapacity(
-          typeof data.slotCapacity === "number" && data.slotCapacity > 0
-            ? Math.floor(data.slotCapacity)
-            : 10
-        );
-        setFormState((prev) => ({
-          ...prev,
-          preferredTime: slots.includes(prev.preferredTime)
-            ? prev.preferredTime
-            : slots[0]!,
-        }));
       } catch {
         /* keep defaults */
       }
@@ -148,7 +198,7 @@ export function ReserveForm() {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [loadScheduleRules]);
 
   useEffect(() => {
     const date = formState.preferredDate.trim();
@@ -157,11 +207,11 @@ export function ReserveForm() {
       return;
     }
     let cancelled = false;
-    (async () => {
+    const loadAvailability = async () => {
       try {
-        const res = await fetch(
-          `/api/clinic-slot-availability?date=${encodeURIComponent(date)}`
-        );
+        const res = await fetch(`/api/clinic-slot-availability?date=${encodeURIComponent(date)}`, {
+          cache: "no-store",
+        });
         const body = (await res.json()) as SlotAvailability & { error?: string };
         if (!res.ok) throw new Error(body.error || "Failed to load slot availability.");
         if (cancelled) return;
@@ -184,17 +234,26 @@ export function ReserveForm() {
 
         const chosen = formState.preferredTime.trim();
         const chosenSlot = body.slots.find((slot) => slot.time === chosen);
-        if (chosenSlot?.full) {
-          setStatusMessage("Selected time is already full. Please choose another slot.");
+        if (chosenSlot?.disabled || chosenSlot?.full) {
+          setStatusMessage(
+            chosenSlot?.disabled
+              ? "Selected time is disabled for this date. Please choose another slot."
+              : "Selected time is already full. Please choose another slot."
+          );
           setSubmitState("error");
           setFormState((prev) => ({ ...prev, preferredTime: "" }));
         }
       } catch {
         if (!cancelled) setAvailability(null);
       }
-    })();
+    };
+    void loadAvailability();
+    const timer = window.setInterval(() => {
+      void loadAvailability();
+    }, 15000);
     return () => {
       cancelled = true;
+      window.clearInterval(timer);
     };
   }, [formState.preferredDate, formState.preferredTime]);
 
@@ -249,6 +308,36 @@ export function ReserveForm() {
     () => fromIsoDate(formState.preferredDate),
     [formState.preferredDate]
   );
+
+  const scheduleDateRules = useMemo(
+    () => ({ blockedDates, dateOverrides }),
+    [blockedDates, dateOverrides]
+  );
+
+  const isDateSelectable = useCallback(
+    (value: string) => {
+      if (scheduleRulesLoading) return false;
+      const normalized = normalizeIsoDateInput(value);
+      if (normalized < minDateIso) return false;
+      return isDateAvailableForSchedule(normalized, scheduleDateRules);
+    },
+    [minDateIso, scheduleDateRules, scheduleRulesLoading]
+  );
+
+  useEffect(() => {
+    const pickedDate = formState.preferredDate.trim();
+    if (!pickedDate) return;
+    if (scheduleRulesLoading) return;
+    if (isDateSelectable(pickedDate)) return;
+    setSubmitState("error");
+    setStatusMessage("Your previously selected date is now unavailable. Please choose another date.");
+    setFormState((prev) => ({ ...prev, preferredDate: "", preferredTime: "" }));
+  }, [formState.preferredDate, isDateSelectable, scheduleRulesLoading]);
+
+  useEffect(() => {
+    if (activeModal !== "date") return;
+    void loadScheduleRules();
+  }, [activeModal, loadScheduleRules]);
 
   useEffect(() => {
     if (!activeModal) return;
@@ -306,7 +395,8 @@ export function ReserveForm() {
       return;
     }
 
-    if (blockedDates.includes(payload.preferredDate)) {
+    const preferredDateNorm = normalizeIsoDateInput(payload.preferredDate);
+    if (!isDateAvailableForSchedule(preferredDateNorm, scheduleDateRules)) {
       setSubmitState("error");
       setStatusMessage("That date is unavailable (blocked by the clinic). Choose another date.");
       return;
@@ -334,6 +424,11 @@ export function ReserveForm() {
       return;
     }
     const chosenSlot = availability?.slots.find((slot) => slot.time === payload.preferredTime);
+    if (chosenSlot?.disabled) {
+      setSubmitState("error");
+      setStatusMessage("That time slot is disabled for this date.");
+      return;
+    }
     if (chosenSlot?.full) {
       setSubmitState("error");
       setStatusMessage("That time slot is full. Please choose another time.");
@@ -366,6 +461,7 @@ export function ReserveForm() {
           "Appointment form has already been submitted. Redirecting to home..."
       );
       resetForm();
+      notifyAppointmentsChanged();
       window.setTimeout(() => {
         router.push("/");
       }, 1400);
@@ -536,7 +632,15 @@ export function ReserveForm() {
                     "w-full justify-between font-normal",
                     !formState.preferredTime && "text-muted-foreground"
                   )}
-                  onClick={() => setActiveModal("time")}
+                  onClick={() => {
+                    if (!formState.preferredDate) {
+                      setSubmitState("error");
+                      setStatusMessage("Select a date first before picking a time slot.");
+                      setActiveModal("date");
+                      return;
+                    }
+                    setActiveModal("time");
+                  }}
                 >
                   {formState.preferredTime || "Select time"}
                 </Button>
@@ -566,15 +670,23 @@ export function ReserveForm() {
                           Close
                         </Button>
                       </div>
+                      {scheduleRulesLoading ? (
+                        <p className="mb-2 text-sm text-muted-foreground">
+                          Loading clinic calendar rules…
+                        </p>
+                      ) : null}
                       <div className="overflow-x-auto">
                         <Calendar
                           mode="single"
                           selected={selectedDate}
                           onSelect={(date) => {
                             if (!date) return;
+                            if (scheduleRulesLoading) return;
                             const value = toIsoDate(date);
-                            if (blockedDates.includes(value)) {
-                              setStatusMessage("This date is blocked. Please choose another date.");
+                            if (!isDateSelectable(value)) {
+                              setStatusMessage(
+                                "This date is unavailable in clinic schedule. Please choose another date."
+                              );
                               setSubmitState("error");
                               return;
                             }
@@ -583,7 +695,7 @@ export function ReserveForm() {
                           }}
                           disabled={(date) => {
                             const value = toIsoDate(date);
-                            return value < minDateIso || blockedDates.includes(value);
+                            return !isDateSelectable(value);
                           }}
                         />
                       </div>
@@ -619,7 +731,7 @@ export function ReserveForm() {
                       <div className="max-h-[60vh] space-y-2 overflow-y-auto pr-1">
                         {timeSlots.map((option) => {
                           const slot = availability?.slots.find((s) => s.time === option);
-                          const full = Boolean(slot?.full);
+                          const full = Boolean(slot?.full || slot?.disabled);
                           const booked = slot?.booked ?? 0;
                           const cap = slot?.capacity ?? slotCapacity;
                           return (
@@ -636,7 +748,11 @@ export function ReserveForm() {
                             >
                               <span>{option}</span>
                               <span className="text-xs opacity-80">
-                                {full ? `Full (${booked}/${cap})` : `${booked}/${cap}`}
+                                {slot?.disabled
+                                  ? "Unavailable"
+                                  : full
+                                    ? `Full (${booked}/${cap})`
+                                    : `${booked}/${cap}`}
                               </span>
                             </Button>
                           );

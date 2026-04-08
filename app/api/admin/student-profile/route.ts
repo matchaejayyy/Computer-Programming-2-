@@ -2,11 +2,8 @@ import { NextResponse } from "next/server";
 
 import { getBmi } from "@/lib/clinic/cpp-bmi";
 import {
-  getStudentFromRegistryFallback,
-  getStudentFromRegistryViaCpp,
-} from "@/lib/clinic/cpp-student-registry";
-import {
   calculateAge,
+  getStudentProfile,
   updateStudentProfileAdmin,
   type AdminStudentProfileUpdate,
 } from "@/lib/clinic/profile-store";
@@ -18,15 +15,13 @@ export async function GET(req: Request) {
     return NextResponse.json({ error: "studentId is required." }, { status: 400 });
   }
 
-  const fromRegistry =
-    (await getStudentFromRegistryViaCpp(studentId)) ??
-    (await getStudentFromRegistryFallback(studentId));
-  if (!fromRegistry) {
+  const fromProfileStore = await getStudentProfile(studentId);
+  if (!fromProfileStore) {
     return NextResponse.json({ error: "Student is not in the registry." }, { status: 404 });
   }
 
-  const bmi = await getBmi(fromRegistry.studentId);
-  const age = calculateAge(fromRegistry.birthday);
+  const bmi = await getBmi(fromProfileStore.studentId);
+  const age = calculateAge(fromProfileStore.birthday);
 
   const bmiRecordedAt =
     typeof bmi.updatedAt === "number" && Number.isFinite(bmi.updatedAt)
@@ -36,7 +31,7 @@ export async function GET(req: Request) {
   return NextResponse.json({
     success: true,
     data: {
-      ...fromRegistry,
+      ...fromProfileStore,
       age,
       bmi: bmi.bmi ?? null,
       bmiCategory: bmi.category ?? null,
@@ -79,10 +74,8 @@ export async function PATCH(req: Request) {
     return NextResponse.json({ error: "studentId is required." }, { status: 400 });
   }
 
-  const fromRegistry =
-    (await getStudentFromRegistryViaCpp(studentId)) ??
-    (await getStudentFromRegistryFallback(studentId));
-  if (!fromRegistry) {
+  const existing = await getStudentProfile(studentId);
+  if (!existing) {
     return NextResponse.json({ error: "Student is not in the registry." }, { status: 404 });
   }
 

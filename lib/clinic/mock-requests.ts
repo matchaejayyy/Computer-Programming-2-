@@ -1,4 +1,10 @@
-export type RequestStatus = "pending" | "approved" | "rejected" | "cancelled" | "no_show";
+export type RequestStatus =
+  | "pending"
+  | "approved"
+  | "rejected"
+  | "cancelled"
+  | "no_show"
+  | "completed";
 
 export type AppointmentRequest = {
   id: string;
@@ -22,6 +28,7 @@ export function isRequestStatus(
     value === "approved" ||
     value === "rejected" ||
     value === "cancelled" ||
-    value === "no_show"
+    value === "no_show" ||
+    value === "completed"
   );
 }

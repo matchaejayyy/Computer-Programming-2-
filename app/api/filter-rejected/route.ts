@@ -4,7 +4,14 @@ import { filterRejectedIndicesCpp } from "@/lib/clinic/cpp-rejected-filter";
 import type { RequestStatus } from "@/lib/clinic/mock-requests";
 
 function isRequestStatus(s: string): s is RequestStatus {
-  return s === "pending" || s === "approved" || s === "rejected" || s === "cancelled" || s === "no_show";
+  return (
+    s === "pending" ||
+    s === "approved" ||
+    s === "rejected" ||
+    s === "cancelled" ||
+    s === "no_show" ||
+    s === "completed"
+  );
 }
 
 export async function POST(req: Request) {

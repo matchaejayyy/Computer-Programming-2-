@@ -208,10 +208,27 @@ async function main() {
     blockedDates: ["2026-04-18", "2026-04-19", "2026-04-25", "2026-05-01"],
   };
 
-  await prisma.clinicWeeklyHours.create({
+  await prisma.clinicWeeklyHours.createMany({
+    data: defaultHours.map((row, index) => ({
+      orderIndex: index,
+      label: row.label,
+      hours: row.hours,
+    })),
+  });
+
+  await prisma.clinicAppointmentSchedule.create({
     data: {
       id: 1,
-      rowsJson: JSON.stringify(scheduleExtras),
+      slotCapacity: 10,
+      timeSlots: {
+        create: scheduleExtras.timeSlots.map((time, orderIndex) => ({
+          time,
+          orderIndex,
+        })),
+      },
+      blockedDates: {
+        create: scheduleExtras.blockedDates.map((date) => ({ date })),
+      },
     },
   });
 

@@ -63,8 +63,27 @@ export async function listStoredStudentProfiles(): Promise<StudentProfile[]> {
     include: { profile: true },
     orderBy: { name: "asc" },
   });
+  const missingProfileUserIds = users.filter((u) => !u.profile).map((u) => u.id);
+  if (missingProfileUserIds.length > 0) {
+    await prisma.studentProfile.createMany({
+      data: missingProfileUserIds.map((userId) => ({
+        userId,
+        ...DEFAULT_STUDENT_PROFILE_DATA,
+      })),
+      skipDuplicates: true,
+    });
+  }
+  const hydratedUsers =
+    missingProfileUserIds.length > 0
+      ? await prisma.user.findMany({
+          where: { role: "STUDENT" as Role },
+          include: { profile: true },
+          orderBy: { name: "asc" },
+        })
+      : users;
+
   const out: StudentProfile[] = [];
-  for (const u of users) {
+  for (const u of hydratedUsers) {
     const p = mapUserToProfile(u);
     if (p) out.push(p);
   }
