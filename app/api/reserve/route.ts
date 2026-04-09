@@ -89,7 +89,16 @@ export async function POST(req: Request) {
   }
 
   try {
-    const schedule = await getClinicScheduleFromDisk();
+    const [schedule, duplicate, booked] = await Promise.all([
+      getClinicScheduleFromDisk(),
+      hasStudentBookedSameSlot({
+        email: payload.email,
+        preferredDate: payload.preferredDate,
+        preferredTime: payload.preferredTime,
+      }),
+      countAppointmentsForSlot(payload.preferredDate, payload.preferredTime),
+    ]);
+
     const slotOk = validatePreferredSlot(
       payload.preferredDate,
       payload.preferredTime,
@@ -98,11 +107,6 @@ export async function POST(req: Request) {
     if (!slotOk.ok) {
       return NextResponse.json({ error: slotOk.message }, { status: 400 });
     }
-    const duplicate = await hasStudentBookedSameSlot({
-      email: payload.email,
-      preferredDate: payload.preferredDate,
-      preferredTime: payload.preferredTime,
-    });
     if (duplicate) {
       return NextResponse.json(
         { error: "You already have a pending/approved booking for this date and time." },
@@ -114,7 +118,6 @@ export async function POST(req: Request) {
       payload.preferredDate,
       payload.preferredTime
     );
-    const booked = await countAppointmentsForSlot(payload.preferredDate, payload.preferredTime);
     if (booked >= slotCapacity) {
       return NextResponse.json(
         { error: "Selected time slot is full. Please choose another time." },

@@ -36,6 +36,8 @@ model User {
 
   profile    StudentProfile?
   bmiRecords BmiRecord[]
+
+  @@index([role])
 }
 
 model StudentProfile {
@@ -79,6 +81,11 @@ model Appointment {
   preferredDate     String
   preferredTime     String
   schoolIdNumber    String?
+
+  @@index([status])
+  @@index([email, status])
+  @@index([preferredDate, preferredTime, status])
+  @@index([submittedAt])
 }
 
 model ClinicWeeklyHours {
@@ -171,6 +178,8 @@ model VisitorLog {
   time       String
   purpose    String
   loggedAt   DateTime @default(now())
+
+  @@index([loggedAt])
 }
 
 model PasswordResetOtp {

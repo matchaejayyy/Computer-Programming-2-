@@ -1,10 +1,6 @@
 import { NextResponse } from "next/server";
 
-import {
-  listStudentsTypeScriptFallback,
-  listStudentsViaCpp,
-} from "@/lib/clinic/cpp-student-registry";
-import { listStoredStudentProfiles } from "@/lib/clinic/profile-store";
+import { prisma } from "@/lib/prisma";
 
 export type AdminPatientListItem = {
   studentId: string;
@@ -23,46 +19,39 @@ export async function GET(req: Request) {
     const { searchParams } = new URL(req.url);
     const q = searchParams.get("q")?.trim() ?? "";
 
-    const viaCpp = await listStudentsViaCpp(q);
-    const raw = viaCpp ?? (await listStudentsTypeScriptFallback(q));
-    const rows = [...raw].sort((a, b) =>
-      a.name.localeCompare(b.name, undefined, { sensitivity: "base" })
-    );
-
-    const profiles = await listStoredStudentProfiles();
-    const normalize = (v: string) => v.trim().toLowerCase();
-    const profileByLogin = new Map<string, (typeof profiles)[number]>();
-    for (const p of profiles) {
-      profileByLogin.set(p.studentId, p);
-      profileByLogin.set(p.email, p);
-      profileByLogin.set(normalize(p.studentId), p);
-      profileByLogin.set(normalize(p.email), p);
+    const where: Record<string, unknown> = { role: "STUDENT" as const };
+    if (q) {
+      where.OR = [
+        { name: { contains: q, mode: "insensitive" } },
+        { email: { contains: q, mode: "insensitive" } },
+        { studentId: { contains: q, mode: "insensitive" } },
+        { profile: { schoolIdNumber: { contains: q, mode: "insensitive" } } },
+      ];
     }
 
-    const patients: AdminPatientListItem[] = rows.map((row) => {
-      const profile =
-        profileByLogin.get(row.studentId) ??
-        profileByLogin.get(row.email) ??
-        profileByLogin.get(normalize(row.studentId)) ??
-        profileByLogin.get(normalize(row.email));
-      return {
-        studentId: row.studentId,
-        name: row.name,
-        email: row.email,
-        schoolIdNumber: row.schoolIdNumber || profile?.schoolIdNumber || "",
-        contactNumber: profile?.contactNumber || "",
-        address: profile?.address || "",
-        birthday: profile?.birthday || "",
-        gender: profile?.gender || "",
-        symptomsOrCondition: profile?.symptomsOrCondition || "",
-      };
+    const users = await prisma.user.findMany({
+      where,
+      include: { profile: true },
+      orderBy: { name: "asc" },
     });
+
+    const patients: AdminPatientListItem[] = users.map((u) => ({
+      studentId: u.studentId ?? u.email,
+      name: u.name,
+      email: u.email,
+      schoolIdNumber: u.profile?.schoolIdNumber || "",
+      contactNumber: u.profile?.contactNumber || "",
+      address: u.profile?.address || "",
+      birthday: u.profile?.birthday || "",
+      gender: u.profile?.gender || "",
+      symptomsOrCondition: u.profile?.symptomsOrCondition || "",
+    }));
 
     return NextResponse.json({
       success: true,
       patients,
-      total: rows.length,
-      source: viaCpp ? "cpp" : "typescript",
+      total: patients.length,
+      source: "prisma",
     });
   } catch (error) {
     return NextResponse.json(

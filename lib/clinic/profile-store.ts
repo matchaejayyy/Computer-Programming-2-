@@ -119,12 +119,21 @@ export async function getStudentProfile(studentId: string): Promise<StudentProfi
     return null;
   }
   if (!user.profile) {
-    await ensureStudentProfileIfMissing(user.id);
-    const again = await prisma.user.findFirst({
-      where: { id: user.id },
-      include: { profile: true },
-    });
-    return again ? mapUserToProfile(again) : null;
+    try {
+      const created = await prisma.studentProfile.create({
+        data: {
+          userId: user.id,
+          ...DEFAULT_STUDENT_PROFILE_DATA,
+        },
+      });
+      return mapUserToProfile({ ...user, profile: created });
+    } catch {
+      const again = await prisma.user.findFirst({
+        where: { id: user.id },
+        include: { profile: true },
+      });
+      return again ? mapUserToProfile(again) : null;
+    }
   }
   return mapUserToProfile(user);
 }
@@ -263,7 +272,7 @@ export async function updateStudentProfile(
     }
   }
 
-  await prisma.studentProfile.update({
+  const updatedProfile = await prisma.studentProfile.update({
     where: { userId: user.id },
     data: {
       ...(typeof changes.gender === "string" && changes.gender.trim()
@@ -287,7 +296,7 @@ export async function updateStudentProfile(
     },
   });
 
-  const mapped = await getStudentProfile(user.studentId ?? user.email);
+  const mapped = mapUserToProfile({ ...user, profile: updatedProfile });
   if (!mapped) {
     throw new Error("Profile not found.");
   }

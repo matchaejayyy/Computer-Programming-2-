@@ -9,7 +9,11 @@ export async function GET() {
     return NextResponse.json({ error: "Unauthorized." }, { status: 401 });
   }
 
-  return NextResponse.json({ success: true, data: getHelpContent() });
+  return NextResponse.json({ success: true, data: getHelpContent() }, {
+    headers: {
+      "Cache-Control": "public, s-maxage=60, stale-while-revalidate=120",
+    },
+  });
 }
 
 export async function PATCH(req: Request) {

@@ -142,30 +142,7 @@ function latestEntry(entries: BmiEntry[], studentId: string): BmiEntry | undefin
 }
 
 export async function getBmi(studentId: string): Promise<BmiResult> {
-  await syncBmiNativeFileFromDb();
-  const executable = binaryPath();
-  if (existsSync(executable)) {
-    try {
-      const output = await runCppTool(executable, `action=read\nstudentId=${studentId}\n`);
-      const parsed = parseOutput(output);
-      if (!parsed.bmi) {
-        return getBmiTypeScript(studentId);
-      }
-      return {
-        bmi: parsed.bmi ? Number(parsed.bmi) : undefined,
-        category: toCategory(parsed.category),
-        weightKg: parsed.weightKg ? Number(parsed.weightKg) : undefined,
-        heightM: parsed.heightM ? Number(parsed.heightM) : undefined,
-        updatedAt: parsed.updatedAt ? Number(parsed.updatedAt) : undefined,
-        remainingAttempts: 999,
-        resetAt: undefined,
-      };
-    } catch {
-      // Fall through to TypeScript fallback.
-    }
-  }
-
-  return getBmiTypeScript(studentId);
+  return getBmiFromDb(studentId);
 }
 
 export async function updateBmi(payload: BmiPayload): Promise<BmiResult> {
@@ -240,6 +217,34 @@ function getBmiTypeScript(studentId: string): BmiResult {
     updatedAt: latest?.timestamp,
     remainingAttempts: 999,
     resetAt: undefined,
+  };
+}
+
+async function getBmiFromDb(studentId: string): Promise<BmiResult> {
+  const user = await prisma.user.findFirst({
+    where: {
+      role: "STUDENT",
+      OR: [{ studentId }, { email: studentId }],
+    },
+    select: { id: true },
+  });
+  if (!user) {
+    return { remainingAttempts: 999 };
+  }
+  const latest = await prisma.bmiRecord.findFirst({
+    where: { userId: user.id },
+    orderBy: { createdAt: "desc" },
+  });
+  if (!latest) {
+    return { remainingAttempts: 999 };
+  }
+  return {
+    bmi: latest.bmi,
+    category: toCategory(latest.category),
+    weightKg: latest.weightKg,
+    heightM: latest.heightM,
+    updatedAt: Math.floor(latest.createdAt.getTime() / 1000),
+    remainingAttempts: 999,
   };
 }
 

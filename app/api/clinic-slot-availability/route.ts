@@ -7,7 +7,6 @@ import {
   isDateAvailable,
   isSlotDisabledForDate,
 } from "@/lib/clinic/clinic-weekly-hours-store";
-import { countAppointmentsByDateAndTimeCpp } from "@/lib/clinic/cpp-count-by-date-time";
 
 export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
@@ -16,10 +15,12 @@ export async function GET(req: Request) {
     return NextResponse.json({ error: "date is required (YYYY-MM-DD)." }, { status: 400 });
   }
 
-  const schedule = await getClinicScheduleFromDisk();
+  const [schedule, counts] = await Promise.all([
+    getClinicScheduleFromDisk(),
+    countAppointmentsByDateAndTime(date),
+  ]);
+
   const blocked = !isDateAvailable(date, schedule);
-  const counts =
-    (await countAppointmentsByDateAndTimeCpp(date)) ?? (await countAppointmentsByDateAndTime(date));
   const slots = schedule.timeSlots.map((time) => {
     const booked = counts[time] ?? 0;
     const disabled = isSlotDisabledForDate(date, time, schedule);

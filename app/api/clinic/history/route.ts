@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
 
-import { storedAppointmentToHistoryEntry } from "@/lib/clinic/appointment-history-mapper";
-import { readAllStoredAppointments } from "@/lib/clinic/appointment-records";
+import { appointmentToHistoryEntry } from "@/lib/clinic/appointment-history-mapper";
 import { getStudentProfile } from "@/lib/clinic/profile-store";
+import { prisma } from "@/lib/prisma";
 
 export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
@@ -17,16 +17,25 @@ export async function GET(req: Request) {
       return NextResponse.json({ error: "Profile not found." }, { status: 404 });
     }
     const email = profile.email.trim().toLowerCase();
-    const all = await readAllStoredAppointments();
-    const rows = all
-      .filter(({ record }) => record.email.trim().toLowerCase() === email)
-      .sort((a, b) => {
-        const ta = new Date(a.record.submittedAt ?? 0).getTime();
-        const tb = new Date(b.record.submittedAt ?? 0).getTime();
-        return tb - ta;
-      });
+    const rows = await prisma.appointment.findMany({
+      where: { email: { equals: email, mode: "insensitive" } },
+      orderBy: { submittedAt: "desc" },
+      select: {
+        id: true,
+        status: true,
+        adminNote: true,
+        submittedAt: true,
+        preferredDate: true,
+        preferredTime: true,
+        studentName: true,
+        reason: true,
+        otherReasonDetail: true,
+      },
+    });
     return NextResponse.json({
-      history: rows.map(storedAppointmentToHistoryEntry),
+      history: rows.map((r) =>
+        appointmentToHistoryEntry(r as Parameters<typeof appointmentToHistoryEntry>[0])
+      ),
     });
   } catch (error) {
     return NextResponse.json(

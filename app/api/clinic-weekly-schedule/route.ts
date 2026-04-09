@@ -5,7 +5,11 @@ import { getClinicScheduleFromDisk } from "@/lib/clinic/clinic-weekly-hours-stor
 export async function GET() {
   try {
     const data = await getClinicScheduleFromDisk();
-    return NextResponse.json(data);
+    return NextResponse.json(data, {
+      headers: {
+        "Cache-Control": "public, s-maxage=30, stale-while-revalidate=60",
+      },
+    });
   } catch {
     return NextResponse.json(
       { rows: [], timeSlots: [], blockedDates: [], slotCapacity: 10 },

@@ -17,17 +17,21 @@ export async function GET(req: Request) {
   if (!profile) {
     return NextResponse.json({ error: "Profile not found." }, { status: 404 });
   }
-  const userRow = await prisma.user.findFirst({
-    where: {
-      role: Role.STUDENT,
-      OR: [{ studentId }, { email: studentId }],
-    },
-    select: { needsInitialPasswordSetup: true, passwordHash: true },
-  });
+
+  const [userRow, bmi] = await Promise.all([
+    prisma.user.findFirst({
+      where: {
+        role: Role.STUDENT,
+        OR: [{ studentId }, { email: studentId }],
+      },
+      select: { needsInitialPasswordSetup: true, passwordHash: true },
+    }),
+    getBmi(profile.studentId),
+  ]);
+
   const needsInitialPasswordSetup = Boolean(
     userRow?.needsInitialPasswordSetup || !userRow?.passwordHash
   );
-  const bmi = await getBmi(profile.studentId);
   const age = calculateAge(profile.birthday);
 
   return NextResponse.json({

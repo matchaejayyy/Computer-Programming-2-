@@ -3,12 +3,12 @@ import { spawnSync } from "child_process";
 import { join } from "path";
 
 import { appointmentMatchesSearch } from "@/lib/clinic/admin-appointment-search";
-import { syncAppointmentsNativeFileFromDb, updateAppointmentInDb } from "@/lib/clinic/appointment-db";
+import { updateAppointmentInDb } from "@/lib/clinic/appointment-db";
 import { APPOINTMENTS_DB_PATH } from "@/lib/clinic/clinic-paths";
 import type { RequestStatus } from "@/lib/clinic/mock-requests";
 import { preferredDateToIso } from "@/lib/clinic/preferred-date-iso";
-import { searchAppointmentLineNumbersCpp } from "@/lib/clinic/cpp-search-appointments";
 import { prisma } from "@/lib/prisma";
+import type { AppointmentStatus } from "@prisma/client";
 
 export type AppointmentListFilter =
   | "all"
@@ -103,7 +103,24 @@ function readAllStoredAppointmentsFromDisk(): StoredAppointment[] {
 }
 
 async function readAllStoredAppointmentsFromDb(): Promise<StoredAppointment[]> {
-  const rows = await prisma.appointment.findMany({ orderBy: { id: "asc" } });
+  const rows = await prisma.appointment.findMany({
+    orderBy: { id: "asc" },
+    select: {
+      id: true,
+      studentName: true,
+      email: true,
+      address: true,
+      reason: true,
+      otherReasonDetail: true,
+      preferredDate: true,
+      preferredTime: true,
+      submittedAt: true,
+      status: true,
+      adminNote: true,
+      reviewedAt: true,
+      schoolIdNumber: true,
+    },
+  });
   return rows.map((r) => ({
     updateId: r.id,
     record: {
@@ -125,11 +142,7 @@ async function readAllStoredAppointmentsFromDb(): Promise<StoredAppointment[]> {
 }
 
 export async function readAllStoredAppointments(): Promise<StoredAppointment[]> {
-  if (process.env.VERCEL) {
-    return readAllStoredAppointmentsFromDb();
-  }
-  await syncAppointmentsNativeFileFromDb();
-  return readAllStoredAppointmentsFromDisk();
+  return readAllStoredAppointmentsFromDb();
 }
 
 function listStoredAppointmentsFromListBinary(
@@ -202,13 +215,44 @@ function listStoredAppointmentsFromDisk(filter: AppointmentListFilter): StoredAp
 export async function listStoredAppointments(
   filter: AppointmentListFilter
 ): Promise<StoredAppointment[]> {
-  if (process.env.VERCEL) {
-    const all = await readAllStoredAppointmentsFromDb();
-    if (filter === "all") return all;
-    return all.filter(({ record }) => recordStatus(record) === filter);
-  }
-  await syncAppointmentsNativeFileFromDb();
-  return listStoredAppointmentsFromDisk(filter);
+  const where = filter === "all" ? {} : { status: filter as AppointmentStatus };
+  const rows = await prisma.appointment.findMany({
+    where,
+    orderBy: { id: "asc" },
+    select: {
+      id: true,
+      studentName: true,
+      email: true,
+      address: true,
+      reason: true,
+      otherReasonDetail: true,
+      preferredDate: true,
+      preferredTime: true,
+      submittedAt: true,
+      status: true,
+      adminNote: true,
+      reviewedAt: true,
+      schoolIdNumber: true,
+    },
+  });
+  return rows.map((r) => ({
+    updateId: r.id,
+    record: {
+      id: r.id,
+      studentName: r.studentName,
+      email: r.email,
+      address: r.address,
+      reason: r.reason,
+      otherReasonDetail: r.otherReasonDetail || undefined,
+      preferredDate: r.preferredDate,
+      preferredTime: r.preferredTime,
+      submittedAt: r.submittedAt.toISOString(),
+      status: r.status as RequestStatus,
+      adminNote: r.adminNote || undefined,
+      reviewedAt: r.reviewedAt ? r.reviewedAt.toISOString() : undefined,
+      schoolIdNumber: r.schoolIdNumber?.trim() || undefined,
+    },
+  }));
 }
 
 /**
@@ -220,49 +264,52 @@ export async function listStoredAppointmentsWithSearch(
   query: string,
   dateIso?: string
 ): Promise<StoredAppointment[]> {
-  if (process.env.VERCEL) {
-    const all = await readAllStoredAppointmentsFromDb();
-    const q = query.trim();
-    let filtered = filter === "all" ? all : all.filter(({ record }) => recordStatus(record) === filter);
-    if (q) {
-      filtered = filtered.filter((item) => appointmentMatchesSearch(toAppointmentRequestView(item), q));
-    }
-    return filterStoredByDateIso(filtered, dateIso);
+  const where: Record<string, unknown> = {};
+  if (filter !== "all") {
+    where.status = filter;
   }
-
-  await syncAppointmentsNativeFileFromDb();
+  const rows = await prisma.appointment.findMany({
+    where,
+    orderBy: { id: "asc" },
+    select: {
+      id: true,
+      studentName: true,
+      email: true,
+      address: true,
+      reason: true,
+      otherReasonDetail: true,
+      preferredDate: true,
+      preferredTime: true,
+      submittedAt: true,
+      status: true,
+      adminNote: true,
+      reviewedAt: true,
+      schoolIdNumber: true,
+    },
+  });
+  let items: StoredAppointment[] = rows.map((r) => ({
+    updateId: r.id,
+    record: {
+      id: r.id,
+      studentName: r.studentName,
+      email: r.email,
+      address: r.address,
+      reason: r.reason,
+      otherReasonDetail: r.otherReasonDetail || undefined,
+      preferredDate: r.preferredDate,
+      preferredTime: r.preferredTime,
+      submittedAt: r.submittedAt.toISOString(),
+      status: r.status as RequestStatus,
+      adminNote: r.adminNote || undefined,
+      reviewedAt: r.reviewedAt ? r.reviewedAt.toISOString() : undefined,
+      schoolIdNumber: r.schoolIdNumber?.trim() || undefined,
+    },
+  }));
   const q = query.trim();
-  const base = listStoredAppointmentsFromDisk(filter);
-  let rows: StoredAppointment[];
-  if (!q) {
-    rows = base;
-  } else {
-    const lineNums = searchAppointmentLineNumbersCpp(APPOINTMENTS_DB_PATH, filter, q);
-    if (lineNums !== null) {
-      const want = new Set(lineNums);
-      const lines = readNonemptyLines(APPOINTMENTS_DB_PATH);
-      const out: StoredAppointment[] = [];
-      lines.forEach((line, i) => {
-        const n = i + 1;
-        if (!want.has(n)) {
-          return;
-        }
-        try {
-          const record = JSON.parse(line) as RawAppointmentRecord;
-          out.push({
-            updateId: effectiveUpdateIdFromLine(record, n),
-            record,
-          });
-        } catch {
-          /* skip malformed */
-        }
-      });
-      rows = out;
-    } else {
-      rows = base.filter((item) => appointmentMatchesSearch(toAppointmentRequestView(item), q));
-    }
+  if (q) {
+    items = items.filter((item) => appointmentMatchesSearch(toAppointmentRequestView(item), q));
   }
-  return filterStoredByDateIso(rows, dateIso);
+  return filterStoredByDateIso(items, dateIso);
 }
 
 export async function updateAppointmentRecord(
@@ -355,57 +402,5 @@ function appointmentStatsTypeScript() {
 }
 
 export async function appointmentStats() {
-  if (process.env.VERCEL) {
-    return appointmentStatsFromDb();
-  }
-
-  await syncAppointmentsNativeFileFromDb();
-  const binary =
-    process.platform === "win32" ? "count_by_status.exe" : "count_by_status";
-  const executable = join(process.cwd(), "native", "appointments", binary);
-  if (!existsSync(executable)) {
-    return appointmentStatsTypeScript();
-  }
-
-  const result = spawnSync(executable, [APPOINTMENTS_DB_PATH], {
-    cwd: process.cwd(),
-    encoding: "utf8",
-    maxBuffer: 1024 * 1024,
-  });
-
-  if (result.error || result.status !== 0 || !result.stdout?.trim()) {
-    return appointmentStatsTypeScript();
-  }
-
-  try {
-    const data = JSON.parse(result.stdout.trim()) as {
-      total?: number;
-      pending?: number;
-      approved?: number;
-      rejected?: number;
-      cancelled?: number;
-      no_show?: number;
-      completed?: number;
-    };
-    if (
-      typeof data.total === "number" &&
-      typeof data.pending === "number" &&
-      typeof data.approved === "number" &&
-      typeof data.rejected === "number"
-    ) {
-      return {
-        total: data.total,
-        pending: data.pending,
-        approved: data.approved,
-        rejected: data.rejected,
-        cancelled: typeof data.cancelled === "number" ? data.cancelled : 0,
-        no_show: typeof data.no_show === "number" ? data.no_show : 0,
-        completed: typeof data.completed === "number" ? data.completed : 0,
-      };
-    }
-  } catch {
-    /* fall through */
-  }
-
-  return appointmentStatsTypeScript();
+  return appointmentStatsFromDb();
 }
