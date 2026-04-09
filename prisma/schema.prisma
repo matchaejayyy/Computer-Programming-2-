@@ -199,3 +199,16 @@ model MedicineRequest {
   @@index([requestedAt])
   @@index([studentId])
 }
+
+model BroadcastNotification {
+  id                 String   @id
+  title              String
+  message            String
+  createdAt          DateTime @default(now())
+  attachmentName     String?
+  attachmentMimeType String?
+  /// Base64-encoded attachment data stored in the database for serverless compatibility.
+  attachmentData     String?
+
+  @@index([createdAt])
+}

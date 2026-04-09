@@ -15,7 +15,6 @@ type BroadcastNotification = {
   message: string;
   createdAt: string;
   attachmentName?: string;
-  attachmentPath?: string;
   attachmentMimeType?: string;
 };
 
@@ -325,14 +324,14 @@ export default function BroadcastNotificationsPage() {
                         required
                         className="min-h-24 w-full rounded-md border border-input bg-background px-3 py-2 text-sm outline-none ring-offset-background focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                       />
-                      {note.attachmentPath ? (
+                      {note.attachmentName ? (
                         <a
-                          href={note.attachmentPath}
+                          href={`/api/broadcast-attachments/${note.id}`}
                           target="_blank"
                           rel="noreferrer"
                           className="text-xs text-primary underline"
                         >
-                          Current attachment: {note.attachmentName || "Open file"}
+                          Current attachment: {note.attachmentName}
                         </a>
                       ) : null}
                       <Input
@@ -340,7 +339,7 @@ export default function BroadcastNotificationsPage() {
                         accept="image/*,.pdf,application/pdf"
                         onChange={(e) => setEditAttachment(e.target.files?.[0] ?? null)}
                       />
-                      {note.attachmentPath ? (
+                      {note.attachmentName ? (
                         <label className="flex items-center gap-2 text-xs text-muted-foreground">
                           <input
                             type="checkbox"
@@ -355,14 +354,14 @@ export default function BroadcastNotificationsPage() {
                     <>
                       <p className="text-sm font-semibold text-foreground">{note.title}</p>
                       <p className="text-sm text-muted-foreground">{note.message}</p>
-                      {note.attachmentPath ? (
+                      {note.attachmentName ? (
                         <a
-                          href={note.attachmentPath}
+                          href={`/api/broadcast-attachments/${note.id}`}
                           target="_blank"
                           rel="noreferrer"
                           className="mt-1 block text-xs text-primary underline"
                         >
-                          Attachment: {note.attachmentName || "Open file"}
+                          Attachment: {note.attachmentName}
                         </a>
                       ) : null}
                     </>

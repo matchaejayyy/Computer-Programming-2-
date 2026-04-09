@@ -29,8 +29,8 @@ type NotificationItem = {
   status?: RequestStatus;
   requestId?: string;
   href: string;
+  broadcastId?: string;
   attachmentName?: string;
-  attachmentPath?: string;
   attachmentMimeType?: string;
 };
 
@@ -73,7 +73,6 @@ export function AppTopBar({ studentId }: { studentId?: string }) {
       message: string;
       createdAt: string;
       attachmentName?: string;
-      attachmentPath?: string;
       attachmentMimeType?: string;
     }>
   >([]);
@@ -157,8 +156,8 @@ export function AppTopBar({ studentId }: { studentId?: string }) {
       createdAt: note.createdAt,
       kind: "broadcast" as const,
       href: "/dashboard",
+      broadcastId: note.id,
       attachmentName: note.attachmentName,
-      attachmentPath: note.attachmentPath,
       attachmentMimeType: note.attachmentMimeType,
     }));
 
@@ -285,22 +284,22 @@ export function AppTopBar({ studentId }: { studentId?: string }) {
               </Button>
             </div>
             <p className="mb-3 text-sm text-muted-foreground">{selectedBroadcast.message}</p>
-            {selectedBroadcast.attachmentPath ? (
+            {selectedBroadcast.attachmentName && selectedBroadcast.broadcastId ? (
               selectedBroadcast.attachmentMimeType?.startsWith("image/") ? (
                 <img
-                  src={selectedBroadcast.attachmentPath}
+                  src={`/api/broadcast-attachments/${selectedBroadcast.broadcastId}`}
                   alt={selectedBroadcast.attachmentName || "Notification attachment"}
                   className="max-h-[65vh] w-full rounded-lg border border-border object-contain"
                 />
               ) : selectedBroadcast.attachmentMimeType === "application/pdf" ? (
                 <iframe
-                  src={selectedBroadcast.attachmentPath}
+                  src={`/api/broadcast-attachments/${selectedBroadcast.broadcastId}`}
                   title={selectedBroadcast.attachmentName || "Notification PDF"}
                   className="h-[70vh] w-full rounded-lg border border-border"
                 />
               ) : (
                 <a
-                  href={selectedBroadcast.attachmentPath}
+                  href={`/api/broadcast-attachments/${selectedBroadcast.broadcastId}`}
                   target="_blank"
                   rel="noreferrer"
                   className="text-sm text-primary underline"

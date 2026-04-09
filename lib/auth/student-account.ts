@@ -1,4 +1,5 @@
 import { DEFAULT_STUDENT_PROFILE_DATA } from "@/lib/clinic/profile-placeholders";
+import { ensureNeonAuthUser } from "@/lib/auth/neon-user-sync";
 import { prisma } from "@/lib/prisma";
 
 type AuthUserRecord = {
@@ -68,6 +69,12 @@ export async function ensureStudentUserAccount(
             data: { name },
           });
     return { kind: "student" as const, user: updated };
+  }
+
+  try {
+    await ensureNeonAuthUser(normalizedEmail, name);
+  } catch (err) {
+    console.warn("[student-account] Neon Auth sync before user creation:", err);
   }
 
   const created = await userModel.create({

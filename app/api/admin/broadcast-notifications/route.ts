@@ -1,7 +1,4 @@
 import { NextResponse } from "next/server";
-import { mkdir, writeFile } from "fs/promises";
-import { extname, join } from "path";
-import { randomUUID } from "crypto";
 
 import {
   createBroadcastNotification,
@@ -12,38 +9,31 @@ import {
 
 export const runtime = "nodejs";
 
-const ALLOWED_MIME = new Set(["application/pdf", "image/jpeg", "image/png", "image/webp", "image/gif"]);
+const ALLOWED_MIME = new Set([
+  "application/pdf",
+  "image/jpeg",
+  "image/png",
+  "image/webp",
+  "image/gif",
+]);
+const MAX_ATTACHMENT_BYTES = 5 * 1024 * 1024;
 
-function sanitizeFileName(name: string) {
-  return name.replace(/[^a-zA-Z0-9._-]/g, "_");
+function isAllowedFile(file: File): boolean {
+  const mimeType = file.type || "application/octet-stream";
+  const ext = file.name.split(".").pop()?.toLowerCase() || "";
+  const allowedByExt = ["pdf", "jpg", "jpeg", "png", "webp", "gif"].includes(ext);
+  const allowedByMime = ALLOWED_MIME.has(mimeType) || mimeType === "image/jpg";
+  return allowedByExt && allowedByMime;
 }
 
-async function saveAttachment(file: File) {
-  const mimeType = file.type || "application/octet-stream";
-  const ext = extname(file.name).toLowerCase();
-  const allowedByExt = ext === ".pdf" || [".jpg", ".jpeg", ".png", ".webp", ".gif"].includes(ext);
-  const allowedByMime = mimeType === "application/pdf" || mimeType.startsWith("image/");
-  if (!allowedByExt || !allowedByMime || (!ALLOWED_MIME.has(mimeType) && mimeType !== "image/jpg")) {
-    throw new Error("Only image files and PDF are allowed.");
-  }
-
-  const fileName = `${Date.now()}-${randomUUID()}-${sanitizeFileName(file.name)}`;
-  const relativePath = `/uploads/broadcasts/${fileName}`;
-  const absoluteDir = join(process.cwd(), "public", "uploads", "broadcasts");
-  const absolutePath = join(absoluteDir, fileName);
-  await mkdir(absoluteDir, { recursive: true });
-  const bytes = await file.arrayBuffer();
-  await writeFile(absolutePath, Buffer.from(bytes));
-  return {
-    attachmentName: file.name,
-    attachmentPath: relativePath,
-    attachmentMimeType: mimeType === "image/jpg" ? "image/jpeg" : mimeType,
-  };
+async function fileToBase64(file: File) {
+  const buffer = Buffer.from(await file.arrayBuffer());
+  return buffer.toString("base64");
 }
 
 export async function GET() {
   try {
-    return NextResponse.json({ notifications: listBroadcastNotifications() });
+    return NextResponse.json({ notifications: await listBroadcastNotifications() });
   } catch (error) {
     return NextResponse.json(
       { error: error instanceof Error ? error.message : "Could not load notifications." },
@@ -56,8 +46,8 @@ export async function POST(request: Request) {
   const contentType = request.headers.get("content-type") || "";
   let title = "";
   let message = "";
-  let attachment:
-    | { attachmentName: string; attachmentPath: string; attachmentMimeType: string }
+  let attachmentFields:
+    | { attachmentName: string; attachmentMimeType: string; attachmentData: string }
     | undefined;
 
   if (contentType.includes("multipart/form-data")) {
@@ -66,14 +56,24 @@ export async function POST(request: Request) {
     message = typeof form.get("message") === "string" ? String(form.get("message")).trim() : "";
     const file = form.get("attachment");
     if (file instanceof File && file.size > 0) {
-      try {
-        attachment = await saveAttachment(file);
-      } catch (error) {
+      if (!isAllowedFile(file)) {
         return NextResponse.json(
-          { error: error instanceof Error ? error.message : "Could not save attachment." },
+          { error: "Only image files and PDF are allowed." },
           { status: 400 }
         );
       }
+      if (file.size > MAX_ATTACHMENT_BYTES) {
+        return NextResponse.json(
+          { error: "Attachment must be under 5 MB." },
+          { status: 400 }
+        );
+      }
+      const mimeType = file.type === "image/jpg" ? "image/jpeg" : file.type;
+      attachmentFields = {
+        attachmentName: file.name,
+        attachmentMimeType: mimeType,
+        attachmentData: await fileToBase64(file),
+      };
     }
   } else {
     let body: unknown;
@@ -95,11 +95,11 @@ export async function POST(request: Request) {
   }
 
   try {
-    const created = createBroadcastNotification({
+    const created = await createBroadcastNotification({
       title,
       message,
       createdAt: new Date().toISOString(),
-      ...attachment,
+      ...attachmentFields,
     });
     return NextResponse.json({ success: true, notification: created }, { status: 201 });
   } catch (error) {
@@ -116,8 +116,8 @@ export async function PATCH(request: Request) {
   let title = "";
   let message = "";
   let removeAttachment = false;
-  let attachment:
-    | { attachmentName: string; attachmentPath: string; attachmentMimeType: string }
+  let attachmentFields:
+    | { attachmentName: string; attachmentMimeType: string; attachmentData: string }
     | undefined;
 
   if (contentType.includes("multipart/form-data")) {
@@ -128,14 +128,24 @@ export async function PATCH(request: Request) {
     removeAttachment = String(form.get("removeAttachment") || "0") === "1";
     const file = form.get("attachment");
     if (file instanceof File && file.size > 0) {
-      try {
-        attachment = await saveAttachment(file);
-      } catch (error) {
+      if (!isAllowedFile(file)) {
         return NextResponse.json(
-          { error: error instanceof Error ? error.message : "Could not save attachment." },
+          { error: "Only image files and PDF are allowed." },
           { status: 400 }
         );
       }
+      if (file.size > MAX_ATTACHMENT_BYTES) {
+        return NextResponse.json(
+          { error: "Attachment must be under 5 MB." },
+          { status: 400 }
+        );
+      }
+      const mimeType = file.type === "image/jpg" ? "image/jpeg" : file.type;
+      attachmentFields = {
+        attachmentName: file.name,
+        attachmentMimeType: mimeType,
+        attachmentData: await fileToBase64(file),
+      };
     }
   } else {
     let body: unknown;
@@ -162,10 +172,10 @@ export async function PATCH(request: Request) {
   }
 
   try {
-    const updated = updateBroadcastNotification(id, {
+    const updated = await updateBroadcastNotification(id, {
       title,
       message,
-      ...attachment,
+      ...attachmentFields,
       removeAttachment,
     });
     if (!updated) {
@@ -199,7 +209,7 @@ export async function DELETE(request: Request) {
   }
 
   try {
-    const deleted = deleteBroadcastNotification(id);
+    const deleted = await deleteBroadcastNotification(id);
     if (!deleted) {
       return NextResponse.json({ error: "Broadcast not found." }, { status: 404 });
     }
