@@ -28,5 +28,5 @@ export async function reserveAppointmentCpp(
     preferredTime: payload.preferredTime,
     schoolIdNumber: payload.schoolIdNumber,
   });
-  return `Appointment saved. id=${id}`;
+  return "Your appointment has been submitted successfully! You will be redirected shortly.";
 }

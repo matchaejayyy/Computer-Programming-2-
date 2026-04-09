@@ -47,19 +47,8 @@ function toExternalFormat(
 export async function listBroadcastNotifications(): Promise<BroadcastNotification[]> {
   const rows = await prisma.broadcastNotification.findMany({
     orderBy: { createdAt: "desc" },
-    select: {
-      id: true,
-      title: true,
-      message: true,
-      createdAt: true,
-      attachmentName: true,
-      attachmentMimeType: true,
-      attachmentData: false,
-    },
   });
-  return rows.map((row) =>
-    toExternalFormat({ ...row, attachmentData: null })
-  );
+  return rows.map((row) => toExternalFormat(row, true));
 }
 
 export async function createBroadcastNotification(

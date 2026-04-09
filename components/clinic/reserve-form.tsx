@@ -458,7 +458,7 @@ export function ReserveForm() {
       setSubmitState("success");
       setStatusMessage(
         responseData?.message ||
-          "Appointment form has already been submitted. Redirecting to home..."
+          "Your appointment has been submitted successfully! Redirecting..."
       );
       resetForm();
       notifyAppointmentsChanged();

@@ -16,6 +16,7 @@ type BroadcastNotification = {
   createdAt: string;
   attachmentName?: string;
   attachmentMimeType?: string;
+  attachmentData?: string;
 };
 
 export default function BroadcastNotificationsPage() {
@@ -324,11 +325,10 @@ export default function BroadcastNotificationsPage() {
                         required
                         className="min-h-24 w-full rounded-md border border-input bg-background px-3 py-2 text-sm outline-none ring-offset-background focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                       />
-                      {note.attachmentName ? (
+                      {note.attachmentName && note.attachmentData && note.attachmentMimeType ? (
                         <a
-                          href={`/api/broadcast-attachments/${note.id}`}
-                          target="_blank"
-                          rel="noreferrer"
+                          href={`data:${note.attachmentMimeType};base64,${note.attachmentData}`}
+                          download={note.attachmentName}
                           className="text-xs text-primary underline"
                         >
                           Current attachment: {note.attachmentName}
@@ -354,18 +354,17 @@ export default function BroadcastNotificationsPage() {
                     <>
                       <p className="text-sm font-semibold text-foreground">{note.title}</p>
                       <p className="text-sm text-muted-foreground">{note.message}</p>
-                      {note.attachmentName ? (
-                        note.attachmentMimeType?.startsWith("image/") ? (
+                      {note.attachmentName && note.attachmentData && note.attachmentMimeType ? (
+                        note.attachmentMimeType.startsWith("image/") ? (
                           <img
-                            src={`/api/broadcast-attachments/${note.id}`}
+                            src={`data:${note.attachmentMimeType};base64,${note.attachmentData}`}
                             alt={note.attachmentName}
                             className="mt-2 max-h-56 w-full rounded-md border border-border object-contain"
                           />
                         ) : (
                           <a
-                            href={`/api/broadcast-attachments/${note.id}`}
-                            target="_blank"
-                            rel="noreferrer"
+                            href={`data:${note.attachmentMimeType};base64,${note.attachmentData}`}
+                            download={note.attachmentName}
                             className="mt-1 block text-xs text-primary underline"
                           >
                             Attachment: {note.attachmentName}

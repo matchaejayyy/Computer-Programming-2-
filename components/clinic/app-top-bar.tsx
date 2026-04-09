@@ -32,6 +32,7 @@ type NotificationItem = {
   broadcastId?: string;
   attachmentName?: string;
   attachmentMimeType?: string;
+  attachmentDataUrl?: string;
 };
 
 function statusTitle(status: RequestStatus): string {
@@ -74,6 +75,7 @@ export function AppTopBar({ studentId }: { studentId?: string }) {
       createdAt: string;
       attachmentName?: string;
       attachmentMimeType?: string;
+      attachmentData?: string;
     }>
   >([]);
   const [menuOpen, setMenuOpen] = useState(false);
@@ -159,6 +161,10 @@ export function AppTopBar({ studentId }: { studentId?: string }) {
       broadcastId: note.id,
       attachmentName: note.attachmentName,
       attachmentMimeType: note.attachmentMimeType,
+      attachmentDataUrl:
+        note.attachmentData && note.attachmentMimeType
+          ? `data:${note.attachmentMimeType};base64,${note.attachmentData}`
+          : undefined,
     }));
 
     return [...appointmentNotifications, ...broadcastNotifications].sort(
@@ -284,27 +290,26 @@ export function AppTopBar({ studentId }: { studentId?: string }) {
               </Button>
             </div>
             <p className="mb-3 text-sm text-muted-foreground">{selectedBroadcast.message}</p>
-            {selectedBroadcast.attachmentName && selectedBroadcast.broadcastId ? (
+            {selectedBroadcast.attachmentDataUrl ? (
               selectedBroadcast.attachmentMimeType?.startsWith("image/") ? (
                 <img
-                  src={`/api/broadcast-attachments/${selectedBroadcast.broadcastId}`}
+                  src={selectedBroadcast.attachmentDataUrl}
                   alt={selectedBroadcast.attachmentName || "Notification attachment"}
                   className="max-h-[65vh] w-full rounded-lg border border-border object-contain"
                 />
               ) : selectedBroadcast.attachmentMimeType === "application/pdf" ? (
                 <iframe
-                  src={`/api/broadcast-attachments/${selectedBroadcast.broadcastId}`}
+                  src={selectedBroadcast.attachmentDataUrl}
                   title={selectedBroadcast.attachmentName || "Notification PDF"}
                   className="h-[70vh] w-full rounded-lg border border-border"
                 />
               ) : (
                 <a
-                  href={`/api/broadcast-attachments/${selectedBroadcast.broadcastId}`}
-                  target="_blank"
-                  rel="noreferrer"
+                  href={selectedBroadcast.attachmentDataUrl}
+                  download={selectedBroadcast.attachmentName}
                   className="text-sm text-primary underline"
                 >
-                  Open attachment
+                  Download attachment
                 </a>
               )
             ) : null}
