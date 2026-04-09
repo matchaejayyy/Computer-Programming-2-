@@ -355,14 +355,22 @@ export default function BroadcastNotificationsPage() {
                       <p className="text-sm font-semibold text-foreground">{note.title}</p>
                       <p className="text-sm text-muted-foreground">{note.message}</p>
                       {note.attachmentName ? (
-                        <a
-                          href={`/api/broadcast-attachments/${note.id}`}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="mt-1 block text-xs text-primary underline"
-                        >
-                          Attachment: {note.attachmentName}
-                        </a>
+                        note.attachmentMimeType?.startsWith("image/") ? (
+                          <img
+                            src={`/api/broadcast-attachments/${note.id}`}
+                            alt={note.attachmentName}
+                            className="mt-2 max-h-56 w-full rounded-md border border-border object-contain"
+                          />
+                        ) : (
+                          <a
+                            href={`/api/broadcast-attachments/${note.id}`}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="mt-1 block text-xs text-primary underline"
+                          >
+                            Attachment: {note.attachmentName}
+                          </a>
+                        )
                       ) : null}
                     </>
                   )}

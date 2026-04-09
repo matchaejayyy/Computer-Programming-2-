@@ -8,6 +8,7 @@ import { APPOINTMENTS_DB_PATH } from "@/lib/clinic/clinic-paths";
 import type { RequestStatus } from "@/lib/clinic/mock-requests";
 import { preferredDateToIso } from "@/lib/clinic/preferred-date-iso";
 import { searchAppointmentLineNumbersCpp } from "@/lib/clinic/cpp-search-appointments";
+import { prisma } from "@/lib/prisma";
 
 export type AppointmentListFilter =
   | "all"
@@ -101,7 +102,32 @@ function readAllStoredAppointmentsFromDisk(): StoredAppointment[] {
   return out;
 }
 
+async function readAllStoredAppointmentsFromDb(): Promise<StoredAppointment[]> {
+  const rows = await prisma.appointment.findMany({ orderBy: { id: "asc" } });
+  return rows.map((r) => ({
+    updateId: r.id,
+    record: {
+      id: r.id,
+      studentName: r.studentName,
+      email: r.email,
+      address: r.address,
+      reason: r.reason,
+      otherReasonDetail: r.otherReasonDetail || undefined,
+      preferredDate: r.preferredDate,
+      preferredTime: r.preferredTime,
+      submittedAt: r.submittedAt.toISOString(),
+      status: r.status as RequestStatus,
+      adminNote: r.adminNote || undefined,
+      reviewedAt: r.reviewedAt ? r.reviewedAt.toISOString() : undefined,
+      schoolIdNumber: r.schoolIdNumber?.trim() || undefined,
+    },
+  }));
+}
+
 export async function readAllStoredAppointments(): Promise<StoredAppointment[]> {
+  if (process.env.VERCEL) {
+    return readAllStoredAppointmentsFromDb();
+  }
   await syncAppointmentsNativeFileFromDb();
   return readAllStoredAppointmentsFromDisk();
 }
@@ -176,6 +202,11 @@ function listStoredAppointmentsFromDisk(filter: AppointmentListFilter): StoredAp
 export async function listStoredAppointments(
   filter: AppointmentListFilter
 ): Promise<StoredAppointment[]> {
+  if (process.env.VERCEL) {
+    const all = await readAllStoredAppointmentsFromDb();
+    if (filter === "all") return all;
+    return all.filter(({ record }) => recordStatus(record) === filter);
+  }
   await syncAppointmentsNativeFileFromDb();
   return listStoredAppointmentsFromDisk(filter);
 }
@@ -189,6 +220,16 @@ export async function listStoredAppointmentsWithSearch(
   query: string,
   dateIso?: string
 ): Promise<StoredAppointment[]> {
+  if (process.env.VERCEL) {
+    const all = await readAllStoredAppointmentsFromDb();
+    const q = query.trim();
+    let filtered = filter === "all" ? all : all.filter(({ record }) => recordStatus(record) === filter);
+    if (q) {
+      filtered = filtered.filter((item) => appointmentMatchesSearch(toAppointmentRequestView(item), q));
+    }
+    return filterStoredByDateIso(filtered, dateIso);
+  }
+
   await syncAppointmentsNativeFileFromDb();
   const q = query.trim();
   const base = listStoredAppointmentsFromDisk(filter);
@@ -256,6 +297,28 @@ export function toAppointmentRequestView(item: StoredAppointment) {
   };
 }
 
+async function appointmentStatsFromDb() {
+  const rows = await prisma.appointment.groupBy({
+    by: ["status"],
+    _count: { status: true },
+  });
+  const counts: Record<string, number> = {};
+  let total = 0;
+  for (const row of rows) {
+    counts[row.status] = row._count.status;
+    total += row._count.status;
+  }
+  return {
+    total,
+    pending: counts.pending ?? 0,
+    approved: counts.approved ?? 0,
+    rejected: counts.rejected ?? 0,
+    cancelled: counts.cancelled ?? 0,
+    no_show: counts.no_show ?? 0,
+    completed: counts.completed ?? 0,
+  };
+}
+
 function appointmentStatsTypeScript() {
   const all = readAllStoredAppointmentsFromDisk();
   let pending = 0;
@@ -292,6 +355,10 @@ function appointmentStatsTypeScript() {
 }
 
 export async function appointmentStats() {
+  if (process.env.VERCEL) {
+    return appointmentStatsFromDb();
+  }
+
   await syncAppointmentsNativeFileFromDb();
   const binary =
     process.platform === "win32" ? "count_by_status.exe" : "count_by_status";
