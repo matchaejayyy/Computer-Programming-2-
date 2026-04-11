@@ -175,7 +175,7 @@ export default async function HistoryPage() {
                   <Card className="border-border shadow-sm transition-colors hover:bg-neutral-50/50">
                     <CardHeader className="flex flex-row flex-wrap items-start justify-between gap-2 border-b border-border px-5 py-4">
                       <div className="space-y-1">
-                        <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                        <p className="text-xs font-bold uppercase tracking-wide text-muted-foreground">
                           Record ID
                         </p>
                         <CardTitle className="font-mono text-base text-foreground">
@@ -190,7 +190,7 @@ export default async function HistoryPage() {
                     <CardContent className="space-y-4 px-5 py-4 text-sm">
                       <div className="flex items-start gap-3">
                         <div>
-                          <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                          <p className="text-xs font-bold uppercase tracking-wide text-muted-foreground">
                             Appointment date
                           </p>
                           <p className="mt-0.5 text-foreground">{entry.appointmentDate}</p>
@@ -216,7 +216,7 @@ export default async function HistoryPage() {
                         <>
                           <Separator />
                           <div>
-                            <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                            <p className="text-xs font-bold uppercase tracking-wide text-muted-foreground">
                               Clinic note
                             </p>
                             <p className="mt-1 text-foreground">{entry.clinicNote}</p>
@@ -238,7 +238,7 @@ export default async function HistoryPage() {
 function DetailRow({ label, value }: { label: string; value: string }) {
   return (
     <div>
-      <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">{label}</p>
+      <p className="text-xs font-bold uppercase tracking-wide text-muted-foreground">{label}</p>
       <p className="mt-0.5 text-foreground">{value}</p>
     </div>
   );

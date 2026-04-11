@@ -577,7 +577,7 @@ export function ProfilePatientDetails({
               </div>
             ) : (
               <div className="space-y-2">
-                <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                <p className="text-xs font-bold uppercase tracking-wide text-muted-foreground">
                   Gender
                 </p>
                 <p className="text-muted-foreground">
@@ -598,7 +598,7 @@ export function ProfilePatientDetails({
               </div>
             ) : (
               <div className="space-y-2">
-                <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                <p className="text-xs font-bold uppercase tracking-wide text-muted-foreground">
                   Birthday
                 </p>
                 <p className="text-muted-foreground">
@@ -731,7 +731,7 @@ export function ProfilePatientDetails({
 function DetailRow({ label, value }: { label: string; value: string }) {
   return (
     <div>
-      <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">{label}</p>
+      <p className="text-xs font-bold uppercase tracking-wide text-muted-foreground">{label}</p>
       <p className="mt-0.5 text-foreground">{value}</p>
     </div>
   );

@@ -178,7 +178,7 @@ export function RequestStatusSummary({ studentId: studentIdProp }: Props) {
               href={row.href}
               className="flex items-center justify-between gap-2 rounded-lg border border-transparent px-3 py-2.5 text-sm transition-colors hover:border-border hover:bg-muted/50"
             >
-              <span className="font-medium text-foreground">{row.label}</span>
+              <span className="font-bold text-foreground">{row.label}</span>
               <span className="flex items-center gap-1.5">
                 <Badge variant="outline" className={row.badgeClass}>
                   {mounted ? count : "—"}

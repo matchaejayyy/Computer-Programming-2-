@@ -550,7 +550,7 @@ export function ReserveForm() {
             </FormField>
 
             <div className="space-y-3">
-              <p className="text-sm font-medium text-foreground">
+              <p className="text-sm font-bold text-foreground">
                 Reason for appointment
               </p>
               <RadioGroup
@@ -658,7 +658,7 @@ export function ReserveForm() {
                       onClick={(event) => event.stopPropagation()}
                     >
                       <div className="mb-3 flex items-center justify-between">
-                        <h3 className="text-base font-semibold text-foreground">
+                        <h3 className="text-base font-bold text-foreground">
                           Select preferred date
                         </h3>
                         <Button
@@ -716,7 +716,7 @@ export function ReserveForm() {
                       onClick={(event) => event.stopPropagation()}
                     >
                       <div className="mb-3 flex items-center justify-between">
-                        <h3 className="text-base font-semibold text-foreground">
+                        <h3 className="text-base font-bold text-foreground">
                           Select preferred time
                         </h3>
                         <Button

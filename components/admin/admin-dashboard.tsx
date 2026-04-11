@@ -241,7 +241,7 @@ export function AdminDashboard() {
                 <CardContent className="p-4 sm:p-5">
                   <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0 flex-1">
-                      <p className="text-xs font-medium text-muted-foreground sm:text-sm">
+                      <p className="text-xs font-bold text-muted-foreground sm:text-sm">
                         {item.title}
                       </p>
                       <p className="mt-1 text-2xl font-bold tabular-nums sm:text-3xl">

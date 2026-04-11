@@ -38,7 +38,7 @@ A full-stack school clinic management system built for San Agustin, enabling stu
 
 ### Native C++ Components
 
-The project includes C++17 programs that handle filtering, searching, and data operations on synced file-based stores (derived from the Prisma/PostgreSQL database):
+The project includes C++17 programs that handle filtering, searching, and data operations on synced file-based stores (derived from the Prisma/PostgreSQL database). The appointment tools also demonstrate **abstract base classes and overrides** (`ClinicServiceRequest`, `UrgentAppointmentRequest`), **polymorphic status filters** (`AppointmentLineFilter` hierarchy), **explicit `new` / `delete[]`** for exported line indices in `list_appointments`, and a **`manage_appointments` demo binary** (builds from `main.cpp`) that walks a heterogeneous `std::vector<std::unique_ptr<ClinicServiceRequest>>`.
 
 - **Filters** — filter appointments by status (pending, accepted, rejected, cancelled)
 - **Appointments** — CRUD, search, count by status, schedule tools

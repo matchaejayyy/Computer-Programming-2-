@@ -46,7 +46,7 @@ function formatRecordedAt(iso: string | null): string | null {
 
 const sectionTitle =
   "text-xs font-bold uppercase tracking-wider text-muted-foreground sm:text-sm";
-const dtClass = "text-xs font-medium text-muted-foreground sm:text-sm";
+const dtClass = "text-xs font-bold text-muted-foreground sm:text-sm";
 const ddClass =
   "mt-1 text-sm font-medium text-foreground sm:mt-1.5 sm:text-base md:text-lg";
 const cardPad =

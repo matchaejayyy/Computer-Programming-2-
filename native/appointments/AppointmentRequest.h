@@ -3,7 +3,9 @@
 
 #include <string>
 
-class AppointmentRequest {
+#include "ClinicServiceRequest.h"
+
+class AppointmentRequest : public ClinicServiceRequest {
 public:
   AppointmentRequest(
     std::string studentName,
@@ -23,8 +25,8 @@ public:
   const std::string& getPreferredDate() const;
   const std::string& getPreferredTime() const;
 
-  bool isValid() const;
-  std::string serialize() const;
+  bool isValid() const override;
+  std::string serialize() const override;
   std::string serializeForDatabase(
     int id,
     const std::string& status,

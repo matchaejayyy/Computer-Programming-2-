@@ -4,14 +4,21 @@
  * Writes: {"lineNumbers":[...],"appointments":[ ...objects... ]}\n
  * (lineNumbers are 1-based indices of non-empty trimmed lines, matching TypeScript readers.)
  *
+ * Uses polymorphic status filters (Module 8) and a manually managed int buffer (Module 6)
+ * when emitting lineNumbers, then releases it with delete[].
+ *
  * Build (from repo root):
- *   c++ -std=c++17 -O2 -o native/appointments/list_appointments native/appointments/list_appointments.cpp
+ *   c++ -std=c++17 -O2 -o native/appointments/list_appointments \\
+ *       native/appointments/list_appointments.cpp native/appointments/AppointmentLineFilter.cpp
  */
 
 #include <fstream>
 #include <iostream>
+#include <memory>
 #include <string>
 #include <vector>
+
+#include "AppointmentLineFilter.h"
 
 namespace {
 
@@ -27,41 +34,6 @@ std::string trim(const std::string& value) {
   return value.substr(start, end - start);
 }
 
-bool matchesFilter(const std::string& line, const std::string& filter) {
-  if (filter == "all") {
-    return true;
-  }
-
-  const bool hasPending = line.find("\"status\":\"pending\"") != std::string::npos;
-  const bool hasApproved = line.find("\"status\":\"approved\"") != std::string::npos;
-  const bool hasRejected = line.find("\"status\":\"rejected\"") != std::string::npos;
-  const bool hasCancelled = line.find("\"status\":\"cancelled\"") != std::string::npos;
-  const bool hasNoShow = line.find("\"status\":\"no_show\"") != std::string::npos;
-  const bool hasCompleted = line.find("\"status\":\"completed\"") != std::string::npos;
-  const bool hasStatusKey = line.find("\"status\":") != std::string::npos;
-
-  if (filter == "pending") {
-    return !hasStatusKey || hasPending;
-  }
-  if (filter == "approved") {
-    return hasApproved;
-  }
-  if (filter == "rejected") {
-    return hasRejected;
-  }
-  if (filter == "cancelled") {
-    return hasCancelled;
-  }
-  if (filter == "no_show") {
-    return hasNoShow;
-  }
-  if (filter == "completed") {
-    return hasCompleted;
-  }
-
-  return true;
-}
-
 } // namespace
 
 int main(int argc, char** argv) {
@@ -71,7 +43,13 @@ int main(int argc, char** argv) {
   }
 
   const std::string path = argv[1];
-  const std::string filter = argv[2];
+  const std::string filterName = argv[2];
+
+  std::unique_ptr<AppointmentLineFilter> filter = createAppointmentLineFilter(filterName);
+  if (!filter) {
+    std::cerr << "unknown filter: " << filterName << std::endl;
+    return 1;
+  }
 
   std::ifstream in(path);
   if (!in) {
@@ -93,19 +71,29 @@ int main(int argc, char** argv) {
       continue;
     }
     ++lineIndex1;
-    if (!matchesFilter(line, filter)) {
+    if (!filter->matches(line)) {
       continue;
     }
     lineNums.push_back(lineIndex1);
     rows.push_back(line);
   }
 
+  // Module 6 — explicit dynamic array for exported indices (paired with delete[] below).
+  const std::size_t n = lineNums.size();
+  int* exportLineNums = nullptr;
+  if (n > 0) {
+    exportLineNums = new int[n];
+    for (std::size_t i = 0; i < n; ++i) {
+      exportLineNums[i] = lineNums[i];
+    }
+  }
+
   std::cout << "{\"lineNumbers\":[";
-  for (std::size_t i = 0; i < lineNums.size(); ++i) {
+  for (std::size_t i = 0; i < n; ++i) {
     if (i > 0) {
       std::cout << ',';
     }
-    std::cout << lineNums[i];
+    std::cout << exportLineNums[i];
   }
   std::cout << "],\"appointments\":[";
   for (std::size_t i = 0; i < rows.size(); ++i) {
@@ -115,5 +103,7 @@ int main(int argc, char** argv) {
     std::cout << rows[i];
   }
   std::cout << "]}\n";
+
+  delete[] exportLineNums;
   return 0;
 }

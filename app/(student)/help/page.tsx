@@ -22,7 +22,7 @@ export default function HelpPage() {
         <CardContent className="space-y-4 pt-4 text-sm text-muted-foreground">
           <p>{content.intro}</p>
           <div className="rounded-lg border border-neutral-200 bg-neutral-50 p-4">
-            <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+            <p className="text-xs font-bold uppercase tracking-wide text-muted-foreground">
               {content.contactTitle}
             </p>
             <p className="mt-2 text-sm text-foreground">

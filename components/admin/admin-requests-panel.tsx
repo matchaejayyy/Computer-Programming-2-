@@ -243,7 +243,7 @@ function RequestCard({
     <Card className="min-w-0 border-border shadow-sm transition-colors hover:bg-neutral-50/50">
       <CardHeader className="flex flex-row flex-wrap items-start justify-between gap-2 border-b border-border px-4 py-4 sm:px-5">
         <div className="min-w-0 flex-1 space-y-1">
-          <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+          <p className="text-xs font-bold uppercase tracking-wide text-muted-foreground">
             Reference
           </p>
           <CardTitle className="break-words font-mono text-base text-foreground">{req.id}</CardTitle>
@@ -269,7 +269,7 @@ function RequestCard({
           <>
             <Separator />
             <div>
-              <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+              <p className="text-xs font-bold uppercase tracking-wide text-muted-foreground">
                 Your note to them
               </p>
               <p className="mt-1 break-words text-foreground">{req.clinicNote}</p>
@@ -292,7 +292,7 @@ function RequestCard({
 function DetailRow({ label, value }: { label: string; value: string }) {
   return (
     <div className="min-w-0">
-      <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">{label}</p>
+      <p className="text-xs font-bold uppercase tracking-wide text-muted-foreground">{label}</p>
       <p className="mt-0.5 break-words text-foreground">{value}</p>
     </div>
   );

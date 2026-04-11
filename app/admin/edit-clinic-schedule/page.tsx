@@ -143,18 +143,18 @@ export default function EditClinicSchedulePage() {
                   className="flex flex-col gap-4 rounded-lg border border-border bg-card p-4 sm:flex-row sm:items-end"
                 >
                   <div className="min-w-0 flex-1 space-y-2">
-                    <Label htmlFor={`schedule-label-${i}`} className="text-sm font-medium">
-                      Label
+                    <Label htmlFor={`schedule-date-${i}`} className="text-sm font-bold">
+                      Date
                     </Label>
                     <Input
-                      id={`schedule-label-${i}`}
+                      id={`schedule-date-${i}`}
                       value={row.label}
                       onChange={(e) => updateRow(i, "label", e.target.value)}
                       className="w-full"
                     />
                   </div>
                   <div className="min-w-0 flex-1 space-y-2">
-                    <Label htmlFor={`schedule-hours-${i}`} className="text-sm font-medium">
+                    <Label htmlFor={`schedule-hours-${i}`} className="text-sm font-bold">
                       Hours
                     </Label>
                     <Input

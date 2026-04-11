@@ -375,7 +375,7 @@ export function RequestsContent({ studentId: studentIdProp }: Props) {
                 <Card className="border-border shadow-sm transition-transform duration-200 hover:-translate-y-0.5">
                   <CardHeader className="flex flex-row flex-wrap items-start justify-between gap-2 border-b border-border pb-3">
                     <div className="space-y-1">
-                      <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                      <p className="text-xs font-bold uppercase tracking-wide text-muted-foreground">
                         Request ID
                       </p>
                       <CardTitle className="text-base font-mono text-foreground">{req.id}</CardTitle>
@@ -396,7 +396,7 @@ export function RequestsContent({ studentId: studentIdProp }: Props) {
                       <>
                         <Separator />
                         <div>
-                          <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                          <p className="text-xs font-bold uppercase tracking-wide text-muted-foreground">
                             Clinic note
                           </p>
                           <p className="mt-1 text-foreground">{req.clinicNote}</p>
@@ -408,11 +408,11 @@ export function RequestsContent({ studentId: studentIdProp }: Props) {
                         <Separator />
                         {cancelOpenForId === req.id ? (
                           <div className="space-y-3 rounded-lg border border-border bg-muted/30 p-3">
-                            <p className="text-sm font-medium text-foreground">
+                            <p className="text-sm font-bold text-foreground">
                               Cancel pending appointment
                             </p>
                             <div className="space-y-2">
-                              <label className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                              <label className="text-xs font-bold uppercase tracking-wide text-muted-foreground">
                                 Reason
                               </label>
                               <select
@@ -429,7 +429,7 @@ export function RequestsContent({ studentId: studentIdProp }: Props) {
                             </div>
                             {cancelReason === "others" ? (
                               <div className="space-y-2">
-                                <label className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                                <label className="text-xs font-bold uppercase tracking-wide text-muted-foreground">
                                   Note
                                 </label>
                                 <textarea
@@ -497,7 +497,7 @@ export function RequestsContent({ studentId: studentIdProp }: Props) {
 function DetailRow({ label, value }: { label: string; value: string }) {
   return (
     <div>
-      <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">{label}</p>
+      <p className="text-xs font-bold uppercase tracking-wide text-muted-foreground">{label}</p>
       <p className="mt-0.5 text-foreground">{value}</p>
     </div>
   );

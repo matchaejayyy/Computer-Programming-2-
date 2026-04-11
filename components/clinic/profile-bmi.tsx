@@ -217,7 +217,7 @@ export function ProfileBmi({ studentId: studentIdProp }: { studentId?: string })
           </form>
           {calculated ? (
             <div className="mt-4 rounded-md border border-border bg-muted/30 p-3 text-sm">
-              <p className="font-medium text-foreground">
+              <p className="font-bold text-foreground">
                 BMI: {calculated.bmi.toFixed(2)} ({calculated.category})
               </p>
               <p className="text-muted-foreground">
@@ -237,7 +237,7 @@ export function ProfileBmi({ studentId: studentIdProp }: { studentId?: string })
 function DetailRow({ label, value }: { label: string; value: string }) {
   return (
     <div>
-      <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">{label}</p>
+      <p className="text-xs font-bold uppercase tracking-wide text-muted-foreground">{label}</p>
       <p className="mt-0.5 text-foreground">{value}</p>
     </div>
   );
