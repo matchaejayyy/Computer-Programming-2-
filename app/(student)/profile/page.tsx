@@ -3,8 +3,8 @@
 import { useState } from "react";
 import { Pencil, X } from "lucide-react";
 
-import { HomeLink } from "@/components/clinic/home-link";
-import { ProfilePatientDetails } from "@/components/clinic/profile-patient-details";
+import { HomeLink } from "@/components/layouts/HomeLink";
+import { ProfilePatientDetails } from "@/components/student/profile/PatientDetails";
 import { Button } from "@/components/ui/button";
 import {
   Card,

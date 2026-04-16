@@ -1,8 +1,8 @@
 import { redirect } from "next/navigation";
 
 import { auth } from "@/auth";
-import { HomeDashboard } from "@/components/clinic/home-dashboard";
-import { mustCompleteStudentSetup } from "@/lib/clinic/student-setup";
+import { HomeDashboard } from "@/components/student/profile/Dashboard";
+import { mustCompleteStudentSetup } from "@/lib/repositories/student/student-setup";
 
 export default async function HomePage() {
   const session = await auth();

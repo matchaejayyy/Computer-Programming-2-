@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 
-import { filterRejectedIndicesCpp } from "@/lib/clinic/cpp-rejected-filter";
-import type { RequestStatus } from "@/lib/clinic/mock-requests";
+import { filterRejectedIndicesCpp } from "@/lib/utils/helpers/cpp-rejected-filter";
+import type { RequestStatus } from "@/lib/utils/constants/mock-requests";
 
 function isRequestStatus(s: string): s is RequestStatus {
   return (

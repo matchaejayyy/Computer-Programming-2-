@@ -1,4 +1,4 @@
-import { MedicineRequestsBrowse } from "@/components/admin/medicine-requests-browse";
+import { MedicineRequestsBrowse } from "@/components/admin/reports/MedicineRequestsBrowse";
 
 export default function MedicineRequestsBrowsePage() {
   return <MedicineRequestsBrowse />;

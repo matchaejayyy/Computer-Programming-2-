@@ -7,8 +7,8 @@ import { getProviders, signIn, signOut } from "next-auth/react";
 import { User, ShieldUser, ArrowLeft, Eye, EyeOff } from "lucide-react";
 
 import { Card, CardContent } from "@/components/ui/card";
-import { isBirthdayUnset, isProfileFieldUnset } from "@/lib/clinic/profile-placeholders";
-import { isAllowedStudentEmail, STUDENT_EMAIL_DOMAIN } from "@/lib/clinic/student-email";
+import { isBirthdayUnset, isProfileFieldUnset } from "@/lib/repositories/student/profile-placeholders";
+import { isAllowedStudentEmail, STUDENT_EMAIL_DOMAIN } from "@/lib/repositories/student/student-email";
 
 function GoogleGlyph({ className }: { className?: string }) {
   return (

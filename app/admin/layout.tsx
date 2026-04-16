@@ -1,5 +1,5 @@
-import { AdminTopBar } from "@/components/admin/admin-top-bar";
-import { PageTransition } from "@/components/clinic/page-transition";
+import { AdminTopBar } from "@/components/admin/dashboard/TopBar";
+import { PageTransition } from "@/components/common/PageTransition";
 
 export default function AdminLayout({
   children,

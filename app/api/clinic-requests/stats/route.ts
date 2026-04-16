@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 
-import { getStudentProfile } from "@/lib/clinic/profile-store";
+import { getStudentProfile } from "@/lib/repositories/student/profile-store";
 import { prisma } from "@/lib/prisma";
 
 export async function GET(req: Request) {

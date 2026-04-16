@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { Prisma } from "@prisma/client";
 
 import { auth } from "@/auth";
-import { syncAppointmentsNativeFileFromDb } from "@/lib/clinic/appointment-db";
+import { syncAppointmentsNativeFileFromDb } from "@/lib/repositories/appointment/appointment-db";
 import { prisma } from "@/lib/prisma";
 
 const CANCEL_REASONS = new Set([

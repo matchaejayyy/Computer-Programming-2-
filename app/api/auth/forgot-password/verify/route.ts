@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 
-import { hashOtp } from "@/lib/auth/password-reset-otp";
+import { hashOtp } from "@/lib/services/auth/password-reset-otp";
 import { prisma } from "@/lib/prisma";
 
 export async function POST(req: Request) {

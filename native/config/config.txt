@@ -1,0 +1,25 @@
+# San Agustin Clinic System - C++ Backend Configuration
+# File format: KEY=VALUE (one per line)
+# Lines starting with # are comments and are ignored
+# Paths are relative to the native/ directory
+
+# Data directory and database files
+DATA_DIR = ../data
+DATABASE_FILE = ../data/appointments.jsonl
+MEDICINE_DB = ../data/medicine_requests.jsonl
+PROFILE_DB = ../data/student_profiles.jsonl
+BMI_DB = ../data/bmi_records.jsonl
+NOTIFICATIONS_DB = ../data/broadcast_notifications.jsonl
+
+# Media directories
+BROADCAST_IMAGES_DIR = ../data/broadcast_images
+
+# Timezone setting
+TIMEZONE = UTC
+
+# Logging
+LOG_LEVEL = INFO
+
+# Application settings
+APP_NAME = San Agustin Clinic System
+VERSION = 1.0.0

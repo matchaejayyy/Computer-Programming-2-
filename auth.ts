@@ -3,10 +3,10 @@ import Credentials from "next-auth/providers/credentials";
 import Google from "next-auth/providers/google";
 import bcrypt from "bcryptjs";
 
-import { ensureNeonAuthUser } from "@/lib/auth/neon-user-sync";
-import { ensureStudentUserAccount } from "@/lib/auth/student-account";
-import { isAllowedStudentEmail } from "@/lib/clinic/student-email";
-import { ensureStudentProfileIfMissing } from "@/lib/clinic/profile-store";
+import { ensureNeonAuthUser } from "@/lib/services/auth/neon-user-sync";
+import { ensureStudentUserAccount } from "@/lib/services/auth/student-account";
+import { isAllowedStudentEmail } from "@/lib/repositories/student/student-email";
+import { ensureStudentProfileIfMissing } from "@/lib/repositories/student/profile-store";
 import { prisma } from "@/lib/prisma";
 
 type AuthUserRecord = {

@@ -1,0 +1,14 @@
+import { mkdirSync, writeFileSync } from "fs";
+import { dirname } from "path";
+
+import { STUDENT_PROFILES_JSON_PATH } from "@/lib/repositories/schedule/clinic-paths";
+import { listStoredStudentProfiles } from "@/lib/repositories/student/profile-store";
+
+export async function syncStudentProfilesJsonFromDb(): Promise<void> {
+  if (process.env.VERCEL) return;
+  // Use canonical profile list so missing profiles are auto-created and
+  // users without explicit studentId still appear via email-based login id.
+  const arr = await listStoredStudentProfiles();
+  mkdirSync(dirname(STUDENT_PROFILES_JSON_PATH), { recursive: true });
+  writeFileSync(STUDENT_PROFILES_JSON_PATH, JSON.stringify(arr, null, 2), "utf8");
+}

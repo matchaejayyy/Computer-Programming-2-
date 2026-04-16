@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 
-import { filterPendingIndicesCpp } from "@/lib/clinic/cpp-pending-filter";
-import type { RequestStatus } from "@/lib/clinic/mock-requests";
+import { filterPendingIndicesCpp } from "@/lib/utils/helpers/cpp-pending-filter";
+import type { RequestStatus } from "@/lib/utils/constants/mock-requests";
 
 function isRequestStatus(s: string): s is RequestStatus {
   return (

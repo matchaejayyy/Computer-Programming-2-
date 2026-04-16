@@ -4,7 +4,7 @@ import { prisma } from "@/lib/prisma";
 import {
   createVisitorLogRecord,
   listVisitorLogRecords,
-} from "@/lib/clinic/visitor-log-records";
+} from "@/lib/utils/constants/visitor-log-records";
 
 function toReference(id: number): string {
   return `VLOG-${String(id).padStart(4, "0")}`;

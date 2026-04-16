@@ -1,9 +1,9 @@
 import { redirect } from "next/navigation";
 
 import { auth } from "@/auth";
-import { ProfilePatientDetails } from "@/components/clinic/profile-patient-details";
+import { ProfilePatientDetails } from "@/components/student/profile/PatientDetails";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { mustCompleteStudentSetup } from "@/lib/clinic/student-setup";
+import { mustCompleteStudentSetup } from "@/lib/repositories/student/student-setup";
 
 export default async function CompleteProfilePage() {
   const session = await auth();

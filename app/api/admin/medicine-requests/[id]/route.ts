@@ -3,11 +3,11 @@ import { NextResponse } from "next/server";
 import {
   updateMedicineRequestInDb,
   deleteMedicineRequestInDb,
-} from "@/lib/clinic/medicine-request-db";
+} from "@/lib/repositories/medicine/medicine-request-db";
 import {
   updateMedicineRequestCpp,
   deleteMedicineRequestCpp,
-} from "@/lib/clinic/medicine-request-records";
+} from "@/lib/repositories/medicine/medicine-request-records";
 
 function formatDateTime(dt: Date): string {
   const y = dt.getUTCFullYear();

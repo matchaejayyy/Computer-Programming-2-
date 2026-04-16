@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 
-import { getBroadcastAttachment } from "@/lib/clinic/broadcast-notifications";
+import { getBroadcastAttachment } from "@/lib/utils/constants/broadcast-notifications";
 
 export async function GET(
   _request: Request,

@@ -1,6 +1,6 @@
 import { BadgeCheck, ClipboardList } from "lucide-react";
 
-import { HomeLink } from "@/components/clinic/home-link";
+import { HomeLink } from "@/components/layouts/HomeLink";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";

@@ -5,8 +5,8 @@ import {
   toAppointmentRequestView,
   updateAppointmentRecord,
   type AppointmentListFilter,
-} from "@/lib/clinic/appointment-records";
-import { isRequestStatus } from "@/lib/clinic/mock-requests";
+} from "@/lib/repositories/appointment/appointment-records";
+import { isRequestStatus } from "@/lib/utils/constants/mock-requests";
 
 function parseFilter(raw: string | null): AppointmentListFilter {
   if (

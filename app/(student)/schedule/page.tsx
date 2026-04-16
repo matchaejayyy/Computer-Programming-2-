@@ -1,8 +1,8 @@
 import { CalendarDays } from "lucide-react";
 
-import { HomeLink } from "@/components/clinic/home-link";
+import { HomeLink } from "@/components/layouts/HomeLink";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { getWeeklyClinicHoursFromDisk } from "@/lib/clinic/clinic-weekly-hours-store";
+import { getWeeklyClinicHoursFromDisk } from "@/lib/repositories/schedule/clinic-weekly-hours-store";
 
 export default async function SchedulePage() {
   const weeklyRows = await getWeeklyClinicHoursFromDisk();

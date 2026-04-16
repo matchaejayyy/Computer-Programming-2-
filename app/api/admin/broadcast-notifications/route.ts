@@ -5,7 +5,7 @@ import {
   deleteBroadcastNotification,
   listBroadcastNotifications,
   updateBroadcastNotification,
-} from "@/lib/clinic/broadcast-notifications";
+} from "@/lib/utils/constants/broadcast-notifications";
 
 export const runtime = "nodejs";
 

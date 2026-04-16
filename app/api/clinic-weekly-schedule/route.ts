@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 
-import { getClinicScheduleFromDisk } from "@/lib/clinic/clinic-weekly-hours-store";
+import { getClinicScheduleFromDisk } from "@/lib/repositories/schedule/clinic-weekly-hours-store";
 
 export async function GET() {
   try {

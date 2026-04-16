@@ -2,12 +2,12 @@
 
 import { useEffect, useState } from "react";
 
-import { HomeLink } from "@/components/admin/admin-homelink";
+import { HomeLink } from "@/components/admin/dashboard/HomeLink";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import type { WeeklyHourRow } from "@/lib/clinic/clinic-weekly-hours-store";
+import type { WeeklyHourRow } from "@/lib/repositories/schedule/clinic-weekly-hours-store";
 
 export default function EditClinicSchedulePage() {
   const [rows, setRows] = useState<WeeklyHourRow[]>([]);

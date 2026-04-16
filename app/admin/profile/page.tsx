@@ -1,5 +1,5 @@
-import { AdminChangePassword } from "@/components/admin/admin-change-password";
-import { HomeLink } from "@/components/admin/admin-homelink";
+import { AdminChangePassword } from "@/components/admin/dashboard/ChangePassword";
+import { HomeLink } from "@/components/admin/dashboard/HomeLink";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
 export default function AdminProfilePage() {

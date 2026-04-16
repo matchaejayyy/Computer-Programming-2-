@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
 
-import { ensureStudentUserAccount } from "@/lib/auth/student-account";
-import { neonAuth } from "@/lib/auth/neon-server";
-import { isAllowedStudentEmail } from "@/lib/clinic/student-email";
+import { ensureStudentUserAccount } from "@/lib/services/auth/student-account";
+import { neonAuth } from "@/lib/services/auth/neon-server";
+import { isAllowedStudentEmail } from "@/lib/repositories/student/student-email";
 
 type RegisterBody = {
   name?: string;

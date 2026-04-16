@@ -1,7 +1,7 @@
 import { ClipboardList } from "lucide-react";
 
-import { HomeLink } from "@/components/clinic/home-link";
-import { ProfileBmi } from "@/components/clinic/profile-bmi";
+import { HomeLink } from "@/components/layouts/HomeLink";
+import { ProfileBmi } from "@/components/student/bmi/BMIProfile";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
 export default function BmiPage() {

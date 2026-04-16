@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 
-import { getBmi, updateBmi } from "@/lib/clinic/cpp-bmi";
+import { getBmi, updateBmi } from "@/lib/utils/helpers/cpp-bmi";
 
 function parsePositiveNumber(input: unknown): number | null {
   const parsed = Number(input);

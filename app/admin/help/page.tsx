@@ -1,5 +1,5 @@
-import { AdminHelpEditor } from "@/components/admin/admin-help-editor";
-import { HomeLink } from "@/components/admin/admin-homelink";
+import { AdminHelpEditor } from "@/components/admin/dashboard/HelpEditor";
+import { HomeLink } from "@/components/admin/dashboard/HomeLink";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
 export default function AdminHelpPage() {

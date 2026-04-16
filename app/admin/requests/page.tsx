@@ -1,6 +1,6 @@
 import { Suspense } from "react";
 
-import { AdminRequestsPanel } from "@/components/admin/admin-requests-panel";
+import { AdminRequestsPanel } from "@/components/admin/requests/RequestsPanel";
 
 export default function AdminRequestsPage() {
   return (

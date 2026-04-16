@@ -1,6 +1,6 @@
 import { Suspense } from "react";
 
-import { RequestsContent } from "@/components/clinic/requests-content";
+import { RequestsContent } from "@/components/student/requests/Content";
 
 export default function RequestsPage() {
   return (

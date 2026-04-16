@@ -1,15 +1,15 @@
 import { NextResponse } from "next/server";
 
 import { auth } from "@/auth";
-import { countAppointmentsForSlot, hasStudentBookedSameSlot } from "@/lib/clinic/appointment-db";
+import { countAppointmentsForSlot, hasStudentBookedSameSlot } from "@/lib/repositories/appointment/appointment-db";
 import {
   getSlotCapacityForDateTime,
   getClinicScheduleFromDisk,
   validatePreferredSlot,
-} from "@/lib/clinic/clinic-weekly-hours-store";
-import { getStudentProfile } from "@/lib/clinic/profile-store";
-import { isProfileFieldUnset } from "@/lib/clinic/profile-placeholders";
-import { reserveAppointmentCpp, type ReserveAppointmentPayload } from "@/lib/clinic/cpp-reserve";
+} from "@/lib/repositories/schedule/clinic-weekly-hours-store";
+import { getStudentProfile } from "@/lib/repositories/student/profile-store";
+import { isProfileFieldUnset } from "@/lib/repositories/student/profile-placeholders";
+import { reserveAppointmentCpp, type ReserveAppointmentPayload } from "@/lib/repositories/appointment/cpp-reserve";
 
 function isString(value: unknown): value is string {
   return typeof value === "string" && value.trim().length > 0;

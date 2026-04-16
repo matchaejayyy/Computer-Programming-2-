@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
 
-import { getStudentProfile } from "@/lib/clinic/profile-store";
+import { getStudentProfile } from "@/lib/repositories/student/profile-store";
 import { prisma } from "@/lib/prisma";
-import type { RequestStatus } from "@/lib/clinic/mock-requests";
+import type { RequestStatus } from "@/lib/utils/constants/mock-requests";
 
 const requestStatusPriority = {
   pending: 0,

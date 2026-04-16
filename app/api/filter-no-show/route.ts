@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 
-import type { RequestStatus } from "@/lib/clinic/mock-requests";
+import type { RequestStatus } from "@/lib/utils/constants/mock-requests";
 
 function isRequestStatus(s: string): s is RequestStatus {
   return (

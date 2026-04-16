@@ -1,7 +1,7 @@
 import Link from "next/link";
 
-import { AdminStudentAccountDetails } from "@/components/admin/admin-student-account-details";
-import { HomeLink } from "@/components/admin/admin-homelink";
+import { AdminStudentAccountDetails } from "@/components/admin/appointments/StudentAccountDetails";
+import { HomeLink } from "@/components/admin/dashboard/HomeLink";
 import { Card, CardContent } from "@/components/ui/card";
 
 type PageProps = {

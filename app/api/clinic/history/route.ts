@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 
-import { appointmentToHistoryEntry } from "@/lib/clinic/appointment-history-mapper";
-import { getStudentProfile } from "@/lib/clinic/profile-store";
+import { appointmentToHistoryEntry } from "@/lib/repositories/appointment/appointment-history-mapper";
+import { getStudentProfile } from "@/lib/repositories/student/profile-store";
 import { prisma } from "@/lib/prisma";
 
 export async function GET(req: Request) {

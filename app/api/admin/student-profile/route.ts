@@ -1,12 +1,12 @@
 import { NextResponse } from "next/server";
 
-import { getBmi } from "@/lib/clinic/cpp-bmi";
+import { getBmi } from "@/lib/utils/helpers/cpp-bmi";
 import {
   calculateAge,
   getStudentProfile,
   updateStudentProfileAdmin,
   type AdminStudentProfileUpdate,
-} from "@/lib/clinic/profile-store";
+} from "@/lib/repositories/student/profile-store";
 
 export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);

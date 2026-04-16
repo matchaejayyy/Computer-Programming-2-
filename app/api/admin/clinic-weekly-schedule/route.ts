@@ -5,7 +5,7 @@ import {
   saveClinicSchedule,
   type ClinicScheduleData,
   type WeeklyHourRow,
-} from "@/lib/clinic/clinic-weekly-hours-store";
+} from "@/lib/repositories/schedule/clinic-weekly-hours-store";
 
 export async function GET() {
   try {

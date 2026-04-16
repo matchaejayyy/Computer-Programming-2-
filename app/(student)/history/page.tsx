@@ -2,14 +2,14 @@ import { CheckCircle, XCircle, AlertCircle } from "lucide-react";
 import { redirect } from "next/navigation";
 
 import { auth } from "@/auth";
-import { HomeLink } from "@/components/clinic/home-link";
+import { HomeLink } from "@/components/layouts/HomeLink";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import type { HistoryEntry, HistoryStatus } from "@/lib/clinic/appointment-history-mapper";
-import { storedAppointmentToHistoryEntry } from "@/lib/clinic/appointment-history-mapper";
-import { readAllStoredAppointments } from "@/lib/clinic/appointment-records";
-import { getStudentProfile } from "@/lib/clinic/profile-store";
+import type { HistoryEntry, HistoryStatus } from "@/lib/repositories/appointment/appointment-history-mapper";
+import { storedAppointmentToHistoryEntry } from "@/lib/repositories/appointment/appointment-history-mapper";
+import { readAllStoredAppointments } from "@/lib/repositories/appointment/appointment-records";
+import { getStudentProfile } from "@/lib/repositories/student/profile-store";
 import { cn } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";

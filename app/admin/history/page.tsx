@@ -9,10 +9,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
-import type { HistoryEntry, HistoryStatus } from "@/lib/clinic/appointment-history-mapper";
+import type { HistoryEntry, HistoryStatus } from "@/lib/repositories/appointment/appointment-history-mapper";
 import { cn } from "@/lib/utils";
 
-import { HomeLink } from "@/components/admin/admin-homelink";
+import { HomeLink } from "@/components/admin/dashboard/HomeLink";
 
 function parseDateToISO(dateString: string): string {
   // Parse "Wednesday, April 2, 2026 — 10:00 AM" to "2026-04-02"

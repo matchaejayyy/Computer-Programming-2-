@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 
-import { listBroadcastNotifications } from "@/lib/clinic/broadcast-notifications";
+import { listBroadcastNotifications } from "@/lib/utils/constants/broadcast-notifications";
 
 export async function GET() {
   try {

@@ -1,6 +1,6 @@
-import { AppTopBar } from "@/components/clinic/app-top-bar";
-import { ClinicStudentBridge } from "@/components/clinic/clinic-student-bridge";
-import { PageTransition } from "@/components/clinic/page-transition";
+import { AppTopBar } from "@/components/layouts/TopBar";
+import { ClinicStudentBridge } from "@/components/common/ClinicStudentBridge";
+import { PageTransition } from "@/components/common/PageTransition";
 import { auth } from "@/auth";
 
 export default async function ClinicLayout({

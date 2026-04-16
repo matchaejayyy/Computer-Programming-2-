@@ -2,7 +2,7 @@
 
 import { redirect } from "next/navigation";
 
-import { auth } from "@/lib/auth/server";
+import { auth } from "@/lib/services/auth/server";
 
 export async function signInWithEmail(
   _prevState: { error: string } | null,

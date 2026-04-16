@@ -1,12 +1,12 @@
 import { NextResponse } from "next/server";
 
-import { countAppointmentsByDateAndTime } from "@/lib/clinic/appointment-db";
+import { countAppointmentsByDateAndTime } from "@/lib/repositories/appointment/appointment-db";
 import {
   getClinicScheduleFromDisk,
   getSlotCapacityForDateTime,
   isDateAvailable,
   isSlotDisabledForDate,
-} from "@/lib/clinic/clinic-weekly-hours-store";
+} from "@/lib/repositories/schedule/clinic-weekly-hours-store";
 
 export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);

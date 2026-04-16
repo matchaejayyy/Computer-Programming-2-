@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { Megaphone } from "lucide-react";
 
-import { HomeLink } from "@/components/admin/admin-homelink";
+import { HomeLink } from "@/components/admin/dashboard/HomeLink";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";

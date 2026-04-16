@@ -2,8 +2,8 @@ import { NextResponse } from "next/server";
 
 import { Role } from "@prisma/client";
 
-import { calculateAge, getStudentProfile, updateStudentProfile } from "@/lib/clinic/profile-store";
-import { getBmi } from "@/lib/clinic/cpp-bmi";
+import { calculateAge, getStudentProfile, updateStudentProfile } from "@/lib/repositories/student/profile-store";
+import { getBmi } from "@/lib/utils/helpers/cpp-bmi";
 import { prisma } from "@/lib/prisma";
 
 export async function GET(req: Request) {

@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 
 import { auth } from "@/auth";
-import { getHelpContent, updateHelpContent } from "@/lib/clinic/help-content";
+import { getHelpContent, updateHelpContent } from "@/lib/utils/constants/help-content";
 
 export async function GET() {
   const session = await auth();

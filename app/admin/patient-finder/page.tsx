@@ -1,5 +1,5 @@
-import { AdminPatientFinder } from "@/components/admin/admin-patient-finder";
-import { HomeLink } from "@/components/admin/admin-homelink";
+import { AdminPatientFinder } from "@/components/admin/appointments/PatientFinder";
+import { HomeLink } from "@/components/admin/dashboard/HomeLink";
 
 export default function AdminPatientFinderPage() {
   return (

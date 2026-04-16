@@ -1,6 +1,6 @@
-import { HomeLink } from "@/components/clinic/home-link";
+import { HomeLink } from "@/components/layouts/HomeLink";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { getHelpContent } from "@/lib/clinic/help-content";
+import { getHelpContent } from "@/lib/utils/constants/help-content";
 
 export default function HelpPage() {
   const content = getHelpContent();

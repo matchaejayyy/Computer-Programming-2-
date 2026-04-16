@@ -2,9 +2,9 @@
 
 import { redirect } from "next/navigation";
 
-import { ensureStudentUserAccount } from "@/lib/auth/student-account";
-import { auth } from "@/lib/auth/server";
-import { isAllowedStudentEmail } from "@/lib/clinic/student-email";
+import { ensureStudentUserAccount } from "@/lib/services/auth/student-account";
+import { auth } from "@/lib/services/auth/server";
+import { isAllowedStudentEmail } from "@/lib/repositories/student/student-email";
 
 export async function signUpWithEmail(
   _prevState: { error: string } | null,

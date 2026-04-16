@@ -1,7 +1,7 @@
 "use client";
 
-import { HomeLink } from "@/components/clinic/home-link";
-import { ReserveForm } from "@/components/clinic/reserve-form";
+import { HomeLink } from "@/components/layouts/HomeLink";
+import { ReserveForm } from "@/components/student/appointments/ReserveForm";
 
 export default function ReservePage() {
   return (
