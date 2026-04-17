@@ -15,7 +15,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { HomeLink } from "@/components/admin/admin-homelink";
+import { HomeLink } from "@/components/admin/dashboard/HomeLink";
 
 const availableMedicines = [
   "Paracetamol",

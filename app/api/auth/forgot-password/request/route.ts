@@ -5,9 +5,9 @@ import {
   hashOtp,
   OTP_RESEND_COOLDOWN_SECONDS,
   OTP_TTL_SECONDS,
-} from "@/lib/auth/password-reset-otp";
+} from "@/lib/services/auth/password-reset-otp";
 import { isAllowedStudentEmail } from "@/lib/repositories/student/student-email";
-import { sendPasswordResetOtpEmail } from "@/lib/email/send-password-reset-otp";
+import { sendPasswordResetOtpEmail } from "@/lib/services/auth/send-password-reset-otp";
 import { prisma } from "@/lib/prisma";
 
 export async function POST(req: Request) {

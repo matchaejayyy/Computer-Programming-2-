@@ -1,9 +1,10 @@
 #include "AppointmentManager.h"
 
+#include <utility>
 #include <sstream>
 
-void AppointmentManager::addRequest(const AppointmentRequest& request) {
-  requests_.push_back(request);
+void AppointmentManager::addRequest(std::unique_ptr<ClinicServiceRequest> request) {
+  requests_.push_back(std::move(request));
 }
 
 std::size_t AppointmentManager::totalRequests() const {
@@ -20,7 +21,7 @@ std::string AppointmentManager::serializeAll() const {
   std::ostringstream output;
   output << "[";
   for (std::size_t i = 0; i < requests_.size(); ++i) {
-    output << requests_[i].serialize();
+    output << requests_[i]->serialize();
     if (i + 1 < requests_.size()) {
       output << ", ";
     }

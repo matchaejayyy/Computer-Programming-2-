@@ -13,7 +13,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 
-import { SidebarWidgets } from "./sidebar-widgets";
+import { SidebarWidgets } from "@/components/common/SidebarWidgets";
 
 const clinicLinks = [
   {

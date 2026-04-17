@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { Bell } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 
-import { AdminProfileMenu } from "@/components/admin/admin-profile-menu";
+import { AdminProfileMenu } from "@/components/admin/dashboard/ProfileMenu";
 import { Badge } from "@/components/ui/badge";
 import {
   DropdownMenu,

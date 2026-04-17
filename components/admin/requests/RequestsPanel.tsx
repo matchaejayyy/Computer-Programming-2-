@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
-import { AdminAppointmentReviewActions } from "@/components/admin/admin-appointment-review-actions";
+import { AdminAppointmentReviewActions } from "@/components/admin/appointments/ReviewActions";
 import { HomeLink } from "@/components/admin/dashboard/HomeLink";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";

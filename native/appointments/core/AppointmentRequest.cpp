@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <cctype>
+#include <exception>
 #include <sstream>
 
 namespace {
@@ -45,16 +46,30 @@ int parseStandardTime(const std::string& time) {
     return -1;
   }
 
-  const int hour = std::stoi(clock.substr(0, colon));
-  const int minute = std::stoi(clock.substr(colon + 1));
-  const std::string upperPeriod = period.substr(0, 2);
+  int hour = -1;
+  int minute = -1;
+  try {
+    hour = std::stoi(clock.substr(0, colon));
+    minute = std::stoi(clock.substr(colon + 1));
+  } catch (const std::exception&) {
+    return -1;
+  }
+
+  if (hour < 1 || hour > 12 || minute < 0 || minute > 59 || period.size() < 2) {
+    return -1;
+  }
+
+  std::string upperPeriod = period.substr(0, 2);
+  std::transform(upperPeriod.begin(), upperPeriod.end(), upperPeriod.begin(), [](unsigned char ch) {
+    return static_cast<char>(std::toupper(ch));
+  });
 
   int hour24 = hour;
-  if (upperPeriod == "AM" || upperPeriod == "am") {
+  if (upperPeriod == "AM") {
     if (hour == 12) {
       hour24 = 0;
     }
-  } else if (upperPeriod == "PM" || upperPeriod == "pm") {
+  } else if (upperPeriod == "PM") {
     if (hour != 12) {
       hour24 += 12;
     }
