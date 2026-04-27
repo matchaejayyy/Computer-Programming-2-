@@ -103,10 +103,8 @@ export default function EditClinicSchedulePage() {
         <div className="min-w-0">
           <h1 className="text-xl font-bold text-foreground sm:text-2xl">Edit clinic schedule</h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            Weekly clinic hours only. Reserve-appointment slot rules and blocked dates are managed in{" "}
-            <code className="text-xs text-foreground">Manage Schedule</code>. Saving updates the database and{" "}
-            <code className="text-xs text-foreground">clinic_weekly_hours.json</code> (C++ tool when
-            built).
+            Weekly clinic hours only. Appointment slot rules and blocked dates are managed in{" "}
+            <code className="text-xs text-foreground">Manage Schedule</code>.
           </p>
         </div>
       </div>
